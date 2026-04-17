@@ -1,0 +1,9 @@
+{
+  "name": "coordenada-publica-visores",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Visores georreferenciados de gestión de redes municipales · Coordenada Pública",
+  "scripts": {
+    "build": "echo 'Sitio estático: nada que compilar.'"
+  }
+}

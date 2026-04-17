@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visor Gestión de Red · Tiltil · Coordenada Pública</title>
+
+<!-- Librerías (con fallbacks de CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin=""/>
+<script>window.__CDN_STATUS__={leaflet:false,markercluster:false,chart:false,papa:false,xlsx:false,tries:[]};
+function loadScript(urls, check, label){
+  return new Promise(resolve=>{
+    let i=0;
+    function tryNext(){
+      if(i>=urls.length){window.__CDN_STATUS__.tries.push(label+': FAIL');resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i]; s.async=false;
+      s.onload=()=>{ if(check()){window.__CDN_STATUS__[label]=true;window.__CDN_STATUS__.tries.push(label+': '+urls[i].split('/')[2]);resolve(true);} else {i++;tryNext();} };
+      s.onerror=()=>{i++;tryNext();};
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__LIBS_READY__ = (async()=>{
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  ], ()=>typeof L!=='undefined', 'leaflet');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',
+    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+  ], ()=>typeof L!=='undefined' && typeof L.markerClusterGroup==='function', 'markercluster');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'
+  ], ()=>typeof Chart!=='undefined', 'chart');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+    'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+    'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+  ], ()=>typeof Papa!=='undefined', 'papa');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], ()=>typeof XLSX!=='undefined', 'xlsx');
+  return true;
+})();
+</script>
+
+<style>
+:root{
+  --bg-0:#0E1117;--bg-1:#151A22;--bg-2:#1C2430;--bg-3:#243041;--line:#2A3545;
+  --txt:#FFFFFF;--txt-2:#C8D2E0;
+  --mustard:#C79F47;--mustard-2:#B8862B;--mustard-soft:rgba(199,159,71,.14);
+  --blue-1:#1E3A5F;--blue-2:#2E5C8A;--blue-3:#3E7CB1;--blue-4:#5FA8D3;--blue-5:#8FCDF5;
+  --ok:#4ECDC4;--warn:#E0A458;--bad:#D96E6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--mustard);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(90deg,#0B0E14 0%,#141B26 60%,#1C2532 100%);border-bottom:2px solid var(--mustard);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header .brand{display:flex;align-items:center;gap:14px}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:var(--mustard);font-weight:bold}
+header .sub{color:var(--txt-2);font-size:12px}
+header .tag{background:var(--mustard);color:#1a1207;font-weight:bold;font-size:11px;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:1px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;transition:all .15s}
+.btn:hover{background:var(--bg-3);border-color:var(--mustard)}
+.btn.primary{background:var(--mustard);color:#1a1207;border-color:var(--mustard);font-weight:bold}
+.btn.primary:hover{background:var(--mustard-2)}
+select,input[type=text]{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+#statusBar{padding:8px 22px;background:#182030;color:var(--txt-2);border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#statusBar.ok{background:#162B1F;color:#b8eec7}
+#statusBar.err{background:#2B1616;color:#ffb3b3}
+main{flex:1;display:grid;grid-template-columns:280px 1fr;min-height:0}
+aside{background:var(--bg-1);border-right:1px solid var(--line);padding:16px;overflow-y:auto}
+aside h3{margin:0 0 10px 0;font-size:11px;letter-spacing:1.5px;color:var(--mustard);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside .filter-group{margin-bottom:14px}
+aside label{display:block;font-size:11px;color:var(--txt-2);margin-bottom:4px}
+aside select{width:100%}
+aside .stats-mini{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:8px}
+aside .stats-mini .lbl{font-size:10px;color:var(--txt-2);letter-spacing:1px}
+aside .stats-mini .val{font-size:18px;color:var(--mustard);font-weight:bold}
+.content{padding:18px;overflow-y:auto;background:var(--bg-0)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:linear-gradient(135deg,var(--bg-2) 0%,var(--bg-3) 100%);border:2px solid var(--mustard);border-radius:10px;padding:14px 16px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(199,159,71,.15);overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(199,159,71,.18),transparent 70%)}
+.kpi .kpi-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:bold}
+.kpi .kpi-value{font-size:26px;color:#fff;font-weight:bold;line-height:1.1}
+.kpi .kpi-sub{font-size:11px;color:var(--txt-2);margin-top:4px}
+.kpi .kpi-icon{position:absolute;bottom:8px;right:10px;font-size:26px;opacity:.28;color:var(--mustard)}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.panel{background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h2{margin:0 0 12px 0;font-size:13px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--line);padding-bottom:8px;font-weight:bold}
+.panel.map{padding:0;overflow:hidden;position:relative}
+.panel.map h2{padding:14px 14px 8px 14px;margin:0;border-bottom:1px solid var(--line)}
+#map{height:500px;width:100%;background:#0B0F15}
+.panel .chart-wrap{position:relative;height:260px}
+.table-wrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-3);position:sticky;top:0}
+thead th{padding:8px 10px;text-align:left;color:var(--mustard);border-bottom:1px solid var(--line);font-size:11px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--bg-2);color:var(--txt-2)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg-2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge.alto{background:#5B1F1F;color:#ffb3b3;border:1px solid #8a2f2f}
+.badge.medio{background:#4B3A1C;color:#f5d089;border:1px solid #7a5f32}
+.badge.bajo{background:#1E3A3A;color:#b3e8e0;border:1px solid #2c5858}
+.badge.estado{background:var(--bg-3);color:var(--mustard);border:1px solid var(--line)}
+footer{padding:10px 22px;background:#0A0D12;color:var(--txt-2);font-size:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important}
+.leaflet-control-attribution a{color:var(--mustard)!important}
+.leaflet-popup-content-wrapper{background:var(--bg-2);color:#fff;border:1px solid var(--mustard);font-family:Arial}
+.leaflet-popup-tip{background:var(--bg-2)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--mustard)}
+.banner{background:var(--mustard-soft);border:1px solid var(--mustard);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+.banner b{color:var(--mustard)}
+.layer-toggle{position:absolute;top:60px;right:10px;background:var(--bg-1);border:1px solid var(--line);border-radius:4px;padding:6px 8px;z-index:1000;font-size:11px}
+.layer-toggle label{display:block;color:#fff;margin:2px 0;cursor:pointer}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div style="width:40px;height:40px;background:var(--mustard);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1a1207;font-weight:bold;font-size:16px">TI</div>
+    <div>
+      <h1>Visor de <span class="accent">Gestión de Red</span> y Elementos en Desuso</h1>
+      <div class="sub">Comuna de <b style="color:#fff">Tiltil</b> · Región Metropolitana · <span id="rec-count">0</span> puntos oficiales dentro del polígono · Polígono oficial <b>BCN</b></div>
+    </div>
+    <span class="tag">Datos Oficiales BCN</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnExport">💾 Exportar CSV</button>
+    <button class="btn primary" id="btnReport">📄 Reporte</button>
+  </div>
+</header>
+
+<div id="statusBar">
+  <span id="statusText">Inicializando...</span>
+  <span id="statusMeta"></span>
+</div>
+
+<main>
+  <aside>
+    <div class="banner">
+      <b>Tiltil:</b> <span id="dataRecs">—</span> registros
+    </div>
+
+    <h3>Filtros</h3>
+    <div class="filter-group"><label>Compañía / Fuente</label><select id="fCompania"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Nivel de Riesgo</label><select id="fRiesgo"><option value="">Todos</option><option value="Alto">Alto</option><option value="Medio">Medio</option><option value="Bajo">Bajo</option></select></div>
+    <div class="filter-group"><label>Estado clasificado</label><select id="fEstado"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Elemento de Red</label><select id="fElem"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Material Principal</label><select id="fMat"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Prioridad (≤)</label><input type="range" id="fPrio" min="0" max="10" value="10" style="width:100%"/><span id="fPrioVal" style="color:var(--mustard);font-size:11px">Hasta 10</span></div>
+    <h3 style="margin-top:14px">Resumen rápido</h3>
+    <div class="stats-mini"><div class="lbl">Densidad (pts/km²)</div><div class="val" id="density">0</div></div>
+    <div class="stats-mini"><div class="lbl">% Riesgo Alto</div><div class="val" id="pctAlto">0%</div></div>
+    <div class="stats-mini"><div class="lbl">Multa promedio (CLP)</div><div class="val" id="avgMulta">$0</div></div>
+    <div class="stats-mini"><div class="lbl">Peso promedio / punto</div><div class="val" id="avgPeso">0 kg</div></div>
+
+    <button class="btn" id="btnReset" style="width:100%;margin-top:10px">🔁 Limpiar filtros</button>
+  </aside>
+
+  <div class="content">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Cantidad de Multas</div><div class="kpi-value" id="kpiMultas">0</div><div class="kpi-sub">1 multa x registro</div></div>
+      <div class="kpi"><div class="kpi-label">Estimación Multas CLP</div><div class="kpi-value" id="kpiMultasCLP">$0</div><div class="kpi-sub">según Ley 21.172</div></div>
+      <div class="kpi"><div class="kpi-label">Cantidad de KM</div><div class="kpi-value" id="kpiKM">0</div><div class="kpi-sub">cable/ducto afectado</div></div>
+      <div class="kpi"><div class="kpi-label">KG de Basura</div><div class="kpi-value" id="kpiKG">0</div><div class="kpi-sub">residuos estimados</div></div>
+      <div class="kpi"><div class="kpi-label">Índice Riesgo</div><div class="kpi-value" id="kpiRiesgo">0</div><div class="kpi-sub">compuesto 0-100</div></div>
+      <div class="kpi"><div class="kpi-label">Costo x KM</div><div class="kpi-value" id="kpiCostoKM">$0</div><div class="kpi-sub">multa/KM intervenido</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel map">
+        <h2>🗺️ Visor Geoespacial · Tiltil (Polígono BCN)</h2>
+        <div id="map"></div>
+        <div class="layer-toggle">
+          <label><input type="checkbox" id="lyrPts" checked/> Puntos</label>
+          <label><input type="checkbox" id="lyrPoly" checked/> Polígono BCN</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📊 Distribución por Compañía / Fuente</h2>
+        <div class="chart-wrap"><canvas id="chartCompania"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel"><h2>⚠️ Nivel de Riesgo</h2><div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div></div>
+      <div class="panel"><h2>🔧 Estado Clasificado</h2><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+      <div class="panel"><h2>📦 Elemento de Red</h2><div class="chart-wrap"><canvas id="chartElem"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🧪 Material Principal</h2><div class="chart-wrap"><canvas id="chartMat"></canvas></div></div>
+      <div class="panel"><h2>🏢 Top Fuentes por Impacto CLP</h2><div class="chart-wrap"><canvas id="chartTopCLP"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🎯 Prioridad x CLP</h2><div class="chart-wrap"><canvas id="chartPrio"></canvas></div></div>
+      <div class="panel"><h2>🛣️ Tipo de lugar</h2><div class="chart-wrap"><canvas id="chartTipoLugar"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Detalle de Puntos <span style="float:right;font-size:11px;color:var(--txt-2)">Click en fila para centrar en el mapa · Hasta 500</span></h2>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr><th>ID</th><th>Fuente</th><th>Elemento</th><th>Material</th><th>Estado</th><th>Riesgo</th><th>Prio</th><th>KM</th><th>KG</th><th>CLP</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div><b style="color:var(--mustard)">Visor Gestión de Red · Tiltil</b> — Coordenada Pública · Ley 21.172 · Decreto N°176</div>
+  <div>Plantilla extensible a otras comunas · Próximo: API REST para expedientes automáticos</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Datos reales embebidos
+   ============================================================ */
+const RAW_DATA = [{"id":"TIL-20753","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":89000,"km":0.04,"kg_basura":6.0,"lat":-33.12249,"lng":-70.79682},{"id":"TIL-20754","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":85000,"km":0.04,"kg_basura":6.0,"lat":-33.12848,"lng":-70.80071},{"id":"TIL-20755","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":81000,"km":0.04,"kg_basura":6.0,"lat":-33.11015,"lng":-70.79267},{"id":"TIL-20756","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":77000,"km":0.04,"kg_basura":6.0,"lat":-33.14347,"lng":-70.80065},{"id":"TIL-20757","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":73000,"km":0.04,"kg_basura":6.0,"lat":-33.08675,"lng":-70.91998},{"id":"TIL-20758","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":69000,"km":0.04,"kg_basura":6.0,"lat":-33.08647,"lng":-70.92296},{"id":"TIL-20759","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":64000,"km":0.04,"kg_basura":6.0,"lat":-33.09584,"lng":-70.9288},{"id":"TIL-20760","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":60000,"km":0.04,"kg_basura":6.0,"lat":-33.13222,"lng":-70.79731},{"id":"TIL-20761","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":56000,"km":0.04,"kg_basura":6.0,"lat":-33.08583,"lng":-70.93097},{"id":"TIL-20762","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.0819,"lng":-70.93019},{"id":"TIL-20763","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.08542,"lng":-70.92728},{"id":"TIL-20764","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.07524,"lng":-70.93081},{"id":"TIL-20765","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.07697,"lng":-70.92619},{"id":"TIL-20766","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.08407,"lng":-70.92368},{"id":"TIL-20767","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.0883,"lng":-70.9236},{"id":"TIL-20768","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.08988,"lng":-70.92278},{"id":"TIL-20769","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.0882,"lng":-70.91411},{"id":"TIL-20770","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.09311,"lng":-70.91907},{"id":"TIL-20771","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.11317,"lng":-70.78929},{"id":"TIL-20772","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.13273,"lng":-70.80732},{"id":"TIL-20773","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.13611,"lng":-70.80007},{"id":"TIL-20774","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":22,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.13761,"lng":-70.8052},{"id":"TIL-20775","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":23,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.14571,"lng":-70.79681},{"id":"TIL-20776","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":24,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.13966,"lng":-70.79566},{"id":"TIL-20777","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":25,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.16042,"lng":-70.88629},{"id":"TIL-20778","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":26,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.16851,"lng":-70.88791},{"id":"TIL-20779","fuente":"HOLDCO","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":27,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":52000,"km":0.04,"kg_basura":6.0,"lat":-33.17451,"lng":-70.88804},{"id":"TIL-32854","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar cruceta","elemento_red":"Estructura","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":233000,"km":0.0,"kg_basura":15.0,"lat":-33.083463,"lng":-70.928787},{"id":"TIL-32855","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar Mufa Suelta","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":219000,"km":0.0,"kg_basura":3.0,"lat":-33.082684,"lng":-70.928103},{"id":"TIL-32856","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar cruceta","elemento_red":"Estructura","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":212000,"km":0.0,"kg_basura":15.0,"lat":-33.081953,"lng":-70.928047},{"id":"TIL-32857","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar Mufa Suelta","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":166000,"km":0.0,"kg_basura":3.0,"lat":-33.084713,"lng":-70.923135},{"id":"TIL-32858","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar cruceta","elemento_red":"Estructura","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":201000,"km":0.0,"kg_basura":15.0,"lat":-33.097663,"lng":-70.926711},{"id":"TIL-32859","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar Mufa Suelta","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":177000,"km":0.0,"kg_basura":3.0,"lat":-33.089246,"lng":-70.928946},{"id":"TIL-32860","fuente":"ONNET FIBRA","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Tendido bajo la normativa y fijar Mufa Suelta","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":187000,"km":0.0,"kg_basura":3.0,"lat":-33.088687,"lng":-70.928959},{"id":"TIL-37396","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Camino","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":6,"multas":1,"clp_multas":194000,"km":0.04,"kg_basura":6.0,"lat":-33.13158,"lng":-70.84958},{"id":"TIL-37397","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Camino","tipo_elemento":"Mufa","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":3,"multas":1,"clp_multas":129000,"km":0.0,"kg_basura":3.0,"lat":-33.16154,"lng":-70.89502},{"id":"TIL-37398","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Camino","tipo_elemento":"ACOMETIDAS EN DESUSO","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":5,"multas":1,"clp_multas":173000,"km":0.04,"kg_basura":1.2,"lat":-33.09563,"lng":-70.92933},{"id":"TIL-37399","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Camino","tipo_elemento":"ACOMETIDAS EN DESUSO","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":1,"multas":1,"clp_multas":92000,"km":0.04,"kg_basura":1.2,"lat":-33.09237,"lng":-70.92911},{"id":"TIL-37400","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Camino","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":1,"multas":1,"clp_multas":93000,"km":0.04,"kg_basura":6.0,"lat":-33.09098,"lng":-70.92898},{"id":"TIL-37401","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":4,"multas":1,"clp_multas":154000,"km":0.04,"kg_basura":6.0,"lat":-33.08965,"lng":-70.92895},{"id":"TIL-37402","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":5,"multas":1,"clp_multas":174000,"km":0.04,"kg_basura":6.0,"lat":-33.08584,"lng":-70.92895},{"id":"TIL-37403","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Medio","riesgo_score":8,"multas":1,"clp_multas":234000,"km":0.04,"kg_basura":6.0,"lat":-33.08659,"lng":-70.92887},{"id":"TIL-37404","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08474,"lng":-70.93032},{"id":"TIL-37405","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":4,"multas":1,"clp_multas":154000,"km":0.04,"kg_basura":6.0,"lat":-33.08344,"lng":-70.93019},{"id":"TIL-37406","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08253,"lng":-70.92984},{"id":"TIL-37407","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":3,"multas":1,"clp_multas":133000,"km":0.04,"kg_basura":6.0,"lat":-33.0816,"lng":-70.928},{"id":"TIL-37408","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":3,"multas":1,"clp_multas":133000,"km":0.04,"kg_basura":6.0,"lat":-33.08075,"lng":-70.93002},{"id":"TIL-37409","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.0823,"lng":-70.93118},{"id":"TIL-37410","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":73000,"km":0.04,"kg_basura":6.0,"lat":-33.08241,"lng":-70.93129},{"id":"TIL-37411","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08347,"lng":-70.93137},{"id":"TIL-37412","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08476,"lng":-70.93104},{"id":"TIL-37413","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":1,"multas":1,"clp_multas":93000,"km":0.04,"kg_basura":6.0,"lat":-33.08395,"lng":-70.93147},{"id":"TIL-37414","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08504,"lng":-70.93146},{"id":"TIL-37415","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08639,"lng":-70.93086},{"id":"TIL-37416","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08426,"lng":-70.92893},{"id":"TIL-37417","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08357,"lng":-70.92656},{"id":"TIL-37418","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08664,"lng":-70.92779},{"id":"TIL-37419","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Pasaje","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":73000,"km":0.04,"kg_basura":6.0,"lat":-33.08403,"lng":-70.92401},{"id":"TIL-37420","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":1,"multas":1,"clp_multas":93000,"km":0.04,"kg_basura":6.0,"lat":-33.08515,"lng":-70.92053},{"id":"TIL-37421","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Pasaje","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":1,"multas":1,"clp_multas":93000,"km":0.04,"kg_basura":6.0,"lat":-33.0859,"lng":-70.92192},{"id":"TIL-37422","fuente":"Telefónica Chile S.A.","region":"Región Metropolitana de Santiago (XIII)","comuna":"Tiltil","plan":"Por definir","prioridad":0,"tipo_lugar":"Pasaje","tipo_elemento":"cables","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Desconocido","riesgo":"Bajo","riesgo_score":2,"multas":1,"clp_multas":113000,"km":0.04,"kg_basura":6.0,"lat":-33.08558,"lng":-70.92214}];
+const LO_PRADO_POLYGON = {"type": "Feature", "properties": {"objectid": 290, "shape_leng": 133827.265443, "dis_elec": 8, "cir_sena": 7, "cod_comuna": 13303, "codregion": 13, "st_area_sh": "9.32499624704e+08", "st_length_": "1.60053560383e+05", "Region": "RegiÃ³n Metropolitana de Santiago", "Comuna": "Tiltil", "Provincia": "Chacabuco"}, "geometry": {"type": "Polygon", "coordinates": [[[-70.73098, -32.92615], [-70.73061, -32.9262], [-70.72998, -32.92616], [-70.72934, -32.92577], [-70.72891, -32.92525], [-70.72824, -32.92457], [-70.72791, -32.92497], [-70.72742, -32.92547], [-70.72659, -32.92612], [-70.72601, -32.92648], [-70.72518, -32.9267], [-70.72442, -32.92693], [-70.72342, -32.92722], [-70.72285, -32.9278], [-70.72269, -32.92851], [-70.72262, -32.92907], [-70.72263, -32.92971], [-70.72334, -32.93133], [-70.72352, -32.93196], [-70.72369, -32.93239], [-70.72362, -32.93302], [-70.72313, -32.93353], [-70.72246, -32.93403], [-70.72223, -32.93488], [-70.72215, -32.93538], [-70.72201, -32.93637], [-70.72202, -32.93687], [-70.7222, -32.93757], [-70.72237, -32.938], [-70.72205, -32.93857], [-70.72172, -32.939], [-70.72124, -32.93999], [-70.72085, -32.94149], [-70.72087, -32.94297], [-70.72115, -32.94403], [-70.72077, -32.94619], [-70.72104, -32.94718], [-70.72106, -32.94803], [-70.72115, -32.94867], [-70.72134, -32.94973], [-70.7211, -32.95051], [-70.72078, -32.95122], [-70.72046, -32.95179], [-70.72022, -32.95257], [-70.72, -32.95303], [-70.72089, -32.95307], [-70.7216, -32.95332], [-70.72244, -32.95357], [-70.72283, -32.9538], [-70.72327, -32.9541], [-70.72372, -32.95445], [-70.7241, -32.95468], [-70.7246, -32.9552], [-70.72491, -32.95571], [-70.72508, -32.95627], [-70.72532, -32.95672], [-70.7255, -32.95706], [-70.72569, -32.95729], [-70.72619, -32.95769], [-70.72696, -32.95817], [-70.72766, -32.95874], [-70.72829, -32.95932], [-70.72912, -32.9599], [-70.72963, -32.9602], [-70.73027, -32.9605], [-70.73092, -32.9608], [-70.73149, -32.96115], [-70.73253, -32.96157], [-70.7333, -32.96188], [-70.73401, -32.96212], [-70.73452, -32.96253], [-70.73496, -32.96293], [-70.7356, -32.96345], [-70.73623, -32.96397], [-70.73692, -32.96461], [-70.73768, -32.96536], [-70.73812, -32.96581], [-70.73915, -32.9663], [-70.73985, -32.96665], [-70.7411, -32.9668], [-70.74201, -32.96695], [-70.74274, -32.96681], [-70.74348, -32.96655], [-70.74473, -32.96654], [-70.74585, -32.96663], [-70.74676, -32.96689], [-70.74728, -32.96701], [-70.74766, -32.96731], [-70.74817, -32.96766], [-70.74887, -32.96807], [-70.74945, -32.96837], [-70.74983, -32.96866], [-70.75021, -32.96911], [-70.7507, -32.9698], [-70.75107, -32.97025], [-70.75151, -32.97071], [-70.75181, -32.97139], [-70.7523, -32.97207], [-70.75285, -32.97303], [-70.75328, -32.9736], [-70.7539, -32.9744], [-70.75467, -32.97482], [-70.75551, -32.97529], [-70.75634, -32.97581], [-70.75692, -32.97611], [-70.75762, -32.97653], [-70.75846, -32.97695], [-70.75916, -32.9773], [-70.75949, -32.97748], [-70.76007, -32.97772], [-70.76037, -32.97817], [-70.76068, -32.97863], [-70.76072, -32.97918], [-70.76108, -32.98003], [-70.76159, -32.98027], [-70.76217, -32.98051], [-70.7636, -32.98089], [-70.76432, -32.98097], [-70.76517, -32.98122], [-70.76621, -32.98143], [-70.76686, -32.98156], [-70.76744, -32.98186], [-70.76886, -32.98257], [-70.77007, -32.98333], [-70.77041, -32.98371], [-70.77014, -32.98398], [-70.76986, -32.98435], [-70.76967, -32.98455], [-70.76962, -32.98458], [-70.76931, -32.98499], [-70.76894, -32.9854], [-70.76847, -32.98576], [-70.76801, -32.98621], [-70.76768, -32.98657], [-70.76726, -32.98702], [-70.7668, -32.98738], [-70.76581, -32.98772], [-70.76525, -32.98792], [-70.76459, -32.98809], [-70.76375, -32.98858], [-70.76341, -32.98873], [-70.76289, -32.98952], [-70.76217, -32.99039], [-70.76165, -32.9911], [-70.76123, -32.9919], [-70.76078, -32.99311], [-70.76034, -32.99416], [-70.75991, -32.9952], [-70.75957, -32.99625], [-70.75934, -32.99689], [-70.7591, -32.99802], [-70.75903, -32.99932], [-70.75938, -33.00015], [-70.75971, -33.00138], [-70.75977, -33.0022], [-70.75944, -33.00292], [-70.75912, -33.00365], [-70.75908, -33.00438], [-70.75895, -33.00502], [-70.75835, -33.00541], [-70.75785, -33.00588], [-70.75707, -33.00602], [-70.75619, -33.00624], [-70.7555, -33.00646], [-70.75481, -33.00676], [-70.75392, -33.00714], [-70.7535, -33.00793], [-70.75329, -33.00825], [-70.75304, -33.00861], [-70.75276, -33.00875], [-70.75237, -33.00894], [-70.75212, -33.00908], [-70.75187, -33.00935], [-70.75164, -33.00969], [-70.75135, -33.01013], [-70.75121, -33.01054], [-70.75108, -33.01078], [-70.75077, -33.01098], [-70.75046, -33.01119], [-70.75026, -33.01156], [-70.75022, -33.01186], [-70.75021, -33.01216], [-70.75037, -33.0124], [-70.75057, -33.0126], [-70.75074, -33.01279], [-70.75094, -33.01302], [-70.75123, -33.01323], [-70.75149, -33.01341], [-70.75197, -33.01359], [-70.75244, -33.01385], [-70.75281, -33.01411], [-70.75337, -33.01453], [-70.75403, -33.01488], [-70.75458, -33.01547], [-70.75542, -33.01615], [-70.75585, -33.01723], [-70.7562, -33.01797], [-70.75644, -33.01912], [-70.75689, -33.01979], [-70.75706, -33.02028], [-70.75674, -33.02084], [-70.75613, -33.02147], [-70.75544, -33.02178], [-70.75494, -33.02216], [-70.75433, -33.02272], [-70.75353, -33.02334], [-70.7532, -33.02406], [-70.75306, -33.02495], [-70.75332, -33.02578], [-70.75377, -33.02628], [-70.75472, -33.02672], [-70.75528, -33.02707], [-70.75565, -33.02749], [-70.75611, -33.02807], [-70.75626, -33.02881], [-70.75642, -33.02963], [-70.75686, -33.03054], [-70.75732, -33.03105], [-70.75758, -33.03154], [-70.75804, -33.03221], [-70.7585, -33.03263], [-70.75915, -33.03315], [-70.75954, -33.03337], [-70.76075, -33.03378], [-70.76146, -33.03421], [-70.76183, -33.03473], [-70.76219, -33.03524], [-70.76229, -33.03605], [-70.7623, -33.03657], [-70.76188, -33.03724], [-70.76153, -33.03769], [-70.7612, -33.03851], [-70.76069, -33.03933], [-70.76053, -33.04014], [-70.76027, -33.04059], [-70.75969, -33.042], [-70.75961, -33.04267], [-70.75945, -33.04348], [-70.75947, -33.04408], [-70.75965, -33.04452], [-70.76002, -33.04525], [-70.76056, -33.0462], [-70.76119, -33.04701], [-70.76173, -33.04737], [-70.76244, -33.04773], [-70.76323, -33.04794], [-70.76411, -33.04815], [-70.76482, -33.04851], [-70.76527, -33.04917], [-70.76564, -33.05005], [-70.76574, -33.05057], [-70.76585, -33.05175], [-70.76587, -33.05278], [-70.76606, -33.05345], [-70.76634, -33.05396], [-70.7667, -33.05469], [-70.76689, -33.05536], [-70.76413, -33.05802], [-70.76354, -33.05906], [-70.76259, -33.05974], [-70.76224, -33.05997], [-70.76163, -33.0602], [-70.76103, -33.06065], [-70.76051, -33.06118], [-70.75973, -33.06163], [-70.75912, -33.06179], [-70.75816, -33.0621], [-70.75703, -33.06271], [-70.75642, -33.06301], [-70.75476, -33.06348], [-70.75397, -33.06378], [-70.75319, -33.06409], [-70.75241, -33.06462], [-70.75164, -33.06537], [-70.75112, -33.06612], [-70.75078, -33.06664], [-70.75044, -33.06716], [-70.74975, -33.06754], [-70.74931, -33.06762], [-70.7487, -33.06778], [-70.74809, -33.06793], [-70.74756, -33.06824], [-70.74722, -33.06861], [-70.74696, -33.06891], [-70.74688, -33.06936], [-70.7469, -33.07009], [-70.74698, -33.07049], [-70.74695, -33.07062], [-70.74694, -33.07088], [-70.74693, -33.07101], [-70.74697, -33.07116], [-70.747, -33.07131], [-70.74704, -33.07146], [-70.74708, -33.07161], [-70.74709, -33.07176], [-70.74708, -33.07191], [-70.74706, -33.07206], [-70.74703, -33.07221], [-70.74699, -33.07236], [-70.74692, -33.07261], [-70.74695, -33.07275], [-70.74699, -33.07291], [-70.74702, -33.07306], [-70.74704, -33.07321], [-70.74705, -33.07335], [-70.74706, -33.07351], [-70.74707, -33.07366], [-70.74708, -33.07381], [-70.74708, -33.07396], [-70.7471, -33.07412], [-70.74711, -33.07427], [-70.74713, -33.07443], [-70.74717, -33.07457], [-70.74721, -33.07472], [-70.74724, -33.07487], [-70.74726, -33.07502], [-70.74727, -33.07517], [-70.74727, -33.07533], [-70.74727, -33.07548], [-70.74727, -33.07563], [-70.74727, -33.07578], [-70.74728, -33.07593], [-70.7473, -33.07608], [-70.74733, -33.07623], [-70.74737, -33.07638], [-70.74742, -33.07653], [-70.74748, -33.07667], [-70.74753, -33.07682], [-70.74757, -33.07697], [-70.74762, -33.07712], [-70.74766, -33.07727], [-70.7477, -33.07741], [-70.74772, -33.07757], [-70.74774, -33.07772], [-70.74774, -33.07787], [-70.74773, -33.07802], [-70.74773, -33.07818], [-70.74772, -33.07833], [-70.74773, -33.07848], [-70.74774, -33.07863], [-70.74776, -33.07878], [-70.74778, -33.07893], [-70.74781, -33.07908], [-70.74784, -33.07923], [-70.74787, -33.07939], [-70.74791, -33.07953], [-70.74795, -33.07968], [-70.74799, -33.07983], [-70.74804, -33.07997], [-70.7481, -33.08012], [-70.74818, -33.08026], [-70.74826, -33.08039], [-70.74833, -33.08053], [-70.74839, -33.08068], [-70.74844, -33.08082], [-70.7485, -33.08097], [-70.74855, -33.08112], [-70.74859, -33.08126], [-70.74864, -33.08141], [-70.74868, -33.08156], [-70.74871, -33.08171], [-70.749, -33.08245], [-70.74919, -33.08278], [-70.74928, -33.08303], [-70.74995, -33.08425], [-70.75091, -33.08634], [-70.7543, -33.09339], [-70.75587, -33.09594], [-70.7567, -33.09751], [-70.75729, -33.09846], [-70.75851, -33.10043], [-70.75858, -33.10078], [-70.75858, -33.10107], [-70.75865, -33.10142], [-70.75865, -33.10161], [-70.75883, -33.10191], [-70.75902, -33.1022], [-70.75914, -33.10244], [-70.75944, -33.10278], [-70.75956, -33.10303], [-70.75962, -33.10322], [-70.75968, -33.10347], [-70.75975, -33.10376], [-70.75976, -33.10411], [-70.75914, -33.1053], [-70.75817, -33.10679], [-70.75772, -33.10743], [-70.75766, -33.10773], [-70.75767, -33.10817], [-70.75769, -33.10906], [-70.75748, -33.11004], [-70.7572, -33.11069], [-70.75715, -33.1108], [-70.75644, -33.11194], [-70.75603, -33.11274], [-70.75585, -33.11322], [-70.75548, -33.11387], [-70.75512, -33.11479], [-70.75471, -33.11556], [-70.75444, -33.11628], [-70.75431, -33.1168], [-70.75422, -33.11736], [-70.75429, -33.11819], [-70.75487, -33.11906], [-70.75516, -33.11926], [-70.75579, -33.11965], [-70.75646, -33.12016], [-70.75694, -33.12059], [-70.75738, -33.12098], [-70.75767, -33.1215], [-70.75869, -33.12256], [-70.75918, -33.12319], [-70.75938, -33.12375], [-70.75949, -33.12439], [-70.75949, -33.12482], [-70.75946, -33.12534], [-70.75924, -33.1261], [-70.75873, -33.12691], [-70.75827, -33.12748], [-70.75781, -33.12824], [-70.75725, -33.12893], [-70.75675, -33.12965], [-70.75643, -33.13037], [-70.75601, -33.13094], [-70.75569, -33.1315], [-70.75551, -33.13198], [-70.75514, -33.13259], [-70.75477, -33.13307], [-70.75422, -33.13364], [-70.754, -33.13452], [-70.754, -33.13483], [-70.754, -33.13488], [-70.75401, -33.13528], [-70.75397, -33.13568], [-70.75403, -33.13607], [-70.75418, -33.13647], [-70.75433, -33.13687], [-70.75452, -33.13718], [-70.75497, -33.13825], [-70.75493, -33.13849], [-70.75475, -33.13878], [-70.75437, -33.13914], [-70.75381, -33.13959], [-70.7535, -33.14035], [-70.75337, -33.14083], [-70.75333, -33.14098], [-70.7533, -33.14102], [-70.75323, -33.14113], [-70.75313, -33.14127], [-70.75303, -33.14141], [-70.75295, -33.14156], [-70.75293, -33.14161], [-70.75248, -33.1418], [-70.75192, -33.14201], [-70.7515, -33.14229], [-70.75144, -33.14235], [-70.75112, -33.1427], [-70.75075, -33.14298], [-70.75009, -33.14335], [-70.74958, -33.14372], [-70.74893, -33.14425], [-70.74836, -33.14453], [-70.74709, -33.14487], [-70.7461, -33.14504], [-70.74534, -33.14517], [-70.74487, -33.1453], [-70.74421, -33.14555], [-70.74403, -33.14595], [-70.74394, -33.14655], [-70.74386, -33.14723], [-70.74368, -33.14775], [-70.74312, -33.14816], [-70.74247, -33.1485], [-70.74245, -33.14852], [-70.74243, -33.1486], [-70.74229, -33.14941], [-70.7423, -33.14992], [-70.74232, -33.15088], [-70.74226, -33.15171], [-70.74198, -33.1528], [-70.7417, -33.15308], [-70.74114, -33.15345], [-70.74063, -33.1539], [-70.74035, -33.15422], [-70.74027, -33.15433], [-70.7402, -33.15444], [-70.73956, -33.15539], [-70.73924, -33.15591], [-70.73925, -33.15647], [-70.73923, -33.15698], [-70.73922, -33.15711], [-70.7392, -33.15721], [-70.73917, -33.15733], [-70.73914, -33.15744], [-70.73912, -33.15756], [-70.73909, -33.15767], [-70.73906, -33.15779], [-70.73903, -33.15787], [-70.73902, -33.1579], [-70.73895, -33.158], [-70.73872, -33.15839], [-70.73793, -33.15896], [-70.73775, -33.15904], [-70.73762, -33.15909], [-70.73732, -33.15921], [-70.73711, -33.15928], [-70.73698, -33.15932], [-70.73685, -33.15936], [-70.73672, -33.1594], [-70.73659, -33.15944], [-70.73646, -33.15948], [-70.73633, -33.15952], [-70.7362, -33.15957], [-70.73614, -33.15959], [-70.73607, -33.15962], [-70.73595, -33.15968], [-70.73548, -33.15991], [-70.73492, -33.16044], [-70.73465, -33.16108], [-70.73452, -33.16164], [-70.73434, -33.16232], [-70.73421, -33.16296], [-70.73417, -33.16344], [-70.73428, -33.16384], [-70.73438, -33.1644], [-70.73478, -33.16523], [-70.73503, -33.16575], [-70.73532, -33.16614], [-70.73574, -33.16663], [-70.73583, -33.16667], [-70.73659, -33.16698], [-70.73711, -33.16712], [-70.73739, -33.16733], [-70.73804, -33.16772], [-70.73875, -33.16815], [-70.73945, -33.16858], [-70.74035, -33.16889], [-70.74135, -33.16913], [-70.74212, -33.16919], [-70.74289, -33.16914], [-70.7428, -33.16906], [-70.74367, -33.169], [-70.74438, -33.16923], [-70.74499, -33.16962], [-70.74526, -33.16995], [-70.74529, -33.17039], [-70.74527, -33.17084], [-70.74538, -33.17137], [-70.74566, -33.1717], [-70.74622, -33.17197], [-70.74703, -33.17224], [-70.74764, -33.17246], [-70.74811, -33.1728], [-70.74867, -33.17314], [-70.74895, -33.17332], [-70.74937, -33.17361], [-70.75004, -33.1738], [-70.75066, -33.17405], [-70.75139, -33.17445], [-70.75167, -33.1749], [-70.75179, -33.17541], [-70.75199, -33.17599], [-70.75234, -33.17644], [-70.75277, -33.17683], [-70.75313, -33.17728], [-70.75355, -33.1778], [-70.75398, -33.17826], [-70.75447, -33.17884], [-70.75543, -33.17925], [-70.75646, -33.1796], [-70.75706, -33.17949], [-70.75805, -33.17915], [-70.75905, -33.17868], [-70.7598, -33.17852], [-70.76121, -33.17876], [-70.76231, -33.17917], [-70.76335, -33.17933], [-70.76434, -33.17905], [-70.76511, -33.17851], [-70.76596, -33.17804], [-70.76674, -33.17743], [-70.76728, -33.17707], [-70.76775, -33.17665], [-70.76831, -33.17585], [-70.76917, -33.17519], [-70.77001, -33.17478], [-70.77098, -33.17481], [-70.77172, -33.17496], [-70.77231, -33.17517], [-70.77282, -33.17537], [-70.7741, -33.17542], [-70.77487, -33.17488], [-70.7755, -33.17427], [-70.77605, -33.17366], [-70.77704, -33.17325], [-70.77825, -33.17311], [-70.77976, -33.17278], [-70.7812, -33.17232], [-70.78197, -33.17197], [-70.78446, -33.17162], [-70.78558, -33.17153], [-70.787, -33.1717], [-70.78784, -33.17184], [-70.78843, -33.17205], [-70.78866, -33.17209], [-70.79019, -33.17234], [-70.79228, -33.17219], [-70.79195, -33.17304], [-70.79211, -33.17301], [-70.7923, -33.17298], [-70.79249, -33.17295], [-70.79268, -33.17292], [-70.79276, -33.1729], [-70.79438, -33.17189], [-70.79555, -33.17106], [-70.79726, -33.17013], [-70.79846, -33.16967], [-70.7994, -33.16958], [-70.79998, -33.16977], [-70.80082, -33.17066], [-70.80142, -33.17151], [-70.80222, -33.17208], [-70.8033, -33.17219], [-70.80468, -33.17211], [-70.80603, -33.17171], [-70.80721, -33.17166], [-70.80765, -33.17176], [-70.80811, -33.17239], [-70.80847, -33.17278], [-70.80925, -33.17317], [-70.81126, -33.17466], [-70.81317, -33.17517], [-70.8153, -33.17567], [-70.81668, -33.17598], [-70.81899, -33.17686], [-70.82034, -33.17798], [-70.82196, -33.17963], [-70.82254, -33.18089], [-70.82293, -33.18181], [-70.82375, -33.18324], [-70.82494, -33.18429], [-70.82586, -33.18491], [-70.82721, -33.18469], [-70.8286, -33.1835], [-70.82994, -33.18215], [-70.8308, -33.18138], [-70.83231, -33.18085], [-70.83526, -33.1797], [-70.83819, -33.1798], [-70.84042, -33.18039], [-70.84226, -33.1805], [-70.84572, -33.18091], [-70.84804, -33.18104], [-70.85022, -33.18106], [-70.85371, -33.181], [-70.85657, -33.18127], [-70.85718, -33.18141], [-70.85736, -33.18176], [-70.85721, -33.18221], [-70.85546, -33.18307], [-70.85224, -33.18463], [-70.85107, -33.18626], [-70.85038, -33.1879], [-70.84995, -33.18973], [-70.84943, -33.19212], [-70.84918, -33.19453], [-70.84941, -33.19528], [-70.85005, -33.19777], [-70.85247, -33.20004], [-70.85313, -33.20063], [-70.85499, -33.2025], [-70.85653, -33.20408], [-70.85762, -33.20646], [-70.85842, -33.20857], [-70.85923, -33.21033], [-70.85958, -33.21172], [-70.86012, -33.21336], [-70.86095, -33.21454], [-70.86149, -33.21624], [-70.86191, -33.21764], [-70.86234, -33.21863], [-70.86329, -33.22045], [-70.86446, -33.22182], [-70.86531, -33.22277], [-70.86597, -33.22343], [-70.86631, -33.22494], [-70.86682, -33.22577], [-70.86859, -33.22618], [-70.86989, -33.22633], [-70.8722, -33.22682], [-70.87342, -33.2272], [-70.87526, -33.22749], [-70.87715, -33.22687], [-70.87874, -33.22657], [-70.8797, -33.22672], [-70.88113, -33.227], [-70.88206, -33.22767], [-70.88295, -33.22886], [-70.88309, -33.22843], [-70.88337, -33.22757], [-70.88403, -33.22641], [-70.88508, -33.22544], [-70.88603, -33.22471], [-70.88733, -33.22407], [-70.88783, -33.22392], [-70.88794, -33.22349], [-70.88788, -33.22339], [-70.88774, -33.22317], [-70.8877, -33.22311], [-70.88718, -33.2226], [-70.88678, -33.22227], [-70.88658, -33.22132], [-70.88646, -33.22084], [-70.88639, -33.22036], [-70.88638, -33.21989], [-70.88625, -33.21898], [-70.88612, -33.21813], [-70.88605, -33.21755], [-70.88597, -33.21655], [-70.88613, -33.21588], [-70.88611, -33.21526], [-70.88622, -33.21469], [-70.88699, -33.21382], [-70.88744, -33.21352], [-70.88856, -33.21289], [-70.88946, -33.21254], [-70.89003, -33.21238], [-70.89007, -33.21237], [-70.89048, -33.21224], [-70.89127, -33.21208], [-70.89195, -33.21202], [-70.89258, -33.21199], [-70.89276, -33.21192], [-70.89319, -33.21177], [-70.8937, -33.21152], [-70.89415, -33.21137], [-70.89459, -33.21089], [-70.89458, -33.21034], [-70.89444, -33.20992], [-70.89445, -33.20915], [-70.89318, -33.20776], [-70.89219, -33.20565], [-70.89204, -33.20465], [-70.89191, -33.20324], [-70.8913, -33.20148], [-70.89088, -33.19997], [-70.89054, -33.1988], [-70.89052, -33.19714], [-70.89024, -33.19472], [-70.88976, -33.18799], [-70.88972, -33.18604], [-70.88976, -33.18539], [-70.89024, -33.18395], [-70.89032, -33.1837], [-70.89079, -33.18314], [-70.89085, -33.18307], [-70.89225, -33.18138], [-70.89293, -33.18109], [-70.89451, -33.18116], [-70.89601, -33.18131], [-70.89702, -33.18141], [-70.89742, -33.18145], [-70.89861, -33.18138], [-70.89949, -33.18118], [-70.89969, -33.18116], [-70.90008, -33.18112], [-70.90076, -33.18111], [-70.9015, -33.18108], [-70.90222, -33.1811], [-70.90235, -33.18113], [-70.90289, -33.18113], [-70.9032, -33.18114], [-70.90383, -33.18121], [-70.90479, -33.18119], [-70.9055, -33.18118], [-70.90581, -33.18118], [-70.90758, -33.18129], [-70.90911, -33.18151], [-70.9098, -33.18169], [-70.91037, -33.18187], [-70.91094, -33.18215], [-70.91135, -33.18243], [-70.9118, -33.18256], [-70.91231, -33.1826], [-70.91294, -33.18269], [-70.9134, -33.18287], [-70.91426, -33.18315], [-70.91666, -33.18397], [-70.91717, -33.18415], [-70.91774, -33.18433], [-70.91826, -33.18452], [-70.91883, -33.1846], [-70.91974, -33.18464], [-70.92053, -33.18462], [-70.92133, -33.18476], [-70.92173, -33.18489], [-70.92258, -33.18512], [-70.9231, -33.1853], [-70.92367, -33.18548], [-70.92407, -33.18562], [-70.92481, -33.1858], [-70.92532, -33.18589], [-70.92607, -33.18611], [-70.92652, -33.18625], [-70.92704, -33.18643], [-70.92761, -33.18661], [-70.92847, -33.18672], [-70.92898, -33.18678], [-70.92983, -33.18679], [-70.93007, -33.18673], [-70.93096, -33.18652], [-70.93146, -33.18622], [-70.93191, -33.18588], [-70.93235, -33.18525], [-70.93262, -33.18468], [-70.93278, -33.18429], [-70.93294, -33.184], [-70.93339, -33.18376], [-70.93368, -33.18375], [-70.93419, -33.1837], [-70.93452, -33.18336], [-70.93468, -33.18283], [-70.93484, -33.18235], [-70.93528, -33.18182], [-70.93584, -33.18124], [-70.93696, -33.18055], [-70.93796, -33.18001], [-70.93858, -33.17948], [-70.93924, -33.17885], [-70.93946, -33.17841], [-70.93962, -33.17789], [-70.93972, -33.17746], [-70.94056, -33.17673], [-70.9409, -33.17658], [-70.94129, -33.17638], [-70.94174, -33.17628], [-70.94242, -33.17598], [-70.94287, -33.17583], [-70.94326, -33.17573], [-70.94382, -33.17543], [-70.94427, -33.17524], [-70.94505, -33.17465], [-70.94561, -33.17426], [-70.94634, -33.17388], [-70.94758, -33.17353], [-70.94878, -33.17344], [-70.94958, -33.17334], [-70.95048, -33.17317], [-70.95108, -33.17302], [-70.95164, -33.17278], [-70.95229, -33.17268], [-70.95329, -33.1725], [-70.95408, -33.17274], [-70.9552, -33.17411], [-70.9561, -33.1751], [-70.95794, -33.1762], [-70.95927, -33.17651], [-70.96044, -33.1767], [-70.96154, -33.17689], [-70.96226, -33.17728], [-70.9633, -33.17752], [-70.96505, -33.17706], [-70.96675, -33.17678], [-70.96816, -33.17637], [-70.96967, -33.17587], [-70.9714, -33.17497], [-70.97271, -33.17447], [-70.97281, -33.17438], [-70.97354, -33.17382], [-70.97442, -33.17293], [-70.9751, -33.17207], [-70.97561, -33.17197], [-70.97619, -33.1722], [-70.97652, -33.17271], [-70.9772, -33.17306], [-70.97763, -33.17333], [-70.97817, -33.17351], [-70.97931, -33.17343], [-70.98057, -33.17313], [-70.98097, -33.17294], [-70.9817, -33.17229], [-70.98225, -33.17227], [-70.98283, -33.17254], [-70.98346, -33.17293], [-70.984, -33.17404], [-70.98489, -33.17636], [-70.98568, -33.17747], [-70.98736, -33.17774], [-70.99173, -33.17775], [-70.99338, -33.17766], [-70.99338, -33.17766], [-70.99337, -33.17754], [-70.99322, -33.17746], [-70.99307, -33.17736], [-70.99292, -33.17727], [-70.99278, -33.17716], [-70.99265, -33.17706], [-70.99251, -33.17695], [-70.99239, -33.17683], [-70.99227, -33.17671], [-70.99215, -33.17659], [-70.99204, -33.17647], [-70.99194, -33.17634], [-70.99184, -33.17621], [-70.99175, -33.17607], [-70.99166, -33.17593], [-70.99158, -33.17579], [-70.99182, -33.17543], [-70.99207, -33.17507], [-70.99232, -33.17472], [-70.99257, -33.17437], [-70.99283, -33.17401], [-70.9931, -33.17367], [-70.99337, -33.17332], [-70.99365, -33.17298], [-70.99393, -33.17264], [-70.99422, -33.17231], [-70.99451, -33.17198], [-70.9946, -33.1717], [-70.99468, -33.17142], [-70.99475, -33.17115], [-70.99483, -33.17087], [-70.9949, -33.17059], [-70.99498, -33.17032], [-70.99506, -33.17004], [-70.99513, -33.16976], [-70.99522, -33.16948], [-70.99532, -33.16921], [-70.99547, -33.16896], [-70.99566, -33.16872], [-70.99585, -33.16849], [-70.996, -33.16832], [-70.99694, -33.16761], [-70.99793, -33.16643], [-70.99858, -33.16535], [-70.99908, -33.16467], [-71.00012, -33.16325], [-71.00101, -33.16192], [-71.00194, -33.16089], [-71.00322, -33.15944], [-71.00404, -33.15891], [-71.00414, -33.15875], [-71.00428, -33.15845], [-71.0044, -33.15814], [-71.00449, -33.15782], [-71.00454, -33.15751], [-71.00457, -33.15719], [-71.00459, -33.15687], [-71.0046, -33.15655], [-71.0046, -33.15623], [-71.00459, -33.15591], [-71.00457, -33.15559], [-71.00453, -33.15526], [-71.00446, -33.15494], [-71.00442, -33.15462], [-71.00461, -33.15436], [-71.00498, -33.15434], [-71.00536, -33.15435], [-71.00574, -33.15434], [-71.00612, -33.15428], [-71.00649, -33.15421], [-71.00687, -33.15417], [-71.00725, -33.15417], [-71.00763, -33.15422], [-71.00801, -33.15426], [-71.00839, -33.15428], [-71.00878, -33.15431], [-71.00917, -33.15432], [-71.00953, -33.15426], [-71.00986, -33.15412], [-71.01018, -33.15395], [-71.01049, -33.15376], [-71.01079, -33.15354], [-71.01108, -33.15332], [-71.01134, -33.15309], [-71.01158, -33.15284], [-71.0118, -33.15258], [-71.01199, -33.1523], [-71.01217, -33.15201], [-71.01232, -33.15172], [-71.01246, -33.15142], [-71.01259, -33.15112], [-71.01275, -33.15082], [-71.01293, -33.15054], [-71.01315, -33.15028], [-71.01339, -33.15003], [-71.01363, -33.14979], [-71.01387, -33.14953], [-71.01411, -33.14928], [-71.0143, -33.149], [-71.0144, -33.1487], [-71.01446, -33.14838], [-71.0145, -33.14806], [-71.01453, -33.14773], [-71.01453, -33.14741], [-71.01446, -33.1471], [-71.01433, -33.1468], [-71.01418, -33.1465], [-71.01401, -33.14621], [-71.01385, -33.14592], [-71.01366, -33.14564], [-71.01342, -33.1454], [-71.01312, -33.14521], [-71.01279, -33.14504], [-71.01244, -33.1449], [-71.01218, -33.14466], [-71.01205, -33.14437], [-71.01207, -33.14414], [-71.01245, -33.14345], [-71.01285, -33.14313], [-71.0132, -33.14263], [-71.01329, -33.14218], [-71.01328, -33.14134], [-71.01312, -33.14069], [-71.01281, -33.14019], [-71.01281, -33.14017], [-71.01268, -33.13987], [-71.01255, -33.13956], [-71.01249, -33.13925], [-71.01245, -33.13893], [-71.01242, -33.13861], [-71.0124, -33.13829], [-71.01239, -33.13797], [-71.01237, -33.13765], [-71.01236, -33.13733], [-71.01236, -33.13701], [-71.01237, -33.13669], [-71.01238, -33.13637], [-71.01241, -33.13604], [-71.01245, -33.13572], [-71.01249, -33.13541], [-71.01252, -33.1351], [-71.01257, -33.13477], [-71.01261, -33.13446], [-71.01263, -33.13413], [-71.01264, -33.13381], [-71.01266, -33.13349], [-71.01267, -33.13318], [-71.01269, -33.13285], [-71.01272, -33.13253], [-71.01275, -33.13222], [-71.0128, -33.13189], [-71.01288, -33.13158], [-71.01299, -33.13127], [-71.01314, -33.13098], [-71.01335, -33.13071], [-71.01355, -33.13044], [-71.01374, -33.13016], [-71.01392, -33.12988], [-71.01409, -33.12959], [-71.01424, -33.12929], [-71.01433, -33.12898], [-71.0144, -33.12867], [-71.0145, -33.12836], [-71.01463, -33.12806], [-71.01478, -33.12776], [-71.01491, -33.12747], [-71.01502, -33.12716], [-71.01511, -33.12685], [-71.01521, -33.12653], [-71.01533, -33.12623], [-71.01546, -33.12593], [-71.01561, -33.12563], [-71.01579, -33.12535], [-71.01595, -33.12507], [-71.01608, -33.12476], [-71.01618, -33.12446], [-71.01627, -33.12414], [-71.01634, -33.12382], [-71.01641, -33.12351], [-71.0165, -33.1232], [-71.01661, -33.12289], [-71.01676, -33.1226], [-71.01694, -33.12231], [-71.01714, -33.12204], [-71.01736, -33.12178], [-71.0176, -33.12153], [-71.01785, -33.12129], [-71.0181, -33.12104], [-71.01834, -33.1208], [-71.01932, -33.12005], [-71.01966, -33.1189], [-71.01966, -33.1189], [-71.01966, -33.11889], [-71.01972, -33.11857], [-71.01974, -33.11826], [-71.01973, -33.11793], [-71.0197, -33.11761], [-71.01969, -33.11728], [-71.01966, -33.11696], [-71.01964, -33.11664], [-71.01962, -33.11633], [-71.01959, -33.11601], [-71.01957, -33.11568], [-71.01955, -33.11536], [-71.01953, -33.11504], [-71.01951, -33.11473], [-71.01949, -33.11441], [-71.01948, -33.11409], [-71.01949, -33.11377], [-71.01953, -33.11345], [-71.01962, -33.11314], [-71.0197, -33.11282], [-71.01973, -33.1125], [-71.01975, -33.11218], [-71.01978, -33.11186], [-71.01982, -33.11154], [-71.01991, -33.11124], [-71.02005, -33.11093], [-71.02014, -33.11062], [-71.02012, -33.1103], [-71.02004, -33.10999], [-71.01995, -33.10968], [-71.01982, -33.10937], [-71.01969, -33.10908], [-71.01955, -33.10877], [-71.01941, -33.10848], [-71.01926, -33.10818], [-71.01911, -33.10789], [-71.01896, -33.10759], [-71.0188, -33.1073], [-71.01863, -33.10702], [-71.01846, -33.10672], [-71.01832, -33.10643], [-71.01822, -33.10612], [-71.01811, -33.10581], [-71.01801, -33.1055], [-71.01795, -33.10519], [-71.01791, -33.10487], [-71.01786, -33.10455], [-71.0178, -33.10423], [-71.01774, -33.10392], [-71.01768, -33.1036], [-71.0176, -33.10329], [-71.01752, -33.10298], [-71.0174, -33.10267], [-71.01726, -33.10238], [-71.01712, -33.10207], [-71.017, -33.10177], [-71.01693, -33.10145], [-71.01686, -33.10114], [-71.01679, -33.10083], [-71.01672, -33.10051], [-71.01664, -33.1002], [-71.01656, -33.09989], [-71.01648, -33.09957], [-71.0164, -33.09926], [-71.0163, -33.09895], [-71.01621, -33.09864], [-71.01611, -33.09833], [-71.01602, -33.09802], [-71.01593, -33.0977], [-71.01582, -33.0974], [-71.0157, -33.09709], [-71.01556, -33.0968], [-71.0154, -33.0965], [-71.01525, -33.09621], [-71.01517, -33.09581], [-71.01514, -33.09549], [-71.01528, -33.0952], [-71.01552, -33.09494], [-71.01578, -33.0947], [-71.01602, -33.09446], [-71.01624, -33.09419], [-71.01646, -33.09394], [-71.01669, -33.09368], [-71.01693, -33.09343], [-71.01718, -33.09319], [-71.01743, -33.09294], [-71.01767, -33.0927], [-71.01792, -33.09246], [-71.01817, -33.09221], [-71.01841, -33.09197], [-71.01866, -33.09173], [-71.01891, -33.09148], [-71.01916, -33.09124], [-71.01941, -33.091], [-71.01966, -33.09076], [-71.01992, -33.09052], [-71.02018, -33.09028], [-71.02043, -33.09005], [-71.02069, -33.08982], [-71.02094, -33.08957], [-71.0212, -33.08933], [-71.02145, -33.0891], [-71.0217, -33.08886], [-71.02194, -33.08861], [-71.02217, -33.08835], [-71.02239, -33.08808], [-71.02264, -33.08785], [-71.02293, -33.08764], [-71.02322, -33.08743], [-71.02352, -33.08724], [-71.02383, -33.08705], [-71.02413, -33.08686], [-71.02444, -33.08667], [-71.02475, -33.08649], [-71.02507, -33.0863], [-71.02538, -33.08612], [-71.0257, -33.08594], [-71.02601, -33.08576], [-71.02634, -33.0856], [-71.02668, -33.08546], [-71.02702, -33.08531], [-71.02734, -33.08514], [-71.02766, -33.08496], [-71.02797, -33.08477], [-71.02827, -33.08458], [-71.02858, -33.08439], [-71.02892, -33.0842], [-71.02918, -33.08403], [-71.0292, -33.08401], [-71.02927, -33.08396], [-71.02932, -33.08393], [-71.02916, -33.08379], [-71.02888, -33.08356], [-71.02887, -33.08356], [-71.02815, -33.08291], [-71.02772, -33.08244], [-71.02736, -33.082], [-71.0271, -33.08156], [-71.02683, -33.08109], [-71.0266, -33.08047], [-71.02648, -33.07978], [-71.02635, -33.07933], [-71.0263, -33.07896], [-71.02626, -33.07858], [-71.02612, -33.07825], [-71.02571, -33.07786], [-71.02541, -33.07762], [-71.02507, -33.07748], [-71.02465, -33.07734], [-71.02415, -33.07717], [-71.02356, -33.07695], [-71.02298, -33.07672], [-71.02246, -33.07645], [-71.02205, -33.07611], [-71.02153, -33.07565], [-71.02098, -33.07511], [-71.0205, -33.07467], [-71.02016, -33.07425], [-71.0199, -33.07394], [-71.01953, -33.07355], [-71.01915, -33.07327], [-71.01891, -33.07308], [-71.01835, -33.07274], [-71.01807, -33.07241], [-71.01794, -33.07192], [-71.01807, -33.07149], [-71.01822, -33.07094], [-71.01824, -33.07055], [-71.01821, -33.07022], [-71.01803, -33.06983], [-71.01774, -33.06954], [-71.01741, -33.06919], [-71.0171, -33.06901], [-71.01678, -33.06881], [-71.01635, -33.06852], [-71.016, -33.0682], [-71.01576, -33.06787], [-71.01554, -33.06765], [-71.01513, -33.06735], [-71.01462, -33.06717], [-71.01418, -33.06708], [-71.0138, -33.06693], [-71.01345, -33.0667], [-71.01312, -33.06639], [-71.01285, -33.06603], [-71.01262, -33.06575], [-71.01237, -33.06549], [-71.01214, -33.06532], [-71.01189, -33.06514], [-71.01168, -33.06504], [-71.01139, -33.06497], [-71.01073, -33.0649], [-71.01054, -33.06491], [-71.01013, -33.06497], [-71.00977, -33.06507], [-71.00953, -33.06515], [-71.00931, -33.06521], [-71.0091, -33.06517], [-71.00894, -33.06506], [-71.00878, -33.06473], [-71.00879, -33.06455], [-71.00898, -33.06409], [-71.00912, -33.06376], [-71.00925, -33.06338], [-71.00935, -33.06294], [-71.00953, -33.06224], [-71.00967, -33.06157], [-71.00982, -33.06114], [-71.00993, -33.06086], [-71.01005, -33.0607], [-71.01014, -33.06051], [-71.01022, -33.06023], [-71.01015, -33.05982], [-71.01012, -33.05954], [-71.00996, -33.05926], [-71.00987, -33.05906], [-71.00961, -33.0587], [-71.00939, -33.05837], [-71.00904, -33.05796], [-71.00876, -33.05765], [-71.0085, -33.05737], [-71.00832, -33.05708], [-71.00818, -33.05674], [-71.008, -33.05608], [-71.00795, -33.05583], [-71.00785, -33.05516], [-71.00777, -33.05462], [-71.00775, -33.05414], [-71.00777, -33.05355], [-71.00771, -33.05301], [-71.00758, -33.05266], [-71.0074, -33.05249], [-71.00696, -33.05234], [-71.00653, -33.05233], [-71.00612, -33.05243], [-71.00571, -33.05258], [-71.0053, -33.05273], [-71.00489, -33.05288], [-71.00446, -33.05291], [-71.00421, -33.05282], [-71.00398, -33.05263], [-71.00391, -33.0524], [-71.00375, -33.05211], [-71.00347, -33.05179], [-71.00303, -33.05153], [-71.0027, -33.05138], [-71.00249, -33.0513], [-71.00199, -33.05114], [-71.00155, -33.05098], [-71.00109, -33.05073], [-71.00089, -33.05041], [-71.00086, -33.05015], [-71.00089, -33.0499], [-71.00101, -33.04966], [-71.0011, -33.04951], [-71.00127, -33.049], [-71.0014, -33.04854], [-71.0014, -33.04854], [-71.00142, -33.04845], [-71.00143, -33.04842], [-71.00143, -33.04842], [-71.00161, -33.04791], [-71.00183, -33.0476], [-71.00259, -33.04709], [-71.00307, -33.04687], [-71.00365, -33.04663], [-71.00411, -33.04644], [-71.0047, -33.0462], [-71.00542, -33.04593], [-71.00604, -33.04563], [-71.00646, -33.04532], [-71.00677, -33.04504], [-71.00706, -33.04483], [-71.0073, -33.04461], [-71.00753, -33.04438], [-71.0078, -33.04406], [-71.00795, -33.04364], [-71.00811, -33.04305], [-71.00811, -33.04268], [-71.00805, -33.04233], [-71.00794, -33.042], [-71.008, -33.04173], [-71.00814, -33.04156], [-71.00838, -33.0414], [-71.00858, -33.04133], [-71.00884, -33.04131], [-71.0089, -33.04129], [-71.00907, -33.0413], [-71.00922, -33.04126], [-71.00946, -33.04119], [-71.00967, -33.04105], [-71.00986, -33.0409], [-71.01013, -33.04065], [-71.01039, -33.04036], [-71.0106, -33.04008], [-71.01082, -33.03984], [-71.01117, -33.03959], [-71.01158, -33.03934], [-71.01205, -33.03911], [-71.01237, -33.03897], [-71.01286, -33.03879], [-71.01332, -33.03842], [-71.01358, -33.03802], [-71.01368, -33.03778], [-71.01378, -33.03742], [-71.01394, -33.03693], [-71.01418, -33.0364], [-71.01436, -33.03586], [-71.01445, -33.03556], [-71.01456, -33.03513], [-71.01459, -33.03474], [-71.01458, -33.03432], [-71.01457, -33.03398], [-71.01454, -33.03356], [-71.01454, -33.03333], [-71.01458, -33.03279], [-71.01458, -33.03254], [-71.01467, -33.03217], [-71.01483, -33.03174], [-71.01504, -33.03116], [-71.01529, -33.03051], [-71.01548, -33.02998], [-71.01576, -33.02942], [-71.01596, -33.02898], [-71.0162, -33.02864], [-71.01642, -33.0284], [-71.01655, -33.02832], [-71.01676, -33.02817], [-71.01696, -33.0279], [-71.01706, -33.02769], [-71.0171, -33.02744], [-71.01715, -33.02712], [-71.01713, -33.02676], [-71.01709, -33.02627], [-71.01702, -33.02599], [-71.01699, -33.02574], [-71.01699, -33.02541], [-71.01714, -33.02519], [-71.01734, -33.02499], [-71.01766, -33.02476], [-71.01796, -33.02458], [-71.01807, -33.02433], [-71.01818, -33.02393], [-71.01836, -33.02349], [-71.01851, -33.02307], [-71.01864, -33.02273], [-71.01887, -33.02248], [-71.01912, -33.02229], [-71.01929, -33.0221], [-71.01955, -33.02183], [-71.01979, -33.02134], [-71.01991, -33.02093], [-71.01994, -33.02061], [-71.01997, -33.02022], [-71.01997, -33.01973], [-71.01996, -33.01921], [-71.01987, -33.01849], [-71.01979, -33.01825], [-71.01961, -33.01801], [-71.0194, -33.01773], [-71.01922, -33.01756], [-71.01905, -33.0173], [-71.01899, -33.01705], [-71.01915, -33.01661], [-71.01948, -33.01637], [-71.0197, -33.01616], [-71.01981, -33.01592], [-71.01983, -33.01571], [-71.01984, -33.01553], [-71.01986, -33.01536], [-71.01982, -33.01504], [-71.01979, -33.0147], [-71.01973, -33.01447], [-71.01966, -33.01421], [-71.01964, -33.01401], [-71.0196, -33.01372], [-71.01957, -33.01348], [-71.01959, -33.01321], [-71.0197, -33.0127], [-71.01989, -33.01207], [-71.02006, -33.01162], [-71.02037, -33.01117], [-71.02062, -33.01085], [-71.02101, -33.01044], [-71.0214, -33.01002], [-71.02157, -33.00984], [-71.02204, -33.00933], [-71.02254, -33.00877], [-71.02297, -33.00832], [-71.0235, -33.00783], [-71.02399, -33.00747], [-71.02434, -33.00724], [-71.02473, -33.00701], [-71.02518, -33.00682], [-71.0257, -33.00663], [-71.02609, -33.0064], [-71.02636, -33.00616], [-71.02661, -33.0059], [-71.02673, -33.00557], [-71.02683, -33.0052], [-71.02694, -33.00462], [-71.02693, -33.00453], [-71.02697, -33.00388], [-71.02702, -33.00331], [-71.027, -33.00254], [-71.02704, -33.00197], [-71.02714, -33.00116], [-71.02713, -33.00068], [-71.02717, -33.0003], [-71.02765, -32.99876], [-71.02775, -32.9981], [-71.02802, -32.99747], [-71.028, -32.9968], [-71.02799, -32.99627], [-71.0278, -32.99552], [-71.02767, -32.9949], [-71.02748, -32.9938], [-71.02741, -32.99323], [-71.027, -32.99257], [-71.02704, -32.9919], [-71.02708, -32.99133], [-71.0273, -32.99094], [-71.02768, -32.99027], [-71.02784, -32.98964], [-71.02783, -32.98917], [-71.02776, -32.98905], [-71.02735, -32.98896], [-71.02706, -32.98862], [-71.02671, -32.98824], [-71.02635, -32.98762], [-71.02558, -32.98705], [-71.02518, -32.98681], [-71.02448, -32.98639], [-71.02378, -32.98596], [-71.02325, -32.98554], [-71.02284, -32.98511], [-71.0226, -32.98462], [-71.02188, -32.98333], [-71.02169, -32.98265], [-71.02157, -32.98247], [-71.02144, -32.98228], [-71.02131, -32.9821], [-71.02117, -32.98193], [-71.02103, -32.98175], [-71.02088, -32.98158], [-71.02073, -32.98141], [-71.02057, -32.98125], [-71.0204, -32.98109], [-71.02024, -32.98093], [-71.02006, -32.98078], [-71.01988, -32.98063], [-71.0197, -32.98049], [-71.01951, -32.98035], [-71.01931, -32.98021], [-71.01912, -32.98008], [-71.01898, -32.98006], [-71.01884, -32.98003], [-71.01871, -32.97999], [-71.01858, -32.97995], [-71.01845, -32.9799], [-71.01832, -32.97985], [-71.0182, -32.9798], [-71.01808, -32.97974], [-71.01796, -32.97967], [-71.01784, -32.9796], [-71.01773, -32.97953], [-71.01763, -32.97945], [-71.01756, -32.97931], [-71.01749, -32.97918], [-71.01741, -32.97905], [-71.01733, -32.97892], [-71.01724, -32.97879], [-71.01715, -32.97866], [-71.01705, -32.97854], [-71.01694, -32.97842], [-71.01683, -32.97831], [-71.01671, -32.9782], [-71.01659, -32.97809], [-71.01646, -32.97799], [-71.01633, -32.97789], [-71.01619, -32.97779], [-71.01605, -32.9777], [-71.01559, -32.97737], [-71.01483, -32.97699], [-71.01423, -32.97676], [-71.01315, -32.97643], [-71.01258, -32.9762], [-71.01162, -32.97607], [-71.01094, -32.97608], [-71.01031, -32.97604], [-71.00913, -32.97611], [-71.008, -32.97622], [-71.00528, -32.97627], [-71.00415, -32.97614], [-71.00358, -32.97593], [-71.0034, -32.97587], [-71.00255, -32.97574], [-71.00226, -32.97569], [-71.00147, -32.97556], [-71.00074, -32.97558], [-70.99966, -32.97559], [-70.99904, -32.97584], [-70.99854, -32.97604], [-70.9982, -32.97628], [-70.99702, -32.97673], [-70.99584, -32.97694], [-70.99465, -32.97701], [-70.99386, -32.97712], [-70.99274, -32.97742], [-70.99131, -32.97785], [-70.99064, -32.97807], [-70.99015, -32.97823], [-70.9896, -32.9785], [-70.98908, -32.97856], [-70.98838, -32.97867], [-70.98783, -32.97889], [-70.98749, -32.97905], [-70.98694, -32.97966], [-70.98674, -32.97999], [-70.98653, -32.98015], [-70.98625, -32.98017], [-70.98603, -32.98001], [-70.98584, -32.97972], [-70.9858, -32.97929], [-70.98563, -32.97868], [-70.98492, -32.97813], [-70.98443, -32.97764], [-70.98377, -32.97704], [-70.9828, -32.97646], [-70.98164, -32.97618], [-70.98068, -32.97615], [-70.97985, -32.97619], [-70.97892, -32.97623], [-70.9789, -32.97622], [-70.97874, -32.9762], [-70.97716, -32.97593], [-70.97558, -32.97589], [-70.97453, -32.9759], [-70.97313, -32.97629], [-70.97208, -32.97653], [-70.97103, -32.97655], [-70.96962, -32.97605], [-70.96838, -32.9757], [-70.96758, -32.97535], [-70.96582, -32.97471], [-70.9644, -32.97414], [-70.96298, -32.97364], [-70.96192, -32.97314], [-70.96032, -32.97221], [-70.95881, -32.97112], [-70.95756, -32.97033], [-70.95631, -32.96924], [-70.95469, -32.96756], [-70.95433, -32.96683], [-70.95405, -32.96624], [-70.9537, -32.96617], [-70.95291, -32.96626], [-70.95222, -32.96694], [-70.95102, -32.96792], [-70.95007, -32.96889], [-70.94965, -32.96949], [-70.94879, -32.97039], [-70.94785, -32.97166], [-70.94732, -32.97192], [-70.94714, -32.97209], [-70.94683, -32.97232], [-70.94675, -32.97236], [-70.94675, -32.97236], [-70.94645, -32.97248], [-70.94603, -32.97256], [-70.9456, -32.97258], [-70.94517, -32.97259], [-70.94474, -32.97261], [-70.94432, -32.97267], [-70.94405, -32.97271], [-70.94324, -32.97277], [-70.94185, -32.97296], [-70.94127, -32.97302], [-70.94055, -32.97304], [-70.93974, -32.97301], [-70.93919, -32.97288], [-70.93821, -32.97242], [-70.93736, -32.97179], [-70.93678, -32.9714], [-70.93602, -32.97107], [-70.93472, -32.97062], [-70.9347, -32.97062], [-70.93389, -32.9702], [-70.93277, -32.96968], [-70.9314, -32.96914], [-70.93054, -32.96884], [-70.92919, -32.9682], [-70.92848, -32.96761], [-70.92826, -32.96732], [-70.92793, -32.96709], [-70.9265, -32.966], [-70.92568, -32.96461], [-70.92548, -32.96314], [-70.92523, -32.95996], [-70.92521, -32.95907], [-70.92475, -32.95819], [-70.92456, -32.95724], [-70.92437, -32.95665], [-70.92274, -32.95408], [-70.9221, -32.95313], [-70.92012, -32.9508], [-70.9186, -32.94934], [-70.91753, -32.94855], [-70.91663, -32.9476], [-70.91616, -32.94583], [-70.91596, -32.94472], [-70.91552, -32.94473], [-70.91491, -32.94496], [-70.9143, -32.94519], [-70.91352, -32.94565], [-70.91274, -32.94581], [-70.91186, -32.94582], [-70.9108, -32.94569], [-70.91001, -32.94548], [-70.90921, -32.94505], [-70.90858, -32.94402], [-70.90847, -32.94357], [-70.90824, -32.94312], [-70.90802, -32.94187], [-70.90796, -32.94091], [-70.90759, -32.9394], [-70.90753, -32.93923], [-70.90748, -32.93888], [-70.90739, -32.93852], [-70.90732, -32.93828], [-70.90723, -32.93731], [-70.90719, -32.93652], [-70.90702, -32.93621], [-70.90662, -32.93591], [-70.90605, -32.93579], [-70.90526, -32.93565], [-70.90464, -32.93563], [-70.90388, -32.93557], [-70.90309, -32.93559], [-70.90275, -32.93558], [-70.90232, -32.93556], [-70.90189, -32.93554], [-70.90147, -32.93546], [-70.90106, -32.93538], [-70.90064, -32.93529], [-70.90023, -32.9352], [-70.89982, -32.9351], [-70.89942, -32.93497], [-70.89902, -32.93484], [-70.89862, -32.9347], [-70.89825, -32.9345], [-70.89788, -32.93432], [-70.89748, -32.93427], [-70.89706, -32.93429], [-70.89677, -32.93434], [-70.89663, -32.93437], [-70.8962, -32.93445], [-70.89578, -32.93453], [-70.89537, -32.93462], [-70.89496, -32.93473], [-70.89456, -32.93486], [-70.89417, -32.935], [-70.89378, -32.93516], [-70.89341, -32.93534], [-70.89305, -32.93553], [-70.89269, -32.93573], [-70.89231, -32.9359], [-70.89193, -32.93607], [-70.89158, -32.93627], [-70.89124, -32.93649], [-70.89091, -32.93672], [-70.89057, -32.93694], [-70.89022, -32.93714], [-70.88987, -32.93735], [-70.88953, -32.93757], [-70.88918, -32.93779], [-70.88884, -32.938], [-70.8885, -32.93823], [-70.88848, -32.93825], [-70.88822, -32.93846], [-70.88769, -32.93879], [-70.88662, -32.93878], [-70.8859, -32.93871], [-70.88547, -32.93854], [-70.88468, -32.93793], [-70.88419, -32.93746], [-70.8835, -32.93715], [-70.883, -32.93687], [-70.88209, -32.93662], [-70.88174, -32.93647], [-70.8809, -32.93621], [-70.88018, -32.93606], [-70.87987, -32.93591], [-70.87915, -32.93553], [-70.87821, -32.93521], [-70.87762, -32.93469], [-70.87692, -32.9342], [-70.87646, -32.93378], [-70.87567, -32.9334], [-70.87451, -32.93262], [-70.87324, -32.93164], [-70.87234, -32.93113], [-70.87142, -32.93087], [-70.87084, -32.93085], [-70.87047, -32.93106], [-70.87018, -32.93125], [-70.86985, -32.93151], [-70.86906, -32.93188], [-70.8684, -32.93209], [-70.86831, -32.9321], [-70.86789, -32.93217], [-70.86746, -32.93222], [-70.86704, -32.93227], [-70.86661, -32.9323], [-70.86618, -32.93231], [-70.86576, -32.9323], [-70.86532, -32.93227], [-70.86511, -32.93225], [-70.86449, -32.93201], [-70.86348, -32.93134], [-70.86276, -32.93068], [-70.86218, -32.93027], [-70.86182, -32.93012], [-70.86181, -32.93012], [-70.8618, -32.93012], [-70.86165, -32.93014], [-70.86139, -32.93008], [-70.86102, -32.93005], [-70.86059, -32.92998], [-70.86017, -32.92996], [-70.85974, -32.92994], [-70.85931, -32.92994], [-70.85888, -32.92994], [-70.85846, -32.92993], [-70.85803, -32.92992], [-70.8576, -32.92991], [-70.85717, -32.9299], [-70.85675, -32.92987], [-70.85632, -32.92984], [-70.8559, -32.92977], [-70.85549, -32.92968], [-70.85508, -32.92957], [-70.85477, -32.92948], [-70.85467, -32.92945], [-70.85427, -32.92934], [-70.85386, -32.92922], [-70.85345, -32.92911], [-70.85304, -32.92901], [-70.85265, -32.92888], [-70.85228, -32.92869], [-70.85191, -32.92851], [-70.85153, -32.92835], [-70.85113, -32.92823], [-70.85071, -32.92813], [-70.8506, -32.9281], [-70.85031, -32.92802], [-70.84991, -32.92789], [-70.84952, -32.92775], [-70.84913, -32.92759], [-70.84875, -32.92742], [-70.84838, -32.92724], [-70.84803, -32.92703], [-70.84769, -32.9268], [-70.84737, -32.92657], [-70.84705, -32.92634], [-70.84674, -32.92608], [-70.84643, -32.92584], [-70.84614, -32.92557], [-70.84586, -32.9253], [-70.84556, -32.92504], [-70.84524, -32.92481], [-70.84491, -32.92457], [-70.84458, -32.92435], [-70.84425, -32.92411], [-70.84393, -32.92387], [-70.84361, -32.92363], [-70.8433, -32.92338], [-70.84298, -32.92314], [-70.84265, -32.92291], [-70.84231, -32.92268], [-70.84196, -32.92248], [-70.84156, -32.92248], [-70.84114, -32.92258], [-70.84086, -32.92283], [-70.84067, -32.92317], [-70.84058, -32.92351], [-70.84046, -32.92387], [-70.84023, -32.92416], [-70.83997, -32.92445], [-70.8397, -32.92474], [-70.83946, -32.92504], [-70.83916, -32.92529], [-70.83881, -32.92549], [-70.83847, -32.92566], [-70.83808, -32.92612], [-70.83732, -32.92673], [-70.83609, -32.92716], [-70.83451, -32.92764], [-70.8331, -32.92793], [-70.83221, -32.92789], [-70.83109, -32.92789], [-70.82965, -32.92777], [-70.82921, -32.92778], [-70.829, -32.92775], [-70.82858, -32.92773], [-70.82815, -32.92775], [-70.82772, -32.92777], [-70.82729, -32.92779], [-70.82687, -32.92781], [-70.82644, -32.92783], [-70.82601, -32.92786], [-70.82559, -32.9279], [-70.82517, -32.92797], [-70.82475, -32.92803], [-70.82433, -32.9281], [-70.82391, -32.92818], [-70.8235, -32.92827], [-70.82308, -32.92836], [-70.82267, -32.92845], [-70.82226, -32.92856], [-70.82185, -32.92866], [-70.82145, -32.9288], [-70.82107, -32.92895], [-70.82069, -32.92912], [-70.82031, -32.92929], [-70.81994, -32.92947], [-70.81956, -32.92964], [-70.81919, -32.92982], [-70.81882, -32.93], [-70.81844, -32.93017], [-70.81806, -32.93033], [-70.81766, -32.93046], [-70.81726, -32.93058], [-70.81684, -32.93067], [-70.81642, -32.93068], [-70.81599, -32.93065], [-70.81556, -32.93064], [-70.81513, -32.9306], [-70.81471, -32.93055], [-70.81431, -32.93042], [-70.81391, -32.9303], [-70.8135, -32.93019], [-70.81308, -32.9301], [-70.81267, -32.93001], [-70.81228, -32.92987], [-70.8119, -32.92969], [-70.81154, -32.92949], [-70.81122, -32.92926], [-70.81092, -32.929], [-70.8106, -32.92876], [-70.8103, -32.92851], [-70.81001, -32.92824], [-70.80971, -32.92799], [-70.80937, -32.92776], [-70.80903, -32.92755], [-70.80869, -32.92733], [-70.80835, -32.92711], [-70.808, -32.9269], [-70.80765, -32.9267], [-70.80727, -32.92653], [-70.80688, -32.92637], [-70.80649, -32.92623], [-70.80613, -32.92603], [-70.80579, -32.92582], [-70.80544, -32.9256], [-70.80509, -32.92541], [-70.80472, -32.92521], [-70.80434, -32.92504], [-70.80395, -32.9249], [-70.80353, -32.92482], [-70.80311, -32.9248], [-70.80268, -32.92482], [-70.80225, -32.92486], [-70.80183, -32.9249], [-70.80142, -32.925], [-70.80101, -32.92512], [-70.8006, -32.92521], [-70.80019, -32.92531], [-70.79977, -32.92541], [-70.79942, -32.9256], [-70.799, -32.92568], [-70.79858, -32.92573], [-70.79815, -32.92572], [-70.79772, -32.9257], [-70.79729, -32.92568], [-70.79687, -32.92565], [-70.79644, -32.92564], [-70.79601, -32.92565], [-70.79559, -32.9257], [-70.79518, -32.92578], [-70.79477, -32.92588], [-70.79434, -32.92592], [-70.79397, -32.92609], [-70.79369, -32.92637], [-70.79349, -32.92669], [-70.79341, -32.92704], [-70.79352, -32.9274], [-70.79361, -32.92775], [-70.79356, -32.92811], [-70.7934, -32.92845], [-70.79315, -32.92874], [-70.79285, -32.92901], [-70.79251, -32.9292], [-70.79213, -32.92937], [-70.79172, -32.92951], [-70.79132, -32.92963], [-70.79091, -32.92974], [-70.79049, -32.92981], [-70.79006, -32.92984], [-70.78963, -32.92983], [-70.78921, -32.92978], [-70.78881, -32.92967], [-70.78841, -32.92952], [-70.78801, -32.92939], [-70.7876, -32.92929], [-70.78719, -32.9292], [-70.78677, -32.92912], [-70.78635, -32.92906], [-70.78594, -32.92897], [-70.78553, -32.92885], [-70.78511, -32.92876], [-70.78469, -32.92875], [-70.78427, -32.9288], [-70.78385, -32.92888], [-70.78343, -32.92895], [-70.783, -32.92902], [-70.78258, -32.92907], [-70.78216, -32.92913], [-70.78174, -32.92921], [-70.78137, -32.92937], [-70.78105, -32.92962], [-70.78075, -32.92988], [-70.78046, -32.93014], [-70.78017, -32.9304], [-70.77994, -32.93071], [-70.77977, -32.93105], [-70.77958, -32.93137], [-70.77938, -32.93168], [-70.77915, -32.93199], [-70.77891, -32.93229], [-70.77877, -32.93242], [-70.77851, -32.93291], [-70.77801, -32.93342], [-70.77719, -32.93382], [-70.77631, -32.93403], [-70.77513, -32.9343], [-70.77448, -32.93451], [-70.77389, -32.93494], [-70.77355, -32.93531], [-70.77286, -32.93542], [-70.77155, -32.93553], [-70.77005, -32.9354], [-70.7691, -32.93518], [-70.76878, -32.93506], [-70.76857, -32.93501], [-70.76818, -32.93487], [-70.76781, -32.93469], [-70.76745, -32.9345], [-70.76742, -32.93449], [-70.76711, -32.93433], [-70.76636, -32.93395], [-70.76567, -32.93351], [-70.76514, -32.93317], [-70.76461, -32.93282], [-70.76423, -32.93242], [-70.7638, -32.93199], [-70.76358, -32.93159], [-70.76331, -32.93115], [-70.76299, -32.93067], [-70.76266, -32.93023], [-70.76223, -32.92984], [-70.76196, -32.92953], [-70.7617, -32.9294], [-70.76128, -32.92945], [-70.76081, -32.92981], [-70.7604, -32.93013], [-70.75993, -32.93036], [-70.75935, -32.93045], [-70.75883, -32.93046], [-70.75804, -32.93061], [-70.75757, -32.93074], [-70.75699, -32.93084], [-70.75647, -32.93067], [-70.75599, -32.93041], [-70.7554, -32.93007], [-70.75482, -32.92972], [-70.7537, -32.92929], [-70.75281, -32.92913], [-70.75197, -32.92914], [-70.75107, -32.92915], [-70.75039, -32.92934], [-70.74982, -32.92961], [-70.74925, -32.92984], [-70.7484, -32.92985], [-70.74766, -32.92964], [-70.74697, -32.92934], [-70.74629, -32.92904], [-70.7456, -32.92878], [-70.74496, -32.92857], [-70.74443, -32.92822], [-70.74384, -32.92761], [-70.74336, -32.92726], [-70.74282, -32.92674], [-70.74266, -32.92643], [-70.74244, -32.92595], [-70.74217, -32.92564], [-70.74169, -32.92538], [-70.74106, -32.92534], [-70.74048, -32.92526], [-70.73985, -32.92518], [-70.73932, -32.9251], [-70.73863, -32.9248], [-70.7381, -32.92468], [-70.73736, -32.92433], [-70.73693, -32.92398], [-70.73645, -32.92377], [-70.73598, -32.92391], [-70.73546, -32.92418], [-70.73484, -32.92432], [-70.734, -32.92464], [-70.73312, -32.9251], [-70.7327, -32.92528], [-70.73239, -32.92538], [-70.73192, -32.9256], [-70.73155, -32.92588], [-70.73098, -32.92615]]]}};
+
+function setStatus(txt, cls, meta){
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = txt;
+  if(meta!==undefined) document.getElementById('statusMeta').textContent = meta;
+  bar.className = cls || '';
+}
+
+/* ============================================================
+   Point in polygon (puro JS, sin depender de Turf)
+   ============================================================ */
+function pipRing(lng, lat, ring){
+  let inside = false;
+  const n = ring.length;
+  for(let i=0, j=n-1; i<n; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-15)+xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInside(d){
+  if(!d.lat || !d.lng) return false;
+  try{
+    const rings = LO_PRADO_POLYGON.geometry.coordinates;
+    // Polygon: primer anillo exterior, resto agujeros
+    if(!pipRing(d.lng, d.lat, rings[0])) return false;
+    for(let i=1; i<rings.length; i++){
+      if(pipRing(d.lng, d.lat, rings[i])) return false; // en agujero
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+const COLORES = {
+  mustard:'#C79F47',
+  blues:['#1E3A5F','#2E5C8A','#3E7CB1','#5FA8D3','#8FCDF5','#0F2847','#567AA6','#73A9D4','#1D4E7A'],
+  bluesLine:'#5FA8D3', grid:'#2A3545'
+};
+
+let AREA_KM2 = 6.67;
+try{
+  if(LO_PRADO_POLYGON.properties && LO_PRADO_POLYGON.properties.st_area_sh){
+    AREA_KM2 = parseFloat(LO_PRADO_POLYGON.properties.st_area_sh)/1e6;
+  }
+}catch(e){}
+
+let CENTER = [-33.4419,-70.7256];
+try{
+  const ring = LO_PRADO_POLYGON.geometry.coordinates[0];
+  let sx=0,sy=0;
+  ring.forEach(p=>{sx+=p[0];sy+=p[1];});
+  CENTER = [sy/ring.length, sx/ring.length];
+}catch(e){}
+
+let DATA_ALL = [];
+let DATA_FILTERED = [];
+let map, polyLayer, markersLayer;
+let charts = {};
+let chartJsReady = false;
+let leafletReady = false;
+
+const fmt = n=>(n||0).toLocaleString('es-CL');
+const fmtCLP = n=>'$'+fmt(Math.round(n||0));
+const colorRiesgo = r=> r==='Alto'?'#D96E6E': r==='Medio'?'#E0A458':'#4ECDC4';
+const uniq = (arr,k)=>{
+  const s = new Set();
+  arr.forEach(x=>{if(x[k]!==undefined && x[k]!==null && x[k]!=='') s.add(x[k]);});
+  return [...s].sort();
+};
+function popSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML='';
+  if(first) sel.appendChild(first);
+  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+  sel.value = current;
+}
+
+function initMap(){
+  if(typeof L === 'undefined'){
+    setStatus('Error: Leaflet no se cargó. Revisa tu conexión a internet.', 'err');
+    return false;
+  }
+  try{
+    map = L.map('map',{preferCanvas:true}).setView(CENTER, 14);
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Voyager',subdomains:'abcd',maxZoom:20});
+    let __tileLoad=0,__tileErr=0;
+    voyager.on('tileload',()=>{__tileLoad++; if(__tileLoad===1) setStatus('Mapa: teselas cargando (' + __tileLoad + ').', '', ''); });
+    voyager.on('tileerror',()=>{__tileErr++; if(__tileErr===1) setStatus('⚠ Error cargando teselas del mapa (' + __tileErr + '). Probando basemap alternativo...', 'err'); if(__tileErr===3){ map.removeLayer(voyager); osm.addTo(map);} });
+    voyager.addTo(map);
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Dark',subdomains:'abcd',maxZoom:20});
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB',subdomains:'abcd',maxZoom:20});
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap France · HOT',maxZoom:19});
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19});
+    const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB',subdomains:'abcd',maxZoom:20,pane:'shadowPane'});
+    L.control.layers({"Calles (Voyager)":voyager,"Oscuro":dark,"Calles OSM":osm,"Humanitario":osmHOT,"Satelital":sat}, {"Etiquetas sobre satelital":satLabels}).addTo(map);
+
+    polyLayer = L.geoJSON(LO_PRADO_POLYGON,{style:{color:COLORES.mustard,weight:3,fillColor:COLORES.mustard,fillOpacity:0.07,dashArray:'6 4'}}).addTo(map);
+    polyLayer.bindTooltip('Tiltil · Polígono oficial BCN ('+AREA_KM2.toFixed(2)+' km²)',{sticky:true});
+
+    if(L.markerClusterGroup){
+      markersLayer = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        iconCreateFunction:c=>L.divIcon({html:'<div style="background:#C79F47;color:#1a1207;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid #fff;font-family:Arial">'+c.getChildCount()+'</div>',className:'',iconSize:[38,38]})
+      });
+    } else {
+      markersLayer = L.layerGroup();
+    }
+    map.addLayer(markersLayer);
+
+    try{ map.fitBounds(polyLayer.getBounds().pad(0.05)); }catch(e){}
+    leafletReady = true;
+    return true;
+  }catch(e){
+    console.error(e);
+    setStatus('Error inicializando mapa: '+e.message, 'err');
+    return false;
+  }
+}
+
+function renderMarkers(data){
+  if(!leafletReady || !markersLayer) return;
+  markersLayer.clearLayers();
+  let n=0;
+  data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
+    const col = colorRiesgo(d.riesgo);
+    const m = L.circleMarker([d.lat,d.lng],{radius:6,color:'#fff',weight:1.3,fillColor:col,fillOpacity:.85});
+    m.bindPopup(
+      '<b>'+d.id+'</b><br/>'+
+      '<b>Fuente:</b> '+(d.fuente||'')+'<br/>'+
+      '<b>Elemento:</b> '+(d.elemento_red||'')+' / '+(d.material||'')+'<br/>'+
+      '<b>Estado:</b> '+(d.estado_clasificado||'')+'<br/>'+
+      '<b>Riesgo:</b> <span style="color:'+col+'"><b>'+d.riesgo+'</b></span> (score '+d.riesgo_score+')<br/>'+
+      '<b>Prioridad:</b> '+d.prioridad+' · <b>Plan:</b> '+(d.plan||'')+'<br/>'+
+      '<b>KM:</b> '+d.km+' · <b>KG:</b> '+d.kg_basura+'<br/>'+
+      '<b>CLP Multa:</b> '+fmtCLP(d.clp_multas)+'<br/>'+
+      '<b>Lugar:</b> '+(d.tipo_lugar||'')+'<br/>'+
+      '<b>Elem intervenir:</b> '+(d.tipo_elemento||'—')
+    );
+    markersLayer.addLayer(m);
+    n++;
+  });
+  return n;
+}
+
+function applyFilters(){
+  const v = id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const ch = id=>{const e=document.getElementById(id);return e?e.checked:false;};
+  const fC=v('fCompania'),fR=v('fRiesgo'),fE=v('fEstado'),fEl=v('fElem'),fM=v('fMat');
+  const fP=+v('fPrio');
+  const fI=ch('fInside');
+  const fH=ch('fHasCoord');
+  DATA_FILTERED = DATA_ALL.filter(d=>{
+    if(fC && d.fuente!==fC) return false;
+    if(fR && d.riesgo!==fR) return false;
+    if(fE && d.estado_clasificado!==fE) return false;
+    if(fEl && d.elemento_red!==fEl) return false;
+    if(fM && d.material!==fM) return false;
+    if((d.prioridad||0)>fP) return false;
+    if(fH && (!d.lat||!d.lng)) return false;
+    if(fI && !d._inside) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function updateKPIs(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const pctAlto = d.length? alto/d.length*100:0;
+  const avgScore = d.length? d.reduce((a,x)=>a+(+x.riesgo_score||0),0)/d.length : 0;
+  const idx = Math.min(100, Math.round(pctAlto*0.4 + (avgScore/18*100)*0.3 + Math.min(100,(clp/1000000)*1.5)*0.15 + Math.min(100,kg/50)*0.15));
+
+  const set = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiMultas', fmt(multas));
+  set('kpiMultasCLP', fmtCLP(clp));
+  set('kpiKM', km.toFixed(2));
+  set('kpiKG', fmt(Math.round(kg)));
+  set('kpiRiesgo', idx);
+  set('kpiCostoKM', km>0? fmtCLP(clp/km):'$0');
+  set('density', (d.length/AREA_KM2).toFixed(1));
+  set('pctAlto', pctAlto.toFixed(1)+'%');
+  set('avgMulta', multas>0? fmtCLP(clp/multas):'$0');
+  set('avgPeso', d.length? (kg/d.length).toFixed(1)+' kg':'0 kg');
+  set('rec-count', d.length);
+  set('dataRecs', d.length);
+}
+
+function groupCount(data,key){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+1;});return m;}
+function groupSum(data,key,field){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+(+x[field]||0);});return m;}
+
+function makeChart(id,type,data,opts){
+  if(!chartJsReady) return;
+  opts = opts||{};
+  if(charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if(!el) return;
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#fff',font:{family:'Arial',size:11}}},
+      tooltip:{backgroundColor:'#0E1117',borderColor:COLORES.mustard,borderWidth:1,titleColor:COLORES.mustard,bodyColor:'#fff'}},
+    scales:(type==='pie'||type==='doughnut')?undefined:{
+      x:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid}},
+      y:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid},beginAtZero:true}}
+  };
+  charts[id] = new Chart(el,{type,data,options:Object.assign(base,opts)});
+}
+
+function updateCharts(){
+  if(!chartJsReady) return;
+  const d = DATA_FILTERED;
+  const g1 = groupCount(d,'fuente');
+  const l1 = Object.keys(g1).sort((a,b)=>g1[b]-g1[a]).slice(0,10);
+  makeChart('chartCompania','bar',{labels:l1,datasets:[{label:'Puntos',data:l1.map(k=>g1[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.blues[4],borderWidth:1.5}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+
+  const g2 = groupCount(d,'riesgo');
+  const ord = ['Alto','Medio','Bajo'].filter(k=>g2[k]);
+  makeChart('chartRiesgo','doughnut',{labels:ord,datasets:[{data:ord.map(k=>g2[k]),backgroundColor:ord.map(k=>colorRiesgo(k)),borderColor:'#0E1117',borderWidth:2}]});
+
+  const g3 = groupCount(d,'estado_clasificado');
+  const l3 = Object.keys(g3).sort((a,b)=>g3[b]-g3[a]).slice(0,8);
+  makeChart('chartEstado','bar',{labels:l3,datasets:[{label:'Puntos',data:l3.map(k=>g3[k]),backgroundColor:COLORES.blues[1],borderColor:COLORES.blues[3],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g4 = groupCount(d,'elemento_red');
+  makeChart('chartElem','pie',{labels:Object.keys(g4),datasets:[{data:Object.values(g4),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+
+  const g5 = groupCount(d,'material');
+  const l5 = Object.keys(g5).sort((a,b)=>g5[b]-g5[a]).slice(0,8);
+  makeChart('chartMat','bar',{labels:l5,datasets:[{label:'Puntos',data:l5.map(k=>g5[k]),backgroundColor:COLORES.blues[3],borderColor:COLORES.blues[4],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g6 = groupSum(d,'fuente','clp_multas');
+  const l6 = Object.keys(g6).sort((a,b)=>g6[b]-g6[a]).slice(0,8);
+  makeChart('chartTopCLP','bar',{labels:l6,datasets:[{label:'CLP',data:l6.map(k=>g6[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.mustard,borderWidth:1.5}]},
+    {indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCLP(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#C8D2E0',callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:COLORES.grid}},y:{ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}}}});
+
+  const g7 = {};
+  d.forEach(x=>{const k=(+x.prioridad)||0;if(!g7[k])g7[k]={n:0,clp:0};g7[k].n++;g7[k].clp+=(+x.clp_multas||0);});
+  const k7 = Object.keys(g7).sort((a,b)=>+a-+b);
+  makeChart('chartPrio','bar',{labels:k7.map(k=>'P'+k),datasets:[{label:'Puntos',data:k7.map(k=>g7[k].n),backgroundColor:COLORES.blues[3],yAxisID:'y'},{label:'CLP',data:k7.map(k=>g7[k].clp),type:'line',borderColor:COLORES.mustard,backgroundColor:'rgba(199,159,71,.2)',yAxisID:'y1',tension:.3,pointBackgroundColor:COLORES.mustard}]},
+    {scales:{y:{position:'left',ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}},y1:{position:'right',ticks:{color:COLORES.mustard,callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{drawOnChartArea:false}}}});
+
+  const g8 = groupCount(d,'tipo_lugar');
+  const l8 = Object.keys(g8).sort((a,b)=>g8[b]-g8[a]).slice(0,6);
+  makeChart('chartTipoLugar','pie',{labels:l8,datasets:[{data:l8.map(k=>g8[k]),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+}
+
+function updateTable(){
+  const tb = document.querySelector('#dataTable tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  DATA_FILTERED.slice(0,500).forEach(d=>{
+    const tr = document.createElement('tr');
+    const rLow = (d.riesgo||'').toLowerCase();
+    tr.innerHTML = '<td>'+d.id+'</td><td>'+(d.fuente||'')+'</td><td>'+(d.elemento_red||'')+'</td><td>'+(d.material||'')+'</td>'+
+      '<td><span class="badge estado">'+(d.estado_clasificado||'')+'</span></td>'+
+      '<td><span class="badge '+rLow+'">'+(d.riesgo||'')+'</span></td>'+
+      '<td>'+(d.prioridad||0)+'</td><td>'+(+d.km||0).toFixed(3)+'</td><td>'+fmt(d.kg_basura)+'</td><td>'+fmtCLP(d.clp_multas)+'</td>';
+    tr.onclick=()=>{if(d.lat&&d.lng&&map)map.setView([d.lat,d.lng],17);};
+    tb.appendChild(tr);
+  });
+}
+
+function updateAll(){
+  updateKPIs(); updateCharts(); updateTable();
+  if(leafletReady) renderMarkers(DATA_FILTERED);
+}
+
+function loadInitial(){
+  DATA_ALL = RAW_DATA.map(r=>Object.assign({},r));
+  DATA_ALL.forEach(d=>{d._inside = (d.lat&&d.lng)? pointInside(d) : false;});
+  const withCoords = DATA_ALL.filter(d=>d.lat && d.lng).length;
+  const inside = DATA_ALL.filter(d=>d._inside).length;
+  popSelect('fCompania', uniq(DATA_ALL,'fuente'));
+  popSelect('fEstado', uniq(DATA_ALL,'estado_clasificado'));
+  popSelect('fElem', uniq(DATA_ALL,'elemento_red'));
+  popSelect('fMat', uniq(DATA_ALL,'material'));
+  applyFilters();
+  setStatus('✓ Datos de Tiltil cargados correctamente', 'ok',
+    DATA_ALL.length+' registros oficiales dentro del polígono BCN');
+}
+
+/* Importación */
+function normalizeRecord(r){
+  const g = keys=>{for(const k of keys){const f=Object.keys(r).find(c=>c.toLowerCase().trim()===k.toLowerCase());if(f!==undefined && r[f]!=='' && r[f]!=null) return r[f];}return null;};
+  return {
+    id:g(['id','ID']) || 'EXT-'+Math.floor(Math.random()*100000),
+    fuente:g(['fuente','compania','compañía','empresa','GORE, Municipio, Denuncias Ciudadanía o Empresas']) || 'Desconocido',
+    region:g(['region','2. Región']) || '',
+    comuna:g(['comuna','3. Comuna']) || 'Tiltil',
+    plan:g(['plan','Plan']) || 'Por definir',
+    prioridad:+(g(['prioridad','4. Prioritario'])||0),
+    tipo_lugar:g(['tipo_lugar','5.Tipo de lugar']) || '',
+    tipo_elemento:g(['tipo_elemento','7.Tipo del o los elementos a intervenir y su respectivo estado'])||'',
+    elemento_red:g(['elemento_red','Elemento_Red']) || 'Sin dato',
+    material:g(['material','Material_Principal']) || 'Sin dato',
+    estado_clasificado:g(['estado_clasificado','Estado_Clasificado']) || 'Desconocido',
+    estado_final:g(['estado_final','21. Estado_Final']) || '',
+    riesgo:g(['riesgo','nivel_riesgo'])||'Medio', riesgo_score:+(g(['riesgo_score'])||5),
+    multas:+(g(['multas'])||1), clp_multas:+(g(['clp_multas','clp','monto'])||0),
+    km:+(g(['km','Estimacion_KM'])||0), kg_basura:+(g(['kg_basura','Estimacion_Peso_KG'])||0),
+    lat:+(g(['lat','latitud','16. Latitud (WGS84 5 DECIMALES)'])||0),
+    lng:+(g(['lng','longitud','17. Longitud (WGS84 5 DECIMALES)'])||0),
+  };
+}
+
+function parseFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const finish = (rows, src)=>{
+    DATA_ALL = rows.map(normalizeRecord);
+    DATA_ALL.forEach(d=>d._inside=pointInside(d));
+    popSelect('fCompania',uniq(DATA_ALL,'fuente'));
+    popSelect('fEstado',uniq(DATA_ALL,'estado_clasificado'));
+    popSelect('fElem',uniq(DATA_ALL,'elemento_red'));
+    popSelect('fMat',uniq(DATA_ALL,'material'));
+    applyFilters();
+    setStatus('✓ '+DATA_ALL.length+' registros oficiales', 'ok');
+  };
+  if(ext==='csv'){
+    if(typeof Papa==='undefined') return alert('PapaParse no cargó. Verifica conexión.');
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>finish(res.data, file.name)});
+  } else if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined') return alert('SheetJS no cargó. Verifica conexión.');
+    const r = new FileReader();
+    r.onload = e=>{
+      const wb = XLSX.read(e.target.result,{type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      finish(rows, file.name+' · '+wb.SheetNames[0]);
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function exportCSV(){
+  if(!DATA_FILTERED.length) return alert('Sin datos.');
+  const cols = Object.keys(DATA_FILTERED[0]).filter(c=>!c.startsWith('_'));
+  const rows = [cols.join(',')].concat(DATA_FILTERED.map(d=>cols.map(c=>JSON.stringify(d[c]===undefined?'':d[c])).join(','))).join('\n');
+  const b = new Blob([rows],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download='visor_tiltil_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+function genReporte(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const byF = groupSum(d,'fuente','clp_multas');
+  const top = Object.entries(byF).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const html = '<html><head><meta charset="utf-8"><title>Reporte Tiltil</title>'+
+    '<style>body{font-family:Arial;padding:30px;color:#222}h1{color:#8E6E2A;border-bottom:2px solid #C79F47}'+
+    '.kpi{display:inline-block;margin:8px;padding:14px 20px;background:#f5efe2;border:1px solid #C79F47;border-radius:6px}'+
+    '.kpi b{display:block;color:#8E6E2A;font-size:11px;letter-spacing:1px}.kpi span{font-size:22px;font-weight:bold}'+
+    'table{border-collapse:collapse;margin-top:14px;width:100%}td,th{border:1px solid #ddd;padding:6px 10px;font-size:12px;text-align:left}th{background:#8E6E2A;color:#fff}</style></head>'+
+    '<body><h1>Reporte de Gestión de Red · Tiltil</h1>'+
+    '<p>Fecha: '+new Date().toLocaleString('es-CL')+' · Registros: '+d.length+' · Superficie: '+AREA_KM2.toFixed(2)+' km²</p>'+
+    '<div class="kpi"><b>Multas</b><span>'+fmt(multas)+'</span></div>'+
+    '<div class="kpi"><b>CLP</b><span>'+fmtCLP(clp)+'</span></div>'+
+    '<div class="kpi"><b>KM</b><span>'+km.toFixed(2)+'</span></div>'+
+    '<div class="kpi"><b>KG basura</b><span>'+fmt(Math.round(kg))+'</span></div>'+
+    '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
+    '<h2>Top 5 fuentes por impacto CLP</h2>'+
+    '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
+    '</body></html>';
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+/* Eventos (defensivos) */
+function bind(id, ev, fn){const e=document.getElementById(id); if(e) e.addEventListener(ev, fn);}
+['fCompania','fRiesgo','fEstado','fElem','fMat','fInside','fHasCoord'].forEach(id=>bind(id,'change',applyFilters));
+bind('fPrio','input',e=>{document.getElementById('fPrioVal').textContent='Hasta '+e.target.value;applyFilters();});
+bind('btnReset','click',()=>{
+  ['fCompania','fRiesgo','fEstado','fElem','fMat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fInside').checked=false;
+  document.getElementById('fHasCoord').checked=true;
+  document.getElementById('fPrio').value=10;
+  document.getElementById('fPrioVal').textContent='Hasta 10';
+  applyFilters();
+});
+bind('btnExport','click',exportCSV);
+bind('btnReport','click',genReporte);
+bind('lyrPts','change',e=>{if(map){if(e.target.checked) map.addLayer(markersLayer); else map.removeLayer(markersLayer);}});
+bind('lyrPoly','change',e=>{if(map){if(e.target.checked) map.addLayer(polyLayer); else map.removeLayer(polyLayer);}});
+
+/* Boot — NO esperamos a 'load', ejecutamos apenas DOM listo */
+function boot(){
+  try{
+    const s = window.__CDN_STATUS__||{};
+    const failed = ['leaflet','markercluster','chart','papa','xlsx'].filter(k=>!s[k]);
+    if(failed.length){
+      setStatus('⚠ Librerías no cargadas: '+failed.join(', ')+'. Fuentes intentadas: '+(s.tries||[]).join(' | '), 'err');
+    } else {
+      setStatus('Librerías OK. Iniciando mapa y gráficos...', '', '');
+    }
+    chartJsReady = (typeof Chart !== 'undefined');
+    const leafletOk = initMap();
+    loadInitial();
+    if(!leafletOk) setStatus('Datos cargados, pero el mapa no se pudo inicializar. ['+(s.tries||[]).join(' | ')+']', 'err');
+    else if(!chartJsReady) setStatus('Datos cargados sin gráficos (Chart.js no disponible).', 'err');
+  }catch(err){
+    console.error(err);
+    setStatus('Error: '+err.message, 'err');
+  }
+}
+async function bootWhenReady(){
+  try{
+    await window.__LIBS_READY__;
+  }catch(e){}
+  boot();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
+else bootWhenReady();
+</script>
+</body></html>

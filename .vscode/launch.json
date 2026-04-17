@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Abrir landing en Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/vercel"
+    },
+    {
+      "name": "Abrir visor Lo Prado",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173/lo-prado",
+      "webRoot": "${workspaceFolder}/vercel"
+    },
+    {
+      "name": "Abrir visor Nacional",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173/nacional",
+      "webRoot": "${workspaceFolder}/vercel"
+    }
+  ]
+}

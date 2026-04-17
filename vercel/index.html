@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="Coordenada Pública · Visores de gestión de red comunales y nacional. Datos georreferenciados oficiales BCN."/>
+<title>Coordenada Pública · Visores de Gestión de Red</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0d1620;color:#fff;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(circle at 20% 10%, rgba(196,154,57,.12) 0%, transparent 45%),
+  radial-gradient(circle at 80% 90%, rgba(45,90,150,.18) 0%, transparent 45%),
+  linear-gradient(180deg,#0a1018 0%,#0d1620 100%)}
+header{padding:48px 32px 24px;text-align:center;border-bottom:1px solid #1c2a3a}
+header h1{margin:0;font-size:34px;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:#c49a39}
+header p{margin:10px 0 0;color:#9bb0c5;font-size:15px}
+.totals{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:24px}
+.totals .t{padding:14px 22px;background:#16263a;border-left:4px solid #c49a39;border-radius:6px;min-width:160px}
+.totals .t .v{font-size:22px;font-weight:bold;color:#c49a39}
+.totals .t .l{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9bb0c5;margin-top:4px}
+main{max-width:1280px;margin:0 auto;padding:32px}
+h2{margin:24px 0 16px;font-size:18px;color:#c49a39;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #2a3e54;padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.card{background:#16263a;border:1px solid #2a3e54;border-radius:10px;padding:20px;text-decoration:none;color:inherit;
+  transition:border-color .15s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:14px}
+.card:hover{border-color:#c49a39;transform:translateY(-2px);box-shadow:0 8px 24px rgba(196,154,57,.12)}
+.card.scope-nacional{border-left:4px solid #c49a39}
+.card.scope-maestro{border-left:4px solid #6a8fb5}
+.card.scope-comunal{border-left:4px solid #2a4d77}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-title{font-size:18px;font-weight:bold;color:#fff;line-height:1.2}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:4px;
+  background:#0d1620;border:1px solid #2a3e54;color:#c49a39;white-space:nowrap}
+.card-sub{font-size:12px;color:#9bb0c5}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.kpi{background:#0d1620;border:1px solid #1c2a3a;border-radius:6px;padding:8px 10px}
+.kpi-val{font-size:14px;font-weight:bold;color:#c49a39}
+.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#9bb0c5;margin-top:2px}
+.card-foot{font-size:12px;color:#c49a39;font-weight:bold;margin-top:auto;text-align:right}
+footer{padding:32px;text-align:center;color:#6c829a;font-size:12px;border-top:1px solid #1c2a3a;margin-top:48px}
+footer .brand{color:#c49a39;font-weight:bold}
+@media(max-width:600px){header h1{font-size:24px} .totals{gap:12px} .totals .t{min-width:130px;padding:10px 14px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<header>
+  <h1><span class="accent">Coordenada</span> Pública</h1>
+  <p>Visores Georreferenciados de Gestión de Red · Polígonos Oficiales BCN</p>
+  <div class="totals">
+    <div class="t"><div class="v">66.225</div><div class="l">Puntos oficiales</div></div>
+    <div class="t"><div class="v">$6.663.023.000</div><div class="l">CLP estimados</div></div>
+    <div class="t"><div class="v">2,359.8 KM</div><div class="l">Red analizada</div></div>
+    <div class="t"><div class="v">401.783 KG</div><div class="l">Basura estimada</div></div>
+    <div class="t"><div class="v">322</div><div class="l">Comunas cubiertas</div></div>
+  </div>
+</header>
+<main>
+  <h2>Visores disponibles</h2>
+  <div class="grid">
+    <a class="card scope-nacional" href="/nacional">
+      <div class="card-head">
+        <div class="card-title">Nacional · Público</div>
+        <span class="badge">Nacional</span>
+      </div>
+      <div class="card-sub">Heatmap nacional · datos anonimizados</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">66.225</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$6.663.023.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">2359.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">401.783</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-maestro" href="/base-madre">
+      <div class="card-head">
+        <div class="card-title">Base Madre</div>
+        <span class="badge">Maestro</span>
+      </div>
+      <div class="card-sub">Base completa con detalle de fuente</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">66.225</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$6.663.023.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">2359.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">401.783</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/maipu">
+      <div class="card-head">
+        <div class="card-title">Maipú</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">645</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$69.986.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">20.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">6.112</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/recoleta">
+      <div class="card-head">
+        <div class="card-title">Recoleta</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">549</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$55.727.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">19.1</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">5.459</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/puente-alto">
+      <div class="card-head">
+        <div class="card-title">Puente Alto</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">468</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$45.809.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.7</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">3.150</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/cerrillos">
+      <div class="card-head">
+        <div class="card-title">Cerrillos</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">455</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$43.643.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">9.209</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/colina">
+      <div class="card-head">
+        <div class="card-title">Colina</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">463</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$42.938.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">17.1</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.609</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/pudahuel">
+      <div class="card-head">
+        <div class="card-title">Pudahuel</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">463</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$41.082.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">16.6</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">4.166</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/el-bosque">
+      <div class="card-head">
+        <div class="card-title">El Bosque</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">435</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$37.547.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">16.5</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.091</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/lo-prado">
+      <div class="card-head">
+        <div class="card-title">Lo Prado</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">393</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$34.788.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.9</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">4.774</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card scope-comunal" href="/tiltil">
+      <div class="card-head">
+        <div class="card-title">Tiltil</div>
+        <span class="badge">Comunal</span>
+      </div>
+      <div class="card-sub">Metropolitana</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">66</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$7.463.000</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">2.2</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">386</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+</main>
+<footer>
+  <div class="brand">Coordenada Pública</div>
+  Plataforma de gestión de redes municipales · Datos oficiales BCN · Abril 2026<br/>
+  Despliegue Vercel · Próximo: API REST para poblamiento automatizado y expedientes municipales
+</footer>
+</body>
+</html>

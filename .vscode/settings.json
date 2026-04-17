@@ -1,0 +1,41 @@
+{
+  "liveServer.settings.root": "/vercel",
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.CustomBrowser": "chrome",
+  "liveServer.settings.NoBrowser": false,
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.ts"
+  ],
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.associations": {
+    "*.html": "html"
+  },
+  "html.format.wrapLineLength": 0,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": false,
+  "editor.renderWhitespace": "boundary",
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cSpell.language": "en,es",
+  "cSpell.words": [
+    "Cerrillos","Colina","Pudahuel","Recoleta","Maipú","Tiltil",
+    "Coordenada","comuna","comunas","georreferenciado","municipios",
+    "BCN","Leaflet","Chartjs","polígono","CLP"
+  ],
+  "search.exclude": {
+    "**/Elementos de red/**": true,
+    "**/Gestión_Municipal/**": true,
+    "**/Mapas de la Biblioteca del Congreso/**": true
+  }
+}

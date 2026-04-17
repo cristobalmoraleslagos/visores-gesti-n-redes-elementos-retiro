@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Servir visores (npx serve)",
+      "type": "shell",
+      "command": "npx --yes serve vercel -l 5173",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true},
+      "detail": "Levanta un servidor estático en http://localhost:5173 apuntando a la carpeta vercel/"
+    },
+    {
+      "label": "Servir visores (Python http.server)",
+      "type": "shell",
+      "command": "python -m http.server 5173 --directory vercel",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated"},
+      "detail": "Alternativa sin Node: requiere solo Python 3 instalado. Abre http://localhost:5173/"
+    },
+    {
+      "label": "Abrir landing en navegador",
+      "type": "shell",
+      "command": "start http://localhost:5173",
+      "windows": {"command": "cmd /c start http://localhost:5173"},
+      "problemMatcher": [],
+      "detail": "Abre el navegador con el landing. Requiere tener corriendo la tarea de servir."
+    },
+    {
+      "label": "Desplegar a Vercel (preview)",
+      "type": "shell",
+      "command": "npx --yes vercel --cwd vercel",
+      "problemMatcher": [],
+      "detail": "Primera vez pide login. Sube la carpeta vercel/ como preview deployment."
+    },
+    {
+      "label": "Desplegar a Vercel (producción)",
+      "type": "shell",
+      "command": "npx --yes vercel --cwd vercel --prod",
+      "problemMatcher": [],
+      "detail": "Sube vercel/ a producción."
+    }
+  ]
+}
