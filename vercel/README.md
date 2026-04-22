@@ -21,6 +21,7 @@ vercel/
 ├── puente-alto/index.html
 ├── talagante/index.html
 ├── quinta-normal/index.html
+├── penalolen/index.html
 ├── nacional/index.html
 ├── base-madre/index.html
 ```
@@ -40,6 +41,7 @@ vercel/
 | `puente-alto` | `/puente-alto` | Puente Alto | comunal |
 | `talagante` | `/talagante` | Talagante | comunal |
 | `quinta-normal` | `/quinta-normal` | Quinta Normal | comunal |
+| `penalolen` | `/penalolen` | Peñalolén | comunal |
 | `nacional` | `/nacional` | Nacional · Público | nacional |
 | `base-madre` | `/base-madre` | Base Madre | maestro |
 

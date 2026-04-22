@@ -67,6 +67,26 @@
       "source": "/tal",
       "destination": "/talagante",
       "permanent": true
+    },
+    {
+      "source": "/peñalolen",
+      "destination": "/penalolen",
+      "permanent": true
+    },
+    {
+      "source": "/peñalolén",
+      "destination": "/penalolen",
+      "permanent": true
+    },
+    {
+      "source": "/penalolén",
+      "destination": "/penalolen",
+      "permanent": true
+    },
+    {
+      "source": "/pen",
+      "destination": "/penalolen",
+      "permanent": true
     }
   ]
 }
