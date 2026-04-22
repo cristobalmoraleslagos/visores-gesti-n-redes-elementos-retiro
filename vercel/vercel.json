@@ -52,6 +52,21 @@
       "source": "/puentealto",
       "destination": "/puente-alto",
       "permanent": true
+    },
+    {
+      "source": "/quintanormal",
+      "destination": "/quinta-normal",
+      "permanent": true
+    },
+    {
+      "source": "/qn",
+      "destination": "/quinta-normal",
+      "permanent": true
+    },
+    {
+      "source": "/tal",
+      "destination": "/talagante",
+      "permanent": true
     }
   ]
 }

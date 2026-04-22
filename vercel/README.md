@@ -19,6 +19,8 @@ vercel/
 ├── recoleta/index.html
 ├── maipu/index.html
 ├── puente-alto/index.html
+├── talagante/index.html
+├── quinta-normal/index.html
 ├── nacional/index.html
 ├── base-madre/index.html
 ```
@@ -36,6 +38,8 @@ vercel/
 | `recoleta` | `/recoleta` | Recoleta | comunal |
 | `maipu` | `/maipu` | Maipú | comunal |
 | `puente-alto` | `/puente-alto` | Puente Alto | comunal |
+| `talagante` | `/talagante` | Talagante | comunal |
+| `quinta-normal` | `/quinta-normal` | Quinta Normal | comunal |
 | `nacional` | `/nacional` | Nacional · Público | nacional |
 | `base-madre` | `/base-madre` | Base Madre | maestro |
 
