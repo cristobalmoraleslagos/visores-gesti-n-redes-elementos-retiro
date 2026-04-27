@@ -87,6 +87,16 @@
       "source": "/pen",
       "destination": "/penalolen",
       "permanent": true
+    },
+    {
+      "source": "/loespejo",
+      "destination": "/lo-espejo",
+      "permanent": true
+    },
+    {
+      "source": "/mel",
+      "destination": "/melipilla",
+      "permanent": true
     }
   ]
 }

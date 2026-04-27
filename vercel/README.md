@@ -22,6 +22,8 @@ vercel/
 ├── talagante/index.html
 ├── quinta-normal/index.html
 ├── penalolen/index.html
+├── melipilla/index.html
+├── lo-espejo/index.html
 ├── nacional/index.html
 ├── base-madre/index.html
 ```
@@ -42,6 +44,8 @@ vercel/
 | `talagante` | `/talagante` | Talagante | comunal |
 | `quinta-normal` | `/quinta-normal` | Quinta Normal | comunal |
 | `penalolen` | `/penalolen` | Peñalolén | comunal |
+| `melipilla` | `/melipilla` | Melipilla | comunal |
+| `lo-espejo` | `/lo-espejo` | Lo Espejo | comunal |
 | `nacional` | `/nacional` | Nacional · Público | nacional |
 | `base-madre` | `/base-madre` | Base Madre | maestro |
 
