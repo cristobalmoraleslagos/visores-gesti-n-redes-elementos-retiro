@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="Coordenada Pública · Región del Biobío · Visores comunales con polígonos BCN."/>
+<title>Biobío · Visores Regionales · Coordenada Pública</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0d1620;color:#fff;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(circle at 20% 10%, rgba(196,154,57,.12) 0%, transparent 45%),
+  radial-gradient(circle at 80% 90%, rgba(45,90,150,.18) 0%, transparent 45%),
+  linear-gradient(180deg,#0a1018 0%,#0d1620 100%)}
+header{padding:48px 32px 24px;text-align:center;border-bottom:1px solid #1c2a3a}
+header h1{margin:0;font-size:34px;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:#c49a39}
+header p{margin:10px 0 0;color:#9bb0c5;font-size:15px}
+header .crumb{margin-bottom:14px;color:#9bb0c5;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+header .crumb a{color:#c49a39;text-decoration:none}
+header .crumb a:hover{text-decoration:underline}
+.totals{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:24px}
+.totals .t{padding:14px 22px;background:#16263a;border-left:4px solid #c49a39;border-radius:6px;min-width:160px}
+.totals .t .v{font-size:22px;font-weight:bold;color:#c49a39}
+.totals .t .l{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9bb0c5;margin-top:4px}
+main{max-width:1280px;margin:0 auto;padding:32px}
+h2{margin:32px 0 16px;font-size:14px;color:#c49a39;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #2a3e54;padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:#16263a;border:1px solid #2a3e54;border-left:4px solid #2a4d77;border-radius:10px;padding:18px;text-decoration:none;color:inherit;
+  transition:border-color .15s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:12px}
+.card:hover{border-color:#c49a39;transform:translateY(-2px);box-shadow:0 8px 24px rgba(196,154,57,.12)}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-title{font-size:17px;font-weight:bold;color:#fff;line-height:1.2}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:4px;
+  background:#0d1620;border:1px solid #2a3e54;color:#c49a39;white-space:nowrap;font-weight:bold}
+.card-sub{font-size:11px;color:#9bb0c5}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.kpi{background:#0d1620;border:1px solid #1c2a3a;border-radius:6px;padding:7px 10px}
+.kpi-val{font-size:13px;font-weight:bold;color:#c49a39}
+.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#9bb0c5;margin-top:2px}
+.card-foot{font-size:11px;color:#c49a39;font-weight:bold;margin-top:auto;text-align:right}
+footer{padding:32px;text-align:center;color:#6c829a;font-size:12px;border-top:1px solid #1c2a3a;margin-top:48px}
+footer .brand{color:#c49a39;font-weight:bold}
+@media(max-width:600px){header h1{font-size:24px} .totals{gap:12px} .totals .t{min-width:130px;padding:10px 14px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<header>
+  <div class="crumb"><a href="/">← Coordenada Pública</a> · Región del Biobío</div>
+  <h1>Región del <span class="accent">Biobío</span></h1>
+  <p>3 provincias · 32 comunas · Polígonos oficiales BCN</p>
+  <div class="totals">
+    <div class="t"><div class="v">6.007</div><div class="l">Puntos oficiales</div></div>
+    <div class="t"><div class="v">$516.796.003</div><div class="l">CLP estimados</div></div>
+    <div class="t"><div class="v">233.76 KM</div><div class="l">Red analizada</div></div>
+    <div class="t"><div class="v">22.084 KG</div><div class="l">Basura estimada</div></div>
+    <div class="t"><div class="v">32</div><div class="l">Comunas</div></div>
+  </div>
+</header>
+<main>
+  <h2>Provincia de Concepción · 12 comunas · 3.339 pts · $289.713.587 · 128.52 km · 11.047 kg</h2>
+  <div class="grid">
+    <a class="card" href="/biobio/concepcion">
+      <div class="card-head">
+        <div class="card-title">Concepción</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">643</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$63.071.816</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">22.96</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.920</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/chiguayante">
+      <div class="card-head">
+        <div class="card-title">Chiguayante</div>
+        <span class="badge">CH</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">405</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$29.582.800</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.92</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.089</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/hualpen">
+      <div class="card-head">
+        <div class="card-title">Hualpén</div>
+        <span class="badge">HU</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">401</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$55.581.188</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.611</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/penco">
+      <div class="card-head">
+        <div class="card-title">Penco</div>
+        <span class="badge">PE</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">368</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.214.827</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.44</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">955</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/talcahuano">
+      <div class="card-head">
+        <div class="card-title">Talcahuano</div>
+        <span class="badge">TA</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">364</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.896.678</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.12</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.021</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/hualqui">
+      <div class="card-head">
+        <div class="card-title">Hualqui</div>
+        <span class="badge">HU</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">300</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$21.751.793</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.84</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">647</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/tome">
+      <div class="card-head">
+        <div class="card-title">Tomé</div>
+        <span class="badge">TO</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">282</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$20.965.653</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">10.96</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">904</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/coronel">
+      <div class="card-head">
+        <div class="card-title">Coronel</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">275</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$19.884.425</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.0</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">829</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/lota">
+      <div class="card-head">
+        <div class="card-title">Lota</div>
+        <span class="badge">LO</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">258</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$18.655.206</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">10.32</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">780</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/santa-juana">
+      <div class="card-head">
+        <div class="card-title">Santa Juana</div>
+        <span class="badge">SJ</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">30</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$2.169.210</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.04</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">192</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/florida">
+      <div class="card-head">
+        <div class="card-title">Florida</div>
+        <span class="badge">FL</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">11</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$795.377</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.44</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">66</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/san-pedro-de-la-paz">
+      <div class="card-head">
+        <div class="card-title">San Pedro De La Paz</div>
+        <span class="badge">SP</span>
+      </div>
+      <div class="card-sub">Provincia de Concepción · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">2</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$144.614</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.0</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">30</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Biobío · 14 comunas · 1.471 pts · $135.892.463 · 57.36 km · 7.733 kg</h2>
+  <div class="grid">
+    <a class="card" href="/biobio/los-angeles">
+      <div class="card-head">
+        <div class="card-title">Los Ángeles</div>
+        <span class="badge">LÁ</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">396</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$33.465.775</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.04</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">3.359</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/nacimiento">
+      <div class="card-head">
+        <div class="card-title">Nacimiento</div>
+        <span class="badge">NA</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">314</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.434.926</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.56</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.044</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/mulchen">
+      <div class="card-head">
+        <div class="card-title">Mulchén</div>
+        <span class="badge">MU</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">254</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$27.941.391</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">9.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.787</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/laja">
+      <div class="card-head">
+        <div class="card-title">Laja</div>
+        <span class="badge">LA</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">207</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$17.433.883</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">8.28</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">462</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/cabrero">
+      <div class="card-head">
+        <div class="card-title">Cabrero</div>
+        <span class="badge">CA</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">141</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$15.149.806</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">5.4</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">400</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/tucapel">
+      <div class="card-head">
+        <div class="card-title">Tucapel</div>
+        <span class="badge">TU</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">42</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$3.574.131</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.64</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">225</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/yumbel">
+      <div class="card-head">
+        <div class="card-title">Yumbel</div>
+        <span class="badge">YU</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">37</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$3.331.982</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">169</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/negrete">
+      <div class="card-head">
+        <div class="card-title">Negrete</div>
+        <span class="badge">NE</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">28</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$2.024.596</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.12</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">91</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/santa-barbara">
+      <div class="card-head">
+        <div class="card-title">Santa Bárbara</div>
+        <span class="badge">SB</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">24</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$2.153.219</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.92</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">107</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/antuco">
+      <div class="card-head">
+        <div class="card-title">Antuco</div>
+        <span class="badge">AN</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">8</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$638.149</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.32</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">14</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/quilaco">
+      <div class="card-head">
+        <div class="card-title">Quilaco</div>
+        <span class="badge">QU</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">7</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$685.228</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.28</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">27</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/san-rosendo">
+      <div class="card-head">
+        <div class="card-title">San Rosendo</div>
+        <span class="badge">SR</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">7</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$625.535</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.28</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">32</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/quilleco">
+      <div class="card-head">
+        <div class="card-title">Quilleco</div>
+        <span class="badge">QU</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">6</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$433.842</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.24</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">12</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/alto-biobio">
+      <div class="card-head">
+        <div class="card-title">Alto Biobio</div>
+        <span class="badge">AB</span>
+      </div>
+      <div class="card-sub">Provincia de Biobío · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$0</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Arauco · 6 comunas · 1.197 pts · $91.189.953 · 47.88 km · 3.303 kg</h2>
+  <div class="grid">
+    <a class="card" href="/biobio/arauco">
+      <div class="card-head">
+        <div class="card-title">Arauco</div>
+        <span class="badge">AR</span>
+      </div>
+      <div class="card-sub">Provincia de Arauco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">304</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$21.981.328</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">979</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/curanilahue">
+      <div class="card-head">
+        <div class="card-title">Curanilahue</div>
+        <span class="badge">CU</span>
+      </div>
+      <div class="card-sub">Provincia de Arauco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">261</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$23.510.601</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">10.44</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">735</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/lebu">
+      <div class="card-head">
+        <div class="card-title">Lebu</div>
+        <span class="badge">LE</span>
+      </div>
+      <div class="card-sub">Provincia de Arauco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">204</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$14.750.628</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">8.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">504</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/canete">
+      <div class="card-head">
+        <div class="card-title">Cañete</div>
+        <span class="badge">CA</span>
+      </div>
+      <div class="card-sub">Provincia de Arauco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">202</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$14.606.014</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">8.08</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">492</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/los-alamos">
+      <div class="card-head">
+        <div class="card-title">Los Álamos</div>
+        <span class="badge">LÁ</span>
+      </div>
+      <div class="card-sub">Provincia de Arauco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">197</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$14.244.479</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">7.88</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">462</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/biobio/contulmo">
+      <div class="card-head">
+        <div class="card-title">Contulmo</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Arauco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">29</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$2.096.903</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">130</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+</main>
+<footer>
+  <div class="brand">Coordenada Pública</div>
+  Visores regionales del Biobío · Datos oficiales BCN · Abril 2026<br/>
+  Cada comuna incluye visor geoespacial, KPIs, gráficos descriptivos y datos filtrados por polígono BCN.
+</footer>
+</body>
+</html>

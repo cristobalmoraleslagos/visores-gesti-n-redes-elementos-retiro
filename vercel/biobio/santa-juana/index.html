@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visor Gestión de Red · Santa Juana · Coordenada Pública</title>
+
+<!-- Librerías (con fallbacks de CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin=""/>
+<script>window.__CDN_STATUS__={leaflet:false,markercluster:false,chart:false,papa:false,xlsx:false,tries:[]};
+function loadScript(urls, check, label){
+  return new Promise(resolve=>{
+    let i=0;
+    function tryNext(){
+      if(i>=urls.length){window.__CDN_STATUS__.tries.push(label+': FAIL');resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i]; s.async=false;
+      s.onload=()=>{ if(check()){window.__CDN_STATUS__[label]=true;window.__CDN_STATUS__.tries.push(label+': '+urls[i].split('/')[2]);resolve(true);} else {i++;tryNext();} };
+      s.onerror=()=>{i++;tryNext();};
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__LIBS_READY__ = (async()=>{
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  ], ()=>typeof L!=='undefined', 'leaflet');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',
+    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+  ], ()=>typeof L!=='undefined' && typeof L.markerClusterGroup==='function', 'markercluster');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'
+  ], ()=>typeof Chart!=='undefined', 'chart');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+    'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+    'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+  ], ()=>typeof Papa!=='undefined', 'papa');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], ()=>typeof XLSX!=='undefined', 'xlsx');
+  return true;
+})();
+</script>
+
+<style>
+:root{
+  --bg-0:#0E1117;--bg-1:#151A22;--bg-2:#1C2430;--bg-3:#243041;--line:#2A3545;
+  --txt:#FFFFFF;--txt-2:#C8D2E0;
+  --mustard:#C79F47;--mustard-2:#B8862B;--mustard-soft:rgba(199,159,71,.14);
+  --blue-1:#1E3A5F;--blue-2:#2E5C8A;--blue-3:#3E7CB1;--blue-4:#5FA8D3;--blue-5:#8FCDF5;
+  --ok:#4ECDC4;--warn:#E0A458;--bad:#D96E6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--mustard);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(90deg,#0B0E14 0%,#141B26 60%,#1C2532 100%);border-bottom:2px solid var(--mustard);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header .brand{display:flex;align-items:center;gap:14px}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:var(--mustard);font-weight:bold}
+header .sub{color:var(--txt-2);font-size:12px}
+header .tag{background:var(--mustard);color:#1a1207;font-weight:bold;font-size:11px;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:1px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;transition:all .15s}
+.btn:hover{background:var(--bg-3);border-color:var(--mustard)}
+.btn.primary{background:var(--mustard);color:#1a1207;border-color:var(--mustard);font-weight:bold}
+.btn.primary:hover{background:var(--mustard-2)}
+select,input[type=text]{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+#statusBar{padding:8px 22px;background:#182030;color:var(--txt-2);border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#statusBar.ok{background:#162B1F;color:#b8eec7}
+#statusBar.err{background:#2B1616;color:#ffb3b3}
+main{flex:1;display:grid;grid-template-columns:280px 1fr;min-height:0}
+aside{background:var(--bg-1);border-right:1px solid var(--line);padding:16px;overflow-y:auto}
+aside h3{margin:0 0 10px 0;font-size:11px;letter-spacing:1.5px;color:var(--mustard);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside .filter-group{margin-bottom:14px}
+aside label{display:block;font-size:11px;color:var(--txt-2);margin-bottom:4px}
+aside select{width:100%}
+aside .stats-mini{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:8px}
+aside .stats-mini .lbl{font-size:10px;color:var(--txt-2);letter-spacing:1px}
+aside .stats-mini .val{font-size:18px;color:var(--mustard);font-weight:bold}
+.content{padding:18px;overflow-y:auto;background:var(--bg-0)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:linear-gradient(135deg,var(--bg-2) 0%,var(--bg-3) 100%);border:2px solid var(--mustard);border-radius:10px;padding:14px 16px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(199,159,71,.15);overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(199,159,71,.18),transparent 70%)}
+.kpi .kpi-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:bold}
+.kpi .kpi-value{font-size:26px;color:#fff;font-weight:bold;line-height:1.1}
+.kpi .kpi-sub{font-size:11px;color:var(--txt-2);margin-top:4px}
+.kpi .kpi-icon{position:absolute;bottom:8px;right:10px;font-size:26px;opacity:.28;color:var(--mustard)}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.panel{background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h2{margin:0 0 12px 0;font-size:13px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--line);padding-bottom:8px;font-weight:bold}
+.panel.map{padding:0;overflow:hidden;position:relative}
+.panel.map h2{padding:14px 14px 8px 14px;margin:0;border-bottom:1px solid var(--line)}
+#map{height:500px;width:100%;background:#0B0F15}
+.panel .chart-wrap{position:relative;height:260px}
+.table-wrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-3);position:sticky;top:0}
+thead th{padding:8px 10px;text-align:left;color:var(--mustard);border-bottom:1px solid var(--line);font-size:11px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--bg-2);color:var(--txt-2)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg-2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge.alto{background:#5B1F1F;color:#ffb3b3;border:1px solid #8a2f2f}
+.badge.medio{background:#4B3A1C;color:#f5d089;border:1px solid #7a5f32}
+.badge.bajo{background:#1E3A3A;color:#b3e8e0;border:1px solid #2c5858}
+.badge.estado{background:var(--bg-3);color:var(--mustard);border:1px solid var(--line)}
+footer{padding:10px 22px;background:#0A0D12;color:var(--txt-2);font-size:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important}
+.leaflet-control-attribution a{color:var(--mustard)!important}
+.leaflet-popup-content-wrapper{background:var(--bg-2);color:#fff;border:1px solid var(--mustard);font-family:Arial}
+.leaflet-popup-tip{background:var(--bg-2)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--mustard)}
+.banner{background:var(--mustard-soft);border:1px solid var(--mustard);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+.banner b{color:var(--mustard)}
+.layer-toggle{position:absolute;top:60px;right:10px;background:var(--bg-1);border:1px solid var(--line);border-radius:4px;padding:6px 8px;z-index:1000;font-size:11px}
+.layer-toggle label{display:block;color:#fff;margin:2px 0;cursor:pointer}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div style="width:40px;height:40px;background:var(--mustard);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1a1207;font-weight:bold;font-size:16px">SJ</div>
+    <div>
+      <h1>Visor de <span class="accent">Gestión de Red</span> y Elementos en Desuso</h1>
+      <div class="sub">Comuna de <b style="color:#fff">Santa Juana</b> · Región Metropolitana · <span id="rec-count">0</span> puntos oficiales dentro del polígono · Polígono oficial <b>BCN</b></div>
+    </div>
+    <span class="tag">Datos Oficiales BCN</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnExport">💾 Exportar CSV</button>
+    <button class="btn primary" id="btnReport">📄 Reporte</button>
+  </div>
+</header>
+
+<div id="statusBar">
+  <span id="statusText">Inicializando...</span>
+  <span id="statusMeta"></span>
+</div>
+
+<main>
+  <aside>
+    <div class="banner">
+      <b>Santa Juana:</b> <span id="dataRecs">—</span> registros
+    </div>
+
+    <h3>Filtros</h3>
+    <div class="filter-group"><label>Compañía / Fuente</label><select id="fCompania"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Nivel de Riesgo</label><select id="fRiesgo"><option value="">Todos</option><option value="Alto">Alto</option><option value="Medio">Medio</option><option value="Bajo">Bajo</option></select></div>
+    <div class="filter-group"><label>Estado clasificado</label><select id="fEstado"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Elemento de Red</label><select id="fElem"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Material Principal</label><select id="fMat"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Prioridad (≤)</label><input type="range" id="fPrio" min="0" max="10" value="10" style="width:100%"/><span id="fPrioVal" style="color:var(--mustard);font-size:11px">Hasta 10</span></div>
+    <h3 style="margin-top:14px">Resumen rápido</h3>
+    <div class="stats-mini"><div class="lbl">Densidad (pts/km²)</div><div class="val" id="density">0</div></div>
+    <div class="stats-mini"><div class="lbl">% Riesgo Alto</div><div class="val" id="pctAlto">0%</div></div>
+    <div class="stats-mini"><div class="lbl">Multa promedio (CLP)</div><div class="val" id="avgMulta">$0</div></div>
+    <div class="stats-mini"><div class="lbl">Peso promedio / punto</div><div class="val" id="avgPeso">0 kg</div></div>
+
+    <button class="btn" id="btnReset" style="width:100%;margin-top:10px">🔁 Limpiar filtros</button>
+  </aside>
+
+  <div class="content">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Cantidad de Multas</div><div class="kpi-value" id="kpiMultas">0</div><div class="kpi-sub">1 multa x registro</div></div>
+      <div class="kpi"><div class="kpi-label">Estimación Multas CLP</div><div class="kpi-value" id="kpiMultasCLP">$0</div><div class="kpi-sub">según Ley 21.172</div></div>
+      <div class="kpi"><div class="kpi-label">Cantidad de KM</div><div class="kpi-value" id="kpiKM">0</div><div class="kpi-sub">cable/ducto afectado</div></div>
+      <div class="kpi"><div class="kpi-label">KG de Basura</div><div class="kpi-value" id="kpiKG">0</div><div class="kpi-sub">residuos estimados</div></div>
+      <div class="kpi"><div class="kpi-label">Índice Riesgo</div><div class="kpi-value" id="kpiRiesgo">0</div><div class="kpi-sub">compuesto 0-100</div></div>
+      <div class="kpi"><div class="kpi-label">Costo x KM</div><div class="kpi-value" id="kpiCostoKM">$0</div><div class="kpi-sub">multa/KM intervenido</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel map">
+        <h2>🗺️ Visor Geoespacial · Santa Juana (Polígono BCN)</h2>
+        <div id="map"></div>
+        <div class="layer-toggle">
+          <label><input type="checkbox" id="lyrPts" checked/> Puntos</label>
+          <label><input type="checkbox" id="lyrPoly" checked/> Polígono BCN</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📊 Distribución por Compañía / Fuente</h2>
+        <div class="chart-wrap"><canvas id="chartCompania"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel"><h2>⚠️ Nivel de Riesgo</h2><div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div></div>
+      <div class="panel"><h2>🔧 Estado Clasificado</h2><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+      <div class="panel"><h2>📦 Elemento de Red</h2><div class="chart-wrap"><canvas id="chartElem"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🧪 Material Principal</h2><div class="chart-wrap"><canvas id="chartMat"></canvas></div></div>
+      <div class="panel"><h2>🏢 Top Fuentes por Impacto CLP</h2><div class="chart-wrap"><canvas id="chartTopCLP"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🎯 Prioridad x CLP</h2><div class="chart-wrap"><canvas id="chartPrio"></canvas></div></div>
+      <div class="panel"><h2>🛣️ Tipo de lugar</h2><div class="chart-wrap"><canvas id="chartTipoLugar"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Detalle de Puntos <span style="float:right;font-size:11px;color:var(--txt-2)">Click en fila para centrar en el mapa · Hasta 500</span></h2>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr><th>ID</th><th>Fuente</th><th>Elemento</th><th>Material</th><th>Estado</th><th>Riesgo</th><th>Prio</th><th>KM</th><th>KG</th><th>CLP</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div><b style="color:var(--mustard)">Visor Gestión de Red · Santa Juana</b> — Coordenada Pública · Ley 21.172 · Decreto N°176</div>
+  <div>Plantilla extensible a otras comunas · Próximo: API REST para expedientes automáticos</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Datos reales embebidos
+   ============================================================ */
+const RAW_DATA = [{"id":"SAN-20001","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17762,"lng":-72.94299},{"id":"SAN-20002","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.16948,"lng":-72.95363},{"id":"SAN-20003","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.16952,"lng":-72.95172},{"id":"SAN-20004","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.16925,"lng":-72.94734},{"id":"SAN-20005","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17181,"lng":-72.94434},{"id":"SAN-20006","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17196,"lng":-72.93969},{"id":"SAN-20007","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17518,"lng":-72.93663},{"id":"SAN-20008","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17484,"lng":-72.94287},{"id":"SAN-20009","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17686,"lng":-72.9389},{"id":"SAN-20010","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.18161,"lng":-72.94151},{"id":"SAN-20011","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17569,"lng":-72.94614},{"id":"SAN-20012","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17481,"lng":-72.94888},{"id":"SAN-20013","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17685,"lng":-72.94833},{"id":"SAN-20014","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17711,"lng":-72.94918},{"id":"SAN-20015","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.175,"lng":-72.95173},{"id":"SAN-20016","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17312,"lng":-72.95112},{"id":"SAN-20017","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17219,"lng":-72.95169},{"id":"SAN-20018","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17244,"lng":-72.94783},{"id":"SAN-20019","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.1701,"lng":-72.95471},{"id":"SAN-20020","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.168,"lng":-72.95355},{"id":"SAN-20021","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.16621,"lng":-72.95022},{"id":"SAN-20022","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Reserva","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.16821,"lng":-72.94976},{"id":"SAN-20023","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cruceta, Preformada","elemento_red":"Estructura","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.0,"kg_basura":15.0,"lat":-37.16885,"lng":-72.94976},{"id":"SAN-20024","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Reserva","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17035,"lng":-72.95006},{"id":"SAN-20025","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Mufas","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.0,"kg_basura":3.0,"lat":-37.17181,"lng":-72.95017},{"id":"SAN-20026","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Reserva","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17356,"lng":-72.95034},{"id":"SAN-20027","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cruceta","elemento_red":"Estructura","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.0,"kg_basura":15.0,"lat":-37.17492,"lng":-72.95054},{"id":"SAN-20028","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":6,"tipo_lugar":"Pasaje","tipo_elemento":"Mufas","elemento_red":"Mufa_Caja","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.0,"kg_basura":3.0,"lat":-37.17494,"lng":-72.95029},{"id":"SAN-20029","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Reserva","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17722,"lng":-72.94675},{"id":"SAN-20030","fuente":"WOM","region":"Región del Biobío (VIII)","comuna":"Santa Juana","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Reserva","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.17798,"lng":-72.94336}];
+const LO_PRADO_POLYGON = {"type":"Feature","properties":{"objectid":"234","cod_comuna":"8109","codregion":"8","Region":"Región del Bío-Bío","Provincia":"Concepción","st_area_sh":"1.22711256495e+09","st_length_":"2.16777823587e+05","shape_leng":"172500.99971100","dis_elec":"20","cir_sena":"10","Comuna":"Santa Juana"},"geometry":{"type":"Polygon","coordinates":[[[-72.99309,-37.06835],[-72.98951,-37.06814],[-72.98566,-37.06884],[-72.98167,-37.06941],[-72.97764,-37.06922],[-72.98131,-37.0856],[-72.97968,-37.10694],[-72.96726,-37.13019],[-72.95398,-37.15028],[-72.92555,-37.17029],[-72.89594,-37.17616],[-72.871,-37.18134],[-72.86152,-37.19633],[-72.84918,-37.20279],[-72.83672,-37.20065],[-72.82218,-37.20048],[-72.80818,-37.21014],[-72.79086,-37.20295],[-72.78245,-37.20537],[-72.76962,-37.21171],[-72.75907,-37.22162],[-72.74574,-37.23281],[-72.74323,-37.24479],[-72.73791,-37.25527],[-72.73454,-37.26808],[-72.72977,-37.27632],[-72.73146,-37.27947],[-72.73389,-37.28221],[-72.73151,-37.28491],[-72.73201,-37.28755],[-72.73191,-37.29081],[-72.72719,-37.29289],[-72.72878,-37.29733],[-72.73027,-37.29999],[-72.73268,-37.30336],[-72.73793,-37.30506],[-72.74297,-37.30935],[-72.74196,-37.31384],[-72.74205,-37.31561],[-72.74371,-37.31524],[-72.74608,-37.31746],[-72.74891,-37.32112],[-72.75139,-37.32209],[-72.75212,-37.31918],[-72.75619,-37.31731],[-72.75818,-37.31546],[-72.76056,-37.31493],[-72.76436,-37.31345],[-72.7655,-37.31011],[-72.76844,-37.31027],[-72.77363,-37.31004],[-72.7756,-37.3151],[-72.78005,-37.31736],[-72.78292,-37.31461],[-72.78477,-37.31259],[-72.78853,-37.3137],[-72.79011,-37.31137],[-72.79216,-37.31249],[-72.79418,-37.3119],[-72.79601,-37.31385],[-72.79886,-37.31113],[-72.80176,-37.30998],[-72.80345,-37.30738],[-72.80423,-37.30941],[-72.80552,-37.31206],[-72.80616,-37.31511],[-72.80551,-37.31933],[-72.80692,-37.32491],[-72.80762,-37.3287],[-72.80737,-37.3315],[-72.8041,-37.33321],[-72.80632,-37.33958],[-72.81167,-37.3445],[-72.81908,-37.34225],[-72.82479,-37.33906],[-72.83223,-37.33352],[-72.84029,-37.33567],[-72.84259,-37.33696],[-72.84478,-37.34372],[-72.8499,-37.34863],[-72.85152,-37.35027],[-72.85645,-37.35081],[-72.86247,-37.34835],[-72.86545,-37.34921],[-72.86633,-37.35177],[-72.86997,-37.35065],[-72.87491,-37.35196],[-72.87545,-37.3558],[-72.8791,-37.35358],[-72.88185,-37.35185],[-72.88271,-37.34987],[-72.88456,-37.34945],[-72.88742,-37.3505],[-72.89059,-37.35018],[-72.8928,-37.34816],[-72.89056,-37.34617],[-72.89307,-37.34414],[-72.89605,-37.34467],[-72.89826,-37.34499],[-72.89943,-37.34971],[-72.90032,-37.35243],[-72.90368,-37.35121],[-72.90566,-37.35462],[-72.90978,-37.35624],[-72.91053,-37.35488],[-72.91189,-37.35256],[-72.91355,-37.35184],[-72.91632,-37.35292],[-72.91955,-37.35286],[-72.92121,-37.35232],[-72.92383,-37.35351],[-72.92539,-37.35663],[-72.92732,-37.3597],[-72.93089,-37.36163],[-72.92977,-37.36379],[-72.92942,-37.3666],[-72.93421,-37.36731],[-72.93568,-37.36894],[-72.93857,-37.3687],[-72.94177,-37.37013],[-72.94333,-37.37199],[-72.94499,-37.37426],[-72.94477,-37.37706],[-72.94762,-37.38014],[-72.94854,-37.38348],[-72.9507,-37.38849],[-72.94853,-37.39166],[-72.94999,-37.39523],[-72.95279,-37.39837],[-72.95472,-37.40132],[-72.95884,-37.40299],[-72.96376,-37.4013],[-72.96555,-37.40425],[-72.96196,-37.40671],[-72.96388,-37.40995],[-72.96285,-37.41314],[-72.96517,-37.41558],[-72.96775,-37.41826],[-72.96696,-37.42345],[-72.96705,-37.4282],[-72.96961,-37.43338],[-72.97396,-37.43417],[-72.97685,-37.44012],[-72.97188,-37.44441],[-72.97257,-37.449],[-72.98325,-37.45063],[-72.98743,-37.44951],[-72.9859,-37.44688],[-72.98892,-37.44615],[-72.99331,-37.44486],[-72.99804,-37.44229],[-73.00231,-37.44236],[-73.00537,-37.44214],[-73.01007,-37.4399],[-73.01533,-37.43976],[-73.01896,-37.44189],[-73.02203,-37.44455],[-73.02211,-37.44655],[-73.02456,-37.44647],[-73.02882,-37.44441],[-73.0316,-37.44509],[-73.0359,-37.4475],[-73.03977,-37.44605],[-73.04482,-37.44331],[-73.04694,-37.43983],[-73.05222,-37.44022],[-73.0555,-37.43953],[-73.05797,-37.43841],[-73.06037,-37.43712],[-73.06291,-37.43773],[-73.06741,-37.43971],[-73.07048,-37.43767],[-73.07271,-37.43721],[-73.07584,-37.4374],[-73.07853,-37.43683],[-73.0814,-37.43649],[-73.0843,-37.43559],[-73.0859,-37.4338],[-73.08514,-37.4319],[-73.08567,-37.42878],[-73.08743,-37.42767],[-73.08982,-37.42804],[-73.09296,-37.42717],[-73.09589,-37.42768],[-73.09877,-37.42751],[-73.10109,-37.42891],[-73.1019,-37.42681],[-73.10468,-37.42641],[-73.1072,-37.42665],[-73.11045,-37.42663],[-73.11351,-37.42641],[-73.11619,-37.42689],[-73.11885,-37.42765],[-73.12151,-37.42817],[-73.12254,-37.42587],[-73.12357,-37.4238],[-73.1232,-37.4215],[-73.1258,-37.42022],[-73.12522,-37.4176],[-73.12538,-37.4152],[-73.12552,-37.41322],[-73.12404,-37.4115],[-73.1223,-37.40958],[-73.12116,-37.40752],[-73.11963,-37.40557],[-73.11736,-37.40415],[-73.11485,-37.40314],[-73.11554,-37.38919],[-73.11874,-37.38724],[-73.11507,-37.38484],[-73.11809,-37.38209],[-73.11676,-37.37754],[-73.11687,-37.37302],[-73.11625,-37.36923],[-73.11846,-37.36406],[-73.12168,-37.36032],[-73.12583,-37.35638],[-73.13404,-37.35466],[-73.1337,-37.35233],[-73.1318,-37.35107],[-73.12967,-37.34965],[-73.12687,-37.34948],[-73.12403,-37.34974],[-73.12125,-37.3492],[-73.11973,-37.34735],[-73.11951,-37.34511],[-73.11363,-37.33579],[-73.11243,-37.3337],[-73.11158,-37.33151],[-73.11125,-37.32854],[-73.11175,-37.31898],[-73.11081,-37.3124],[-73.1083,-37.30973],[-73.11241,-37.3064],[-73.10849,-37.303],[-73.10069,-37.29657],[-73.09504,-37.28611],[-73.09197,-37.27608],[-73.09192,-37.26889],[-73.09077,-37.26572],[-73.08857,-37.26117],[-73.08667,-37.25873],[-73.074,-37.25798],[-73.06677,-37.25666],[-73.06855,-37.25559],[-73.07383,-37.25388],[-73.07992,-37.24636],[-73.08193,-37.24282],[-73.08506,-37.23832],[-73.09019,-37.23828],[-73.0945,-37.23656],[-73.09852,-37.23772],[-73.10021,-37.23968],[-73.10407,-37.23933],[-73.10719,-37.24208],[-73.10791,-37.24082],[-73.11021,-37.23636],[-73.11226,-37.23387],[-73.11305,-37.23052],[-73.11199,-37.22816],[-73.11669,-37.22596],[-73.11829,-37.22064],[-73.11725,-37.21832],[-73.11584,-37.21741],[-73.11349,-37.21637],[-73.10836,-37.21469],[-73.10106,-37.21173],[-73.09639,-37.20952],[-73.09209,-37.21126],[-73.08801,-37.21046],[-73.08288,-37.20644],[-73.07891,-37.20143],[-73.07398,-37.19665],[-73.06735,-37.19744],[-73.06652,-37.19541],[-73.06502,-37.19304],[-73.06407,-37.19047],[-73.06458,-37.18784],[-73.06587,-37.18536],[-73.06736,-37.18298],[-73.05157,-37.14981],[-73.05063,-37.14773],[-73.05086,-37.14402],[-73.05287,-37.14376],[-73.05542,-37.14208],[-73.05761,-37.14029],[-73.05483,-37.13996],[-73.05288,-37.13792],[-73.04799,-37.13534],[-73.04679,-37.13238],[-73.05075,-37.12879],[-73.04771,-37.12485],[-73.04598,-37.12282],[-73.04317,-37.12088],[-73.04258,-37.11578],[-73.04484,-37.11302],[-73.04666,-37.11056],[-73.04409,-37.10665],[-73.04325,-37.10414],[-73.04095,-37.10335],[-73.03786,-37.10254],[-73.03549,-37.10066],[-73.03252,-37.09944],[-73.02972,-37.09798],[-73.02728,-37.09613],[-73.02521,-37.09401],[-73.02309,-37.09194],[-73.02151,-37.08969],[-73.02126,-37.08707],[-73.02052,-37.08467],[-73.02333,-37.08324],[-73.02519,-37.08103],[-73.02484,-37.07856],[-73.02355,-37.07616],[-73.02317,-37.07371],[-73.01985,-37.07127],[-73.01597,-37.07055],[-73.00739,-37.07123],[-72.99986,-37.07121],[-72.99697,-37.06924],[-72.99399,-37.06793],[-72.99309,-37.06835]]]}};
+
+function setStatus(txt, cls, meta){
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = txt;
+  if(meta!==undefined) document.getElementById('statusMeta').textContent = meta;
+  bar.className = cls || '';
+}
+
+/* ============================================================
+   Point in polygon (puro JS, sin depender de Turf)
+   ============================================================ */
+function pipRing(lng, lat, ring){
+  let inside = false;
+  const n = ring.length;
+  for(let i=0, j=n-1; i<n; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-15)+xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInside(d){
+  if(!d.lat || !d.lng) return false;
+  try{
+    const rings = LO_PRADO_POLYGON.geometry.coordinates;
+    // Polygon: primer anillo exterior, resto agujeros
+    if(!pipRing(d.lng, d.lat, rings[0])) return false;
+    for(let i=1; i<rings.length; i++){
+      if(pipRing(d.lng, d.lat, rings[i])) return false; // en agujero
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+const COLORES = {
+  mustard:'#C79F47',
+  blues:['#1E3A5F','#2E5C8A','#3E7CB1','#5FA8D3','#8FCDF5','#0F2847','#567AA6','#73A9D4','#1D4E7A'],
+  bluesLine:'#5FA8D3', grid:'#2A3545'
+};
+
+let AREA_KM2 = 6.67;
+try{
+  if(LO_PRADO_POLYGON.properties && LO_PRADO_POLYGON.properties.st_area_sh){
+    AREA_KM2 = parseFloat(LO_PRADO_POLYGON.properties.st_area_sh)/1e6;
+  }
+}catch(e){}
+
+let CENTER = [-33.4419,-70.7256];
+try{
+  const ring = LO_PRADO_POLYGON.geometry.coordinates[0];
+  let sx=0,sy=0;
+  ring.forEach(p=>{sx+=p[0];sy+=p[1];});
+  CENTER = [sy/ring.length, sx/ring.length];
+}catch(e){}
+
+let DATA_ALL = [];
+let DATA_FILTERED = [];
+let map, polyLayer, markersLayer;
+let charts = {};
+let chartJsReady = false;
+let leafletReady = false;
+
+const fmt = n=>(n||0).toLocaleString('es-CL');
+const fmtCLP = n=>'$'+fmt(Math.round(n||0));
+const colorRiesgo = r=> r==='Alto'?'#D96E6E': r==='Medio'?'#E0A458':'#4ECDC4';
+const uniq = (arr,k)=>{
+  const s = new Set();
+  arr.forEach(x=>{if(x[k]!==undefined && x[k]!==null && x[k]!=='') s.add(x[k]);});
+  return [...s].sort();
+};
+function popSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML='';
+  if(first) sel.appendChild(first);
+  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+  sel.value = current;
+}
+
+function initMap(){
+  if(typeof L === 'undefined'){
+    setStatus('Error: Leaflet no se cargó. Revisa tu conexión a internet.', 'err');
+    return false;
+  }
+  try{
+    map = L.map('map',{preferCanvas:true}).setView(CENTER, 14);
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Voyager',subdomains:'abcd',maxZoom:20});
+    let __tileLoad=0,__tileErr=0;
+    voyager.on('tileload',()=>{__tileLoad++; if(__tileLoad===1) setStatus('Mapa: teselas cargando (' + __tileLoad + ').', '', ''); });
+    voyager.on('tileerror',()=>{__tileErr++; if(__tileErr===1) setStatus('⚠ Error cargando teselas del mapa (' + __tileErr + '). Probando basemap alternativo...', 'err'); if(__tileErr===3){ map.removeLayer(voyager); osm.addTo(map);} });
+    voyager.addTo(map);
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Dark',subdomains:'abcd',maxZoom:20});
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB',subdomains:'abcd',maxZoom:20});
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap France · HOT',maxZoom:19});
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19});
+    const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB',subdomains:'abcd',maxZoom:20,pane:'shadowPane'});
+    L.control.layers({"Calles (Voyager)":voyager,"Oscuro":dark,"Calles OSM":osm,"Humanitario":osmHOT,"Satelital":sat}, {"Etiquetas sobre satelital":satLabels}).addTo(map);
+
+    polyLayer = L.geoJSON(LO_PRADO_POLYGON,{style:{color:COLORES.mustard,weight:3,fillColor:COLORES.mustard,fillOpacity:0.07,dashArray:'6 4'}}).addTo(map);
+    polyLayer.bindTooltip('Santa Juana · Polígono oficial BCN ('+AREA_KM2.toFixed(2)+' km²)',{sticky:true});
+
+    if(L.markerClusterGroup){
+      markersLayer = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        iconCreateFunction:c=>L.divIcon({html:'<div style="background:#C79F47;color:#1a1207;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid #fff;font-family:Arial">'+c.getChildCount()+'</div>',className:'',iconSize:[38,38]})
+      });
+    } else {
+      markersLayer = L.layerGroup();
+    }
+    map.addLayer(markersLayer);
+
+    try{ map.fitBounds(polyLayer.getBounds().pad(0.05)); }catch(e){}
+    leafletReady = true;
+    return true;
+  }catch(e){
+    console.error(e);
+    setStatus('Error inicializando mapa: '+e.message, 'err');
+    return false;
+  }
+}
+
+function renderMarkers(data){
+  if(!leafletReady || !markersLayer) return;
+  markersLayer.clearLayers();
+  let n=0;
+  data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
+    const col = colorRiesgo(d.riesgo);
+    const m = L.circleMarker([d.lat,d.lng],{radius:6,color:'#fff',weight:1.3,fillColor:col,fillOpacity:.85});
+    m.bindPopup(
+      '<b>'+d.id+'</b><br/>'+
+      '<b>Fuente:</b> '+(d.fuente||'')+'<br/>'+
+      '<b>Elemento:</b> '+(d.elemento_red||'')+' / '+(d.material||'')+'<br/>'+
+      '<b>Estado:</b> '+(d.estado_clasificado||'')+'<br/>'+
+      '<b>Riesgo:</b> <span style="color:'+col+'"><b>'+d.riesgo+'</b></span> (score '+d.riesgo_score+')<br/>'+
+      '<b>Prioridad:</b> '+d.prioridad+' · <b>Plan:</b> '+(d.plan||'')+'<br/>'+
+      '<b>KM:</b> '+d.km+' · <b>KG:</b> '+d.kg_basura+'<br/>'+
+      '<b>CLP Multa:</b> '+fmtCLP(d.clp_multas)+'<br/>'+
+      '<b>Lugar:</b> '+(d.tipo_lugar||'')+'<br/>'+
+      '<b>Elem intervenir:</b> '+(d.tipo_elemento||'—')
+    );
+    markersLayer.addLayer(m);
+    n++;
+  });
+  return n;
+}
+
+function applyFilters(){
+  const v = id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const ch = id=>{const e=document.getElementById(id);return e?e.checked:false;};
+  const fC=v('fCompania'),fR=v('fRiesgo'),fE=v('fEstado'),fEl=v('fElem'),fM=v('fMat');
+  const fP=+v('fPrio');
+  const fI=ch('fInside');
+  const fH=ch('fHasCoord');
+  DATA_FILTERED = DATA_ALL.filter(d=>{
+    if(fC && d.fuente!==fC) return false;
+    if(fR && d.riesgo!==fR) return false;
+    if(fE && d.estado_clasificado!==fE) return false;
+    if(fEl && d.elemento_red!==fEl) return false;
+    if(fM && d.material!==fM) return false;
+    if((d.prioridad||0)>fP) return false;
+    if(fH && (!d.lat||!d.lng)) return false;
+    if(fI && !d._inside) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function updateKPIs(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const pctAlto = d.length? alto/d.length*100:0;
+  const avgScore = d.length? d.reduce((a,x)=>a+(+x.riesgo_score||0),0)/d.length : 0;
+  const idx = Math.min(100, Math.round(pctAlto*0.4 + (avgScore/18*100)*0.3 + Math.min(100,(clp/1000000)*1.5)*0.15 + Math.min(100,kg/50)*0.15));
+
+  const set = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiMultas', fmt(multas));
+  set('kpiMultasCLP', fmtCLP(clp));
+  set('kpiKM', km.toFixed(2));
+  set('kpiKG', fmt(Math.round(kg)));
+  set('kpiRiesgo', idx);
+  set('kpiCostoKM', km>0? fmtCLP(clp/km):'$0');
+  set('density', (d.length/AREA_KM2).toFixed(1));
+  set('pctAlto', pctAlto.toFixed(1)+'%');
+  set('avgMulta', multas>0? fmtCLP(clp/multas):'$0');
+  set('avgPeso', d.length? (kg/d.length).toFixed(1)+' kg':'0 kg');
+  set('rec-count', d.length);
+  set('dataRecs', d.length);
+}
+
+function groupCount(data,key){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+1;});return m;}
+function groupSum(data,key,field){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+(+x[field]||0);});return m;}
+
+function makeChart(id,type,data,opts){
+  if(!chartJsReady) return;
+  opts = opts||{};
+  if(charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if(!el) return;
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#fff',font:{family:'Arial',size:11}}},
+      tooltip:{backgroundColor:'#0E1117',borderColor:COLORES.mustard,borderWidth:1,titleColor:COLORES.mustard,bodyColor:'#fff'}},
+    scales:(type==='pie'||type==='doughnut')?undefined:{
+      x:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid}},
+      y:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid},beginAtZero:true}}
+  };
+  charts[id] = new Chart(el,{type,data,options:Object.assign(base,opts)});
+}
+
+function updateCharts(){
+  if(!chartJsReady) return;
+  const d = DATA_FILTERED;
+  const g1 = groupCount(d,'fuente');
+  const l1 = Object.keys(g1).sort((a,b)=>g1[b]-g1[a]).slice(0,10);
+  makeChart('chartCompania','bar',{labels:l1,datasets:[{label:'Puntos',data:l1.map(k=>g1[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.blues[4],borderWidth:1.5}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+
+  const g2 = groupCount(d,'riesgo');
+  const ord = ['Alto','Medio','Bajo'].filter(k=>g2[k]);
+  makeChart('chartRiesgo','doughnut',{labels:ord,datasets:[{data:ord.map(k=>g2[k]),backgroundColor:ord.map(k=>colorRiesgo(k)),borderColor:'#0E1117',borderWidth:2}]});
+
+  const g3 = groupCount(d,'estado_clasificado');
+  const l3 = Object.keys(g3).sort((a,b)=>g3[b]-g3[a]).slice(0,8);
+  makeChart('chartEstado','bar',{labels:l3,datasets:[{label:'Puntos',data:l3.map(k=>g3[k]),backgroundColor:COLORES.blues[1],borderColor:COLORES.blues[3],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g4 = groupCount(d,'elemento_red');
+  makeChart('chartElem','pie',{labels:Object.keys(g4),datasets:[{data:Object.values(g4),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+
+  const g5 = groupCount(d,'material');
+  const l5 = Object.keys(g5).sort((a,b)=>g5[b]-g5[a]).slice(0,8);
+  makeChart('chartMat','bar',{labels:l5,datasets:[{label:'Puntos',data:l5.map(k=>g5[k]),backgroundColor:COLORES.blues[3],borderColor:COLORES.blues[4],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g6 = groupSum(d,'fuente','clp_multas');
+  const l6 = Object.keys(g6).sort((a,b)=>g6[b]-g6[a]).slice(0,8);
+  makeChart('chartTopCLP','bar',{labels:l6,datasets:[{label:'CLP',data:l6.map(k=>g6[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.mustard,borderWidth:1.5}]},
+    {indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCLP(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#C8D2E0',callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:COLORES.grid}},y:{ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}}}});
+
+  const g7 = {};
+  d.forEach(x=>{const k=(+x.prioridad)||0;if(!g7[k])g7[k]={n:0,clp:0};g7[k].n++;g7[k].clp+=(+x.clp_multas||0);});
+  const k7 = Object.keys(g7).sort((a,b)=>+a-+b);
+  makeChart('chartPrio','bar',{labels:k7.map(k=>'P'+k),datasets:[{label:'Puntos',data:k7.map(k=>g7[k].n),backgroundColor:COLORES.blues[3],yAxisID:'y'},{label:'CLP',data:k7.map(k=>g7[k].clp),type:'line',borderColor:COLORES.mustard,backgroundColor:'rgba(199,159,71,.2)',yAxisID:'y1',tension:.3,pointBackgroundColor:COLORES.mustard}]},
+    {scales:{y:{position:'left',ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}},y1:{position:'right',ticks:{color:COLORES.mustard,callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{drawOnChartArea:false}}}});
+
+  const g8 = groupCount(d,'tipo_lugar');
+  const l8 = Object.keys(g8).sort((a,b)=>g8[b]-g8[a]).slice(0,6);
+  makeChart('chartTipoLugar','pie',{labels:l8,datasets:[{data:l8.map(k=>g8[k]),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+}
+
+function updateTable(){
+  const tb = document.querySelector('#dataTable tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  DATA_FILTERED.slice(0,500).forEach(d=>{
+    const tr = document.createElement('tr');
+    const rLow = (d.riesgo||'').toLowerCase();
+    tr.innerHTML = '<td>'+d.id+'</td><td>'+(d.fuente||'')+'</td><td>'+(d.elemento_red||'')+'</td><td>'+(d.material||'')+'</td>'+
+      '<td><span class="badge estado">'+(d.estado_clasificado||'')+'</span></td>'+
+      '<td><span class="badge '+rLow+'">'+(d.riesgo||'')+'</span></td>'+
+      '<td>'+(d.prioridad||0)+'</td><td>'+(+d.km||0).toFixed(3)+'</td><td>'+fmt(d.kg_basura)+'</td><td>'+fmtCLP(d.clp_multas)+'</td>';
+    tr.onclick=()=>{if(d.lat&&d.lng&&map)map.setView([d.lat,d.lng],17);};
+    tb.appendChild(tr);
+  });
+}
+
+function updateAll(){
+  updateKPIs(); updateCharts(); updateTable();
+  if(leafletReady) renderMarkers(DATA_FILTERED);
+}
+
+function loadInitial(){
+  DATA_ALL = RAW_DATA.map(r=>Object.assign({},r));
+  DATA_ALL.forEach(d=>{d._inside = (d.lat&&d.lng)? pointInside(d) : false;});
+  const withCoords = DATA_ALL.filter(d=>d.lat && d.lng).length;
+  const inside = DATA_ALL.filter(d=>d._inside).length;
+  popSelect('fCompania', uniq(DATA_ALL,'fuente'));
+  popSelect('fEstado', uniq(DATA_ALL,'estado_clasificado'));
+  popSelect('fElem', uniq(DATA_ALL,'elemento_red'));
+  popSelect('fMat', uniq(DATA_ALL,'material'));
+  applyFilters();
+  setStatus('✓ Datos de Santa Juana cargados correctamente', 'ok',
+    DATA_ALL.length+' registros oficiales dentro del polígono BCN');
+}
+
+/* Importación */
+function normalizeRecord(r){
+  const g = keys=>{for(const k of keys){const f=Object.keys(r).find(c=>c.toLowerCase().trim()===k.toLowerCase());if(f!==undefined && r[f]!=='' && r[f]!=null) return r[f];}return null;};
+  return {
+    id:g(['id','ID']) || 'EXT-'+Math.floor(Math.random()*100000),
+    fuente:g(['fuente','compania','compañía','empresa','GORE, Municipio, Denuncias Ciudadanía o Empresas']) || 'Desconocido',
+    region:g(['region','2. Región']) || '',
+    comuna:g(['comuna','3. Comuna']) || 'Santa Juana',
+    plan:g(['plan','Plan']) || 'Por definir',
+    prioridad:+(g(['prioridad','4. Prioritario'])||0),
+    tipo_lugar:g(['tipo_lugar','5.Tipo de lugar']) || '',
+    tipo_elemento:g(['tipo_elemento','7.Tipo del o los elementos a intervenir y su respectivo estado'])||'',
+    elemento_red:g(['elemento_red','Elemento_Red']) || 'Sin dato',
+    material:g(['material','Material_Principal']) || 'Sin dato',
+    estado_clasificado:g(['estado_clasificado','Estado_Clasificado']) || 'Desconocido',
+    estado_final:g(['estado_final','21. Estado_Final']) || '',
+    riesgo:g(['riesgo','nivel_riesgo'])||'Medio', riesgo_score:+(g(['riesgo_score'])||5),
+    multas:+(g(['multas'])||1), clp_multas:+(g(['clp_multas','clp','monto'])||0),
+    km:+(g(['km','Estimacion_KM'])||0), kg_basura:+(g(['kg_basura','Estimacion_Peso_KG'])||0),
+    lat:+(g(['lat','latitud','16. Latitud (WGS84 5 DECIMALES)'])||0),
+    lng:+(g(['lng','longitud','17. Longitud (WGS84 5 DECIMALES)'])||0),
+  };
+}
+
+function parseFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const finish = (rows, src)=>{
+    DATA_ALL = rows.map(normalizeRecord);
+    DATA_ALL.forEach(d=>d._inside=pointInside(d));
+    popSelect('fCompania',uniq(DATA_ALL,'fuente'));
+    popSelect('fEstado',uniq(DATA_ALL,'estado_clasificado'));
+    popSelect('fElem',uniq(DATA_ALL,'elemento_red'));
+    popSelect('fMat',uniq(DATA_ALL,'material'));
+    applyFilters();
+    setStatus('✓ '+DATA_ALL.length+' registros oficiales', 'ok');
+  };
+  if(ext==='csv'){
+    if(typeof Papa==='undefined') return alert('PapaParse no cargó. Verifica conexión.');
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>finish(res.data, file.name)});
+  } else if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined') return alert('SheetJS no cargó. Verifica conexión.');
+    const r = new FileReader();
+    r.onload = e=>{
+      const wb = XLSX.read(e.target.result,{type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      finish(rows, file.name+' · '+wb.SheetNames[0]);
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function exportCSV(){
+  if(!DATA_FILTERED.length) return alert('Sin datos.');
+  const cols = Object.keys(DATA_FILTERED[0]).filter(c=>!c.startsWith('_'));
+  const rows = [cols.join(',')].concat(DATA_FILTERED.map(d=>cols.map(c=>JSON.stringify(d[c]===undefined?'':d[c])).join(','))).join('\n');
+  const b = new Blob([rows],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download='visor_santa_juana_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+function genReporte(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const byF = groupSum(d,'fuente','clp_multas');
+  const top = Object.entries(byF).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const html = '<html><head><meta charset="utf-8"><title>Reporte Santa Juana</title>'+
+    '<style>body{font-family:Arial;padding:30px;color:#222}h1{color:#8E6E2A;border-bottom:2px solid #C79F47}'+
+    '.kpi{display:inline-block;margin:8px;padding:14px 20px;background:#f5efe2;border:1px solid #C79F47;border-radius:6px}'+
+    '.kpi b{display:block;color:#8E6E2A;font-size:11px;letter-spacing:1px}.kpi span{font-size:22px;font-weight:bold}'+
+    'table{border-collapse:collapse;margin-top:14px;width:100%}td,th{border:1px solid #ddd;padding:6px 10px;font-size:12px;text-align:left}th{background:#8E6E2A;color:#fff}</style></head>'+
+    '<body><h1>Reporte de Gestión de Red · Santa Juana</h1>'+
+    '<p>Fecha: '+new Date().toLocaleString('es-CL')+' · Registros: '+d.length+' · Superficie: '+AREA_KM2.toFixed(2)+' km²</p>'+
+    '<div class="kpi"><b>Multas</b><span>'+fmt(multas)+'</span></div>'+
+    '<div class="kpi"><b>CLP</b><span>'+fmtCLP(clp)+'</span></div>'+
+    '<div class="kpi"><b>KM</b><span>'+km.toFixed(2)+'</span></div>'+
+    '<div class="kpi"><b>KG basura</b><span>'+fmt(Math.round(kg))+'</span></div>'+
+    '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
+    '<h2>Top 5 fuentes por impacto CLP</h2>'+
+    '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
+    '</body></html>';
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+/* Eventos (defensivos) */
+function bind(id, ev, fn){const e=document.getElementById(id); if(e) e.addEventListener(ev, fn);}
+['fCompania','fRiesgo','fEstado','fElem','fMat','fInside','fHasCoord'].forEach(id=>bind(id,'change',applyFilters));
+bind('fPrio','input',e=>{document.getElementById('fPrioVal').textContent='Hasta '+e.target.value;applyFilters();});
+bind('btnReset','click',()=>{
+  ['fCompania','fRiesgo','fEstado','fElem','fMat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fInside').checked=false;
+  document.getElementById('fHasCoord').checked=true;
+  document.getElementById('fPrio').value=10;
+  document.getElementById('fPrioVal').textContent='Hasta 10';
+  applyFilters();
+});
+bind('btnExport','click',exportCSV);
+bind('btnReport','click',genReporte);
+bind('lyrPts','change',e=>{if(map){if(e.target.checked) map.addLayer(markersLayer); else map.removeLayer(markersLayer);}});
+bind('lyrPoly','change',e=>{if(map){if(e.target.checked) map.addLayer(polyLayer); else map.removeLayer(polyLayer);}});
+
+/* Boot — NO esperamos a 'load', ejecutamos apenas DOM listo */
+function boot(){
+  try{
+    const s = window.__CDN_STATUS__||{};
+    const failed = ['leaflet','markercluster','chart','papa','xlsx'].filter(k=>!s[k]);
+    if(failed.length){
+      setStatus('⚠ Librerías no cargadas: '+failed.join(', ')+'. Fuentes intentadas: '+(s.tries||[]).join(' | '), 'err');
+    } else {
+      setStatus('Librerías OK. Iniciando mapa y gráficos...', '', '');
+    }
+    chartJsReady = (typeof Chart !== 'undefined');
+    const leafletOk = initMap();
+    loadInitial();
+    if(!leafletOk) setStatus('Datos cargados, pero el mapa no se pudo inicializar. ['+(s.tries||[]).join(' | ')+']', 'err');
+    else if(!chartJsReady) setStatus('Datos cargados sin gráficos (Chart.js no disponible).', 'err');
+  }catch(err){
+    console.error(err);
+    setStatus('Error: '+err.message, 'err');
+  }
+}
+async function bootWhenReady(){
+  try{
+    await window.__LIBS_READY__;
+  }catch(e){}
+  boot();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
+else bootWhenReady();
+</script>
+</body></html>

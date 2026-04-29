@@ -24,6 +24,12 @@ vercel/
 ├── penalolen/index.html
 ├── melipilla/index.html
 ├── lo-espejo/index.html
+├── biobio/                   · landing regional Biobío
+│   ├── index.html            · 32 cards agrupadas por provincia
+│   ├── concepcion/index.html
+│   ├── talcahuano/index.html
+│   ├── los-angeles/index.html
+│   └── ... (32 comunas total)
 ├── nacional/index.html
 ├── base-madre/index.html
 ```
@@ -46,6 +52,8 @@ vercel/
 | `penalolen` | `/penalolen` | Peñalolén | comunal |
 | `melipilla` | `/melipilla` | Melipilla | comunal |
 | `lo-espejo` | `/lo-espejo` | Lo Espejo | comunal |
+| `biobio` | `/biobio` | Región del Biobío (landing) | regional |
+| `biobio/<comuna>` | `/biobio/<comuna>` | 32 comunas Biobío | comunal |
 | `nacional` | `/nacional` | Nacional · Público | nacional |
 | `base-madre` | `/base-madre` | Base Madre | maestro |
 

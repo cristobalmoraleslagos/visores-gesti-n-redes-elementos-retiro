@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visor Gestión de Red · Yumbel · Coordenada Pública</title>
+
+<!-- Librerías (con fallbacks de CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin=""/>
+<script>window.__CDN_STATUS__={leaflet:false,markercluster:false,chart:false,papa:false,xlsx:false,tries:[]};
+function loadScript(urls, check, label){
+  return new Promise(resolve=>{
+    let i=0;
+    function tryNext(){
+      if(i>=urls.length){window.__CDN_STATUS__.tries.push(label+': FAIL');resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i]; s.async=false;
+      s.onload=()=>{ if(check()){window.__CDN_STATUS__[label]=true;window.__CDN_STATUS__.tries.push(label+': '+urls[i].split('/')[2]);resolve(true);} else {i++;tryNext();} };
+      s.onerror=()=>{i++;tryNext();};
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__LIBS_READY__ = (async()=>{
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  ], ()=>typeof L!=='undefined', 'leaflet');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',
+    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+  ], ()=>typeof L!=='undefined' && typeof L.markerClusterGroup==='function', 'markercluster');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'
+  ], ()=>typeof Chart!=='undefined', 'chart');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+    'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+    'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+  ], ()=>typeof Papa!=='undefined', 'papa');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], ()=>typeof XLSX!=='undefined', 'xlsx');
+  return true;
+})();
+</script>
+
+<style>
+:root{
+  --bg-0:#0E1117;--bg-1:#151A22;--bg-2:#1C2430;--bg-3:#243041;--line:#2A3545;
+  --txt:#FFFFFF;--txt-2:#C8D2E0;
+  --mustard:#C79F47;--mustard-2:#B8862B;--mustard-soft:rgba(199,159,71,.14);
+  --blue-1:#1E3A5F;--blue-2:#2E5C8A;--blue-3:#3E7CB1;--blue-4:#5FA8D3;--blue-5:#8FCDF5;
+  --ok:#4ECDC4;--warn:#E0A458;--bad:#D96E6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--mustard);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(90deg,#0B0E14 0%,#141B26 60%,#1C2532 100%);border-bottom:2px solid var(--mustard);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header .brand{display:flex;align-items:center;gap:14px}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:var(--mustard);font-weight:bold}
+header .sub{color:var(--txt-2);font-size:12px}
+header .tag{background:var(--mustard);color:#1a1207;font-weight:bold;font-size:11px;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:1px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;transition:all .15s}
+.btn:hover{background:var(--bg-3);border-color:var(--mustard)}
+.btn.primary{background:var(--mustard);color:#1a1207;border-color:var(--mustard);font-weight:bold}
+.btn.primary:hover{background:var(--mustard-2)}
+select,input[type=text]{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+#statusBar{padding:8px 22px;background:#182030;color:var(--txt-2);border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#statusBar.ok{background:#162B1F;color:#b8eec7}
+#statusBar.err{background:#2B1616;color:#ffb3b3}
+main{flex:1;display:grid;grid-template-columns:280px 1fr;min-height:0}
+aside{background:var(--bg-1);border-right:1px solid var(--line);padding:16px;overflow-y:auto}
+aside h3{margin:0 0 10px 0;font-size:11px;letter-spacing:1.5px;color:var(--mustard);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside .filter-group{margin-bottom:14px}
+aside label{display:block;font-size:11px;color:var(--txt-2);margin-bottom:4px}
+aside select{width:100%}
+aside .stats-mini{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:8px}
+aside .stats-mini .lbl{font-size:10px;color:var(--txt-2);letter-spacing:1px}
+aside .stats-mini .val{font-size:18px;color:var(--mustard);font-weight:bold}
+.content{padding:18px;overflow-y:auto;background:var(--bg-0)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:linear-gradient(135deg,var(--bg-2) 0%,var(--bg-3) 100%);border:2px solid var(--mustard);border-radius:10px;padding:14px 16px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(199,159,71,.15);overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(199,159,71,.18),transparent 70%)}
+.kpi .kpi-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:bold}
+.kpi .kpi-value{font-size:26px;color:#fff;font-weight:bold;line-height:1.1}
+.kpi .kpi-sub{font-size:11px;color:var(--txt-2);margin-top:4px}
+.kpi .kpi-icon{position:absolute;bottom:8px;right:10px;font-size:26px;opacity:.28;color:var(--mustard)}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.panel{background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h2{margin:0 0 12px 0;font-size:13px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--line);padding-bottom:8px;font-weight:bold}
+.panel.map{padding:0;overflow:hidden;position:relative}
+.panel.map h2{padding:14px 14px 8px 14px;margin:0;border-bottom:1px solid var(--line)}
+#map{height:500px;width:100%;background:#0B0F15}
+.panel .chart-wrap{position:relative;height:260px}
+.table-wrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-3);position:sticky;top:0}
+thead th{padding:8px 10px;text-align:left;color:var(--mustard);border-bottom:1px solid var(--line);font-size:11px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--bg-2);color:var(--txt-2)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg-2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge.alto{background:#5B1F1F;color:#ffb3b3;border:1px solid #8a2f2f}
+.badge.medio{background:#4B3A1C;color:#f5d089;border:1px solid #7a5f32}
+.badge.bajo{background:#1E3A3A;color:#b3e8e0;border:1px solid #2c5858}
+.badge.estado{background:var(--bg-3);color:var(--mustard);border:1px solid var(--line)}
+footer{padding:10px 22px;background:#0A0D12;color:var(--txt-2);font-size:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important}
+.leaflet-control-attribution a{color:var(--mustard)!important}
+.leaflet-popup-content-wrapper{background:var(--bg-2);color:#fff;border:1px solid var(--mustard);font-family:Arial}
+.leaflet-popup-tip{background:var(--bg-2)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--mustard)}
+.banner{background:var(--mustard-soft);border:1px solid var(--mustard);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+.banner b{color:var(--mustard)}
+.layer-toggle{position:absolute;top:60px;right:10px;background:var(--bg-1);border:1px solid var(--line);border-radius:4px;padding:6px 8px;z-index:1000;font-size:11px}
+.layer-toggle label{display:block;color:#fff;margin:2px 0;cursor:pointer}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div style="width:40px;height:40px;background:var(--mustard);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1a1207;font-weight:bold;font-size:16px">YU</div>
+    <div>
+      <h1>Visor de <span class="accent">Gestión de Red</span> y Elementos en Desuso</h1>
+      <div class="sub">Comuna de <b style="color:#fff">Yumbel</b> · Región Metropolitana · <span id="rec-count">0</span> puntos oficiales dentro del polígono · Polígono oficial <b>BCN</b></div>
+    </div>
+    <span class="tag">Datos Oficiales BCN</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnExport">💾 Exportar CSV</button>
+    <button class="btn primary" id="btnReport">📄 Reporte</button>
+  </div>
+</header>
+
+<div id="statusBar">
+  <span id="statusText">Inicializando...</span>
+  <span id="statusMeta"></span>
+</div>
+
+<main>
+  <aside>
+    <div class="banner">
+      <b>Yumbel:</b> <span id="dataRecs">—</span> registros
+    </div>
+
+    <h3>Filtros</h3>
+    <div class="filter-group"><label>Compañía / Fuente</label><select id="fCompania"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Nivel de Riesgo</label><select id="fRiesgo"><option value="">Todos</option><option value="Alto">Alto</option><option value="Medio">Medio</option><option value="Bajo">Bajo</option></select></div>
+    <div class="filter-group"><label>Estado clasificado</label><select id="fEstado"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Elemento de Red</label><select id="fElem"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Material Principal</label><select id="fMat"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Prioridad (≤)</label><input type="range" id="fPrio" min="0" max="10" value="10" style="width:100%"/><span id="fPrioVal" style="color:var(--mustard);font-size:11px">Hasta 10</span></div>
+    <h3 style="margin-top:14px">Resumen rápido</h3>
+    <div class="stats-mini"><div class="lbl">Densidad (pts/km²)</div><div class="val" id="density">0</div></div>
+    <div class="stats-mini"><div class="lbl">% Riesgo Alto</div><div class="val" id="pctAlto">0%</div></div>
+    <div class="stats-mini"><div class="lbl">Multa promedio (CLP)</div><div class="val" id="avgMulta">$0</div></div>
+    <div class="stats-mini"><div class="lbl">Peso promedio / punto</div><div class="val" id="avgPeso">0 kg</div></div>
+
+    <button class="btn" id="btnReset" style="width:100%;margin-top:10px">🔁 Limpiar filtros</button>
+  </aside>
+
+  <div class="content">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Cantidad de Multas</div><div class="kpi-value" id="kpiMultas">0</div><div class="kpi-sub">1 multa x registro</div></div>
+      <div class="kpi"><div class="kpi-label">Estimación Multas CLP</div><div class="kpi-value" id="kpiMultasCLP">$0</div><div class="kpi-sub">según Ley 21.172</div></div>
+      <div class="kpi"><div class="kpi-label">Cantidad de KM</div><div class="kpi-value" id="kpiKM">0</div><div class="kpi-sub">cable/ducto afectado</div></div>
+      <div class="kpi"><div class="kpi-label">KG de Basura</div><div class="kpi-value" id="kpiKG">0</div><div class="kpi-sub">residuos estimados</div></div>
+      <div class="kpi"><div class="kpi-label">Índice Riesgo</div><div class="kpi-value" id="kpiRiesgo">0</div><div class="kpi-sub">compuesto 0-100</div></div>
+      <div class="kpi"><div class="kpi-label">Costo x KM</div><div class="kpi-value" id="kpiCostoKM">$0</div><div class="kpi-sub">multa/KM intervenido</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel map">
+        <h2>🗺️ Visor Geoespacial · Yumbel (Polígono BCN)</h2>
+        <div id="map"></div>
+        <div class="layer-toggle">
+          <label><input type="checkbox" id="lyrPts" checked/> Puntos</label>
+          <label><input type="checkbox" id="lyrPoly" checked/> Polígono BCN</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📊 Distribución por Compañía / Fuente</h2>
+        <div class="chart-wrap"><canvas id="chartCompania"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel"><h2>⚠️ Nivel de Riesgo</h2><div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div></div>
+      <div class="panel"><h2>🔧 Estado Clasificado</h2><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+      <div class="panel"><h2>📦 Elemento de Red</h2><div class="chart-wrap"><canvas id="chartElem"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🧪 Material Principal</h2><div class="chart-wrap"><canvas id="chartMat"></canvas></div></div>
+      <div class="panel"><h2>🏢 Top Fuentes por Impacto CLP</h2><div class="chart-wrap"><canvas id="chartTopCLP"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🎯 Prioridad x CLP</h2><div class="chart-wrap"><canvas id="chartPrio"></canvas></div></div>
+      <div class="panel"><h2>🛣️ Tipo de lugar</h2><div class="chart-wrap"><canvas id="chartTipoLugar"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Detalle de Puntos <span style="float:right;font-size:11px;color:var(--txt-2)">Click en fila para centrar en el mapa · Hasta 500</span></h2>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr><th>ID</th><th>Fuente</th><th>Elemento</th><th>Material</th><th>Estado</th><th>Riesgo</th><th>Prio</th><th>KM</th><th>KG</th><th>CLP</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div><b style="color:var(--mustard)">Visor Gestión de Red · Yumbel</b> — Coordenada Pública · Ley 21.172 · Decreto N°176</div>
+  <div>Plantilla extensible a otras comunas · Próximo: API REST para expedientes automáticos</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Datos reales embebidos
+   ============================================================ */
+const RAW_DATA = [{"id":"YUM-20001","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.14773,"lng":-72.5406},{"id":"YUM-20002","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10082,"lng":-72.55609},{"id":"YUM-20003","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09708,"lng":-72.55589},{"id":"YUM-20004","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09511,"lng":-72.55706},{"id":"YUM-20005","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09832,"lng":-72.56316},{"id":"YUM-20006","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09208,"lng":-72.56417},{"id":"YUM-20007","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.08883,"lng":-72.56201},{"id":"YUM-20008","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.08497,"lng":-72.56255},{"id":"YUM-20009","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.14765,"lng":-72.53781},{"id":"YUM-20010","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10431,"lng":-72.55526},{"id":"YUM-20011","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10166,"lng":-72.55327},{"id":"YUM-20012","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10386,"lng":-72.55248},{"id":"YUM-20013","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09314,"lng":-72.55778},{"id":"YUM-20014","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.13967,"lng":-72.54325},{"id":"YUM-20015","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.14633,"lng":-72.54382},{"id":"YUM-20016","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.14306,"lng":-72.5386},{"id":"YUM-20017","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.14166,"lng":-72.53636},{"id":"YUM-20018","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09698,"lng":-72.56824},{"id":"YUM-20019","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10061,"lng":-72.56208},{"id":"YUM-20020","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10562,"lng":-72.56033},{"id":"YUM-20021","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09554,"lng":-72.56305},{"id":"YUM-20022","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":22,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.09414,"lng":-72.56945},{"id":"YUM-20023","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":23,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.08837,"lng":-72.56517},{"id":"YUM-20024","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":24,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.10311,"lng":-72.5654},{"id":"YUM-20025","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":25,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.08888,"lng":-72.56726},{"id":"YUM-20026","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":26,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.08737,"lng":-72.56744},{"id":"YUM-20027","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.09454,"lng":-72.56088},{"id":"YUM-20028","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.1041,"lng":-72.57575},{"id":"YUM-20029","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.09593,"lng":-72.55834},{"id":"YUM-20030","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.10171,"lng":-72.55945},{"id":"YUM-20031","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.10228,"lng":-72.55976},{"id":"YUM-20032","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.09552,"lng":-72.56936},{"id":"YUM-20033","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.09968,"lng":-72.55968},{"id":"YUM-20034","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.10134,"lng":-72.5621},{"id":"YUM-20035","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.10056,"lng":-72.58039},{"id":"YUM-20036","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.10021,"lng":-72.56502},{"id":"YUM-20037","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Yumbel","plan":"Por definir","prioridad":0,"tipo_lugar":"Camino","tipo_elemento":"ACOMETIDAS EN DESUSO ","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"En Desuso","estado_final":"Válido","riesgo":"Medio","riesgo_score":2,"multas":1,"clp_multas":132000,"km":0.04,"kg_basura":1.2,"lat":-37.08848,"lng":-72.56556}];
+const LO_PRADO_POLYGON = {"type":"Feature","properties":{"objectid":"224","cod_comuna":"8313","codregion":"8","Region":"Región del Bío-Bío","Provincia":"Bío-Bío","st_area_sh":"1.14575492470e+09","st_length_":"2.19175584172e+05","shape_leng":"175145.56093200","dis_elec":"19","cir_sena":"10","Comuna":"Yumbel"},"geometry":{"type":"Polygon","coordinates":[[[-72.59797,-36.92436],[-72.59288,-36.92694],[-72.58688,-36.92859],[-72.58087,-36.92913],[-72.57232,-36.92892],[-72.56746,-36.92848],[-72.56255,-36.92734],[-72.55836,-36.92868],[-72.55512,-36.93126],[-72.5508,-36.9316],[-72.54671,-36.93019],[-72.54425,-36.92911],[-72.54069,-36.92669],[-72.53176,-36.92719],[-72.52456,-36.92967],[-72.51851,-36.9321],[-72.517,-36.93632],[-72.51687,-36.94021],[-72.51733,-36.94377],[-72.51623,-36.94603],[-72.5158,-36.94951],[-72.5154,-36.95322],[-72.51358,-36.95595],[-72.51253,-36.95814],[-72.51097,-36.96],[-72.5091,-36.96253],[-72.50757,-36.96584],[-72.50856,-36.97042],[-72.51208,-36.9741],[-72.51317,-36.97895],[-72.51469,-36.98136],[-72.51782,-36.98406],[-72.52111,-36.98802],[-72.52169,-36.9921],[-72.52039,-36.99623],[-72.52046,-36.9994],[-72.52142,-37.00268],[-72.52242,-37.0057],[-72.52273,-37.00854],[-72.52211,-37.01091],[-72.52245,-37.01483],[-72.52413,-37.01885],[-72.52367,-37.02367],[-72.52616,-37.0259],[-72.52686,-37.02948],[-72.52739,-37.03368],[-72.52697,-37.03616],[-72.52483,-37.04058],[-72.5265,-37.04521],[-72.52757,-37.04865],[-72.52444,-37.05259],[-72.52291,-37.05576],[-72.52448,-37.05779],[-72.52042,-37.05857],[-72.51835,-37.05978],[-72.51526,-37.06258],[-72.51653,-37.06597],[-72.51191,-37.0688],[-72.51068,-37.0717],[-72.51211,-37.07384],[-72.51286,-37.07695],[-72.51143,-37.07915],[-72.51272,-37.08336],[-72.51403,-37.08705],[-72.51684,-37.08859],[-72.52006,-37.09278],[-72.52277,-37.09607],[-72.52709,-37.09636],[-72.53205,-37.09738],[-72.53103,-37.09799],[-72.52844,-37.09873],[-72.52556,-37.09936],[-72.52162,-37.09957],[-72.51825,-37.10013],[-72.51468,-37.09999],[-72.51346,-37.10031],[-72.51084,-37.10163],[-72.50953,-37.10006],[-72.50773,-37.10059],[-72.50693,-37.1026],[-72.50367,-37.10457],[-72.50331,-37.10691],[-72.49958,-37.10511],[-72.49961,-37.1086],[-72.49686,-37.10952],[-72.49504,-37.11057],[-72.49245,-37.11326],[-72.48923,-37.11577],[-72.48668,-37.1172],[-72.4847,-37.11859],[-72.48246,-37.11739],[-72.47869,-37.11674],[-72.47551,-37.11565],[-72.47371,-37.11612],[-72.47293,-37.11873],[-72.50308,-37.13225],[-72.50816,-37.13768],[-72.50468,-37.13693],[-72.50467,-37.13521],[-72.50237,-37.13539],[-72.49815,-37.13781],[-72.49312,-37.13784],[-72.48926,-37.13886],[-72.48743,-37.13954],[-72.48553,-37.14078],[-72.48578,-37.143],[-72.48175,-37.14484],[-72.47911,-37.14571],[-72.47719,-37.14645],[-72.47422,-37.14686],[-72.4719,-37.1478],[-72.47008,-37.14732],[-72.46728,-37.14885],[-72.46476,-37.14971],[-72.46165,-37.14899],[-72.45888,-37.14964],[-72.45613,-37.14835],[-72.4536,-37.14878],[-72.45238,-37.14775],[-72.45079,-37.14742],[-72.4489,-37.14724],[-72.44226,-37.14952],[-72.45044,-37.18583],[-72.42324,-37.21436],[-72.42599,-37.21393],[-72.43131,-37.2139],[-72.43977,-37.21351],[-72.44798,-37.21637],[-72.4581,-37.2152],[-72.46881,-37.21849],[-72.47367,-37.2234],[-72.47871,-37.22619],[-72.48246,-37.22755],[-72.48626,-37.22932],[-72.4886,-37.23324],[-72.48819,-37.23795],[-72.49264,-37.24102],[-72.49842,-37.24264],[-72.50345,-37.24586],[-72.50992,-37.24898],[-72.51503,-37.2437],[-72.51988,-37.24261],[-72.52277,-37.24649],[-72.52811,-37.24633],[-72.53054,-37.24181],[-72.53306,-37.23726],[-72.5431,-37.23635],[-72.55892,-37.23252],[-72.59488,-37.22925],[-72.62934,-37.23166],[-72.64255,-37.22965],[-72.63641,-37.21963],[-72.63578,-37.21569],[-72.63957,-37.21119],[-72.64135,-37.20969],[-72.64375,-37.20868],[-72.64564,-37.20702],[-72.6465,-37.20486],[-72.64657,-37.20235],[-72.64828,-37.20038],[-72.65119,-37.19736],[-72.65447,-37.19701],[-72.65789,-37.19742],[-72.66208,-37.19613],[-72.66288,-37.19382],[-72.66279,-37.19187],[-72.66189,-37.18944],[-72.66174,-37.1864],[-72.6627,-37.18318],[-72.66691,-37.18116],[-72.66859,-37.17617],[-72.672,-37.17318],[-72.67677,-37.17412],[-72.68028,-37.17995],[-72.67789,-37.1848],[-72.69058,-37.18682],[-72.70715,-37.18537],[-72.72192,-37.18417],[-72.73433,-37.18242],[-72.73658,-37.1841],[-72.74024,-37.18611],[-72.74285,-37.18801],[-72.74943,-37.19157],[-72.75229,-37.19481],[-72.75491,-37.19189],[-72.758,-37.19135],[-72.75892,-37.18972],[-72.76189,-37.18734],[-72.76467,-37.18917],[-72.76691,-37.19058],[-72.76964,-37.1881],[-72.77335,-37.18294],[-72.7769,-37.17181],[-72.78507,-37.16622],[-72.79204,-37.16738],[-72.79235,-37.16398],[-72.79088,-37.16034],[-72.78954,-37.15792],[-72.78571,-37.1563],[-72.78176,-37.15324],[-72.77918,-37.15234],[-72.77937,-37.15046],[-72.77571,-37.14955],[-72.77233,-37.14683],[-72.7755,-37.14357],[-72.77214,-37.14128],[-72.76598,-37.14162],[-72.76406,-37.13811],[-72.76583,-37.13432],[-72.77149,-37.132],[-72.77493,-37.13202],[-72.77661,-37.13019],[-72.77388,-37.13072],[-72.77226,-37.12886],[-72.77514,-37.12775],[-72.77515,-37.12516],[-72.7767,-37.12181],[-72.77911,-37.11872],[-72.77861,-37.11621],[-72.77865,-37.11383],[-72.77815,-37.1099],[-72.77529,-37.10625],[-72.77628,-37.10052],[-72.77734,-37.09745],[-72.77772,-37.09369],[-72.77482,-37.08922],[-72.77561,-37.08581],[-72.77364,-37.08217],[-72.77571,-37.08],[-72.77657,-37.07726],[-72.77268,-37.07535],[-72.76826,-37.07492],[-72.7651,-37.07795],[-72.76028,-37.07773],[-72.75791,-37.0749],[-72.75198,-37.07261],[-72.75051,-37.06651],[-72.74391,-37.06278],[-72.7396,-37.05887],[-72.73632,-37.05371],[-72.73427,-37.04952],[-72.73192,-37.04429],[-72.7255,-37.04136],[-72.72379,-37.03699],[-72.72399,-37.03375],[-72.72366,-37.02862],[-72.72513,-37.02507],[-72.72544,-37.02104],[-72.72752,-37.01869],[-72.73141,-37.01844],[-72.73545,-37.01686],[-72.7398,-37.01689],[-72.74051,-37.01472],[-72.74416,-37.01451],[-72.74659,-37.01181],[-72.74932,-37.00865],[-72.75556,-37.00769],[-72.75906,-37.00763],[-72.76121,-37.00739],[-72.76078,-37.00475],[-72.75952,-37.0017],[-72.76063,-37.00034],[-72.76545,-36.99972],[-72.76814,-36.99979],[-72.77129,-36.9994],[-72.76931,-37.00114],[-72.77233,-37.00211],[-72.77512,-37.00099],[-72.77267,-36.99766],[-72.77421,-36.99653],[-72.77063,-36.99487],[-72.76492,-36.99137],[-72.76138,-36.99032],[-72.75962,-36.98809],[-72.75552,-36.98346],[-72.75165,-36.98004],[-72.74854,-36.97658],[-72.74555,-36.97481],[-72.7434,-36.97237],[-72.74256,-36.96835],[-72.74257,-36.96572],[-72.73966,-36.96253],[-72.73828,-36.96065],[-72.73825,-36.95933],[-72.73576,-36.95807],[-72.73178,-36.95854],[-72.7258,-36.95958],[-72.72142,-36.95769],[-72.71726,-36.95722],[-72.71358,-36.95582],[-72.70993,-36.95341],[-72.70435,-36.95028],[-72.70378,-36.94655],[-72.70344,-36.94434],[-72.70219,-36.94242],[-72.70157,-36.94148],[-72.7022,-36.93894],[-72.69323,-36.94237],[-72.68993,-36.9412],[-72.68136,-36.93703],[-72.67614,-36.94272],[-72.67212,-36.94929],[-72.66258,-36.95092],[-72.65589,-36.95171],[-72.64742,-36.95231],[-72.64837,-36.94896],[-72.65001,-36.94608],[-72.6507,-36.94299],[-72.64996,-36.93986],[-72.64809,-36.93708],[-72.64634,-36.93421],[-72.64473,-36.93129],[-72.64514,-36.92825],[-72.64587,-36.92522],[-72.64899,-36.92327],[-72.65249,-36.92182],[-72.6505,-36.91998],[-72.64899,-36.91889],[-72.64757,-36.91842],[-72.64543,-36.91872],[-72.64108,-36.91882],[-72.63616,-36.91884],[-72.63102,-36.91926],[-72.62731,-36.91924],[-72.6244,-36.91912],[-72.62053,-36.91968],[-72.61623,-36.92033],[-72.61071,-36.92154],[-72.60318,-36.92276],[-72.59797,-36.92436]]]}};
+
+function setStatus(txt, cls, meta){
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = txt;
+  if(meta!==undefined) document.getElementById('statusMeta').textContent = meta;
+  bar.className = cls || '';
+}
+
+/* ============================================================
+   Point in polygon (puro JS, sin depender de Turf)
+   ============================================================ */
+function pipRing(lng, lat, ring){
+  let inside = false;
+  const n = ring.length;
+  for(let i=0, j=n-1; i<n; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-15)+xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInside(d){
+  if(!d.lat || !d.lng) return false;
+  try{
+    const rings = LO_PRADO_POLYGON.geometry.coordinates;
+    // Polygon: primer anillo exterior, resto agujeros
+    if(!pipRing(d.lng, d.lat, rings[0])) return false;
+    for(let i=1; i<rings.length; i++){
+      if(pipRing(d.lng, d.lat, rings[i])) return false; // en agujero
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+const COLORES = {
+  mustard:'#C79F47',
+  blues:['#1E3A5F','#2E5C8A','#3E7CB1','#5FA8D3','#8FCDF5','#0F2847','#567AA6','#73A9D4','#1D4E7A'],
+  bluesLine:'#5FA8D3', grid:'#2A3545'
+};
+
+let AREA_KM2 = 6.67;
+try{
+  if(LO_PRADO_POLYGON.properties && LO_PRADO_POLYGON.properties.st_area_sh){
+    AREA_KM2 = parseFloat(LO_PRADO_POLYGON.properties.st_area_sh)/1e6;
+  }
+}catch(e){}
+
+let CENTER = [-33.4419,-70.7256];
+try{
+  const ring = LO_PRADO_POLYGON.geometry.coordinates[0];
+  let sx=0,sy=0;
+  ring.forEach(p=>{sx+=p[0];sy+=p[1];});
+  CENTER = [sy/ring.length, sx/ring.length];
+}catch(e){}
+
+let DATA_ALL = [];
+let DATA_FILTERED = [];
+let map, polyLayer, markersLayer;
+let charts = {};
+let chartJsReady = false;
+let leafletReady = false;
+
+const fmt = n=>(n||0).toLocaleString('es-CL');
+const fmtCLP = n=>'$'+fmt(Math.round(n||0));
+const colorRiesgo = r=> r==='Alto'?'#D96E6E': r==='Medio'?'#E0A458':'#4ECDC4';
+const uniq = (arr,k)=>{
+  const s = new Set();
+  arr.forEach(x=>{if(x[k]!==undefined && x[k]!==null && x[k]!=='') s.add(x[k]);});
+  return [...s].sort();
+};
+function popSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML='';
+  if(first) sel.appendChild(first);
+  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+  sel.value = current;
+}
+
+function initMap(){
+  if(typeof L === 'undefined'){
+    setStatus('Error: Leaflet no se cargó. Revisa tu conexión a internet.', 'err');
+    return false;
+  }
+  try{
+    map = L.map('map',{preferCanvas:true}).setView(CENTER, 14);
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Voyager',subdomains:'abcd',maxZoom:20});
+    let __tileLoad=0,__tileErr=0;
+    voyager.on('tileload',()=>{__tileLoad++; if(__tileLoad===1) setStatus('Mapa: teselas cargando (' + __tileLoad + ').', '', ''); });
+    voyager.on('tileerror',()=>{__tileErr++; if(__tileErr===1) setStatus('⚠ Error cargando teselas del mapa (' + __tileErr + '). Probando basemap alternativo...', 'err'); if(__tileErr===3){ map.removeLayer(voyager); osm.addTo(map);} });
+    voyager.addTo(map);
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Dark',subdomains:'abcd',maxZoom:20});
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB',subdomains:'abcd',maxZoom:20});
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap France · HOT',maxZoom:19});
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19});
+    const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB',subdomains:'abcd',maxZoom:20,pane:'shadowPane'});
+    L.control.layers({"Calles (Voyager)":voyager,"Oscuro":dark,"Calles OSM":osm,"Humanitario":osmHOT,"Satelital":sat}, {"Etiquetas sobre satelital":satLabels}).addTo(map);
+
+    polyLayer = L.geoJSON(LO_PRADO_POLYGON,{style:{color:COLORES.mustard,weight:3,fillColor:COLORES.mustard,fillOpacity:0.07,dashArray:'6 4'}}).addTo(map);
+    polyLayer.bindTooltip('Yumbel · Polígono oficial BCN ('+AREA_KM2.toFixed(2)+' km²)',{sticky:true});
+
+    if(L.markerClusterGroup){
+      markersLayer = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        iconCreateFunction:c=>L.divIcon({html:'<div style="background:#C79F47;color:#1a1207;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid #fff;font-family:Arial">'+c.getChildCount()+'</div>',className:'',iconSize:[38,38]})
+      });
+    } else {
+      markersLayer = L.layerGroup();
+    }
+    map.addLayer(markersLayer);
+
+    try{ map.fitBounds(polyLayer.getBounds().pad(0.05)); }catch(e){}
+    leafletReady = true;
+    return true;
+  }catch(e){
+    console.error(e);
+    setStatus('Error inicializando mapa: '+e.message, 'err');
+    return false;
+  }
+}
+
+function renderMarkers(data){
+  if(!leafletReady || !markersLayer) return;
+  markersLayer.clearLayers();
+  let n=0;
+  data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
+    const col = colorRiesgo(d.riesgo);
+    const m = L.circleMarker([d.lat,d.lng],{radius:6,color:'#fff',weight:1.3,fillColor:col,fillOpacity:.85});
+    m.bindPopup(
+      '<b>'+d.id+'</b><br/>'+
+      '<b>Fuente:</b> '+(d.fuente||'')+'<br/>'+
+      '<b>Elemento:</b> '+(d.elemento_red||'')+' / '+(d.material||'')+'<br/>'+
+      '<b>Estado:</b> '+(d.estado_clasificado||'')+'<br/>'+
+      '<b>Riesgo:</b> <span style="color:'+col+'"><b>'+d.riesgo+'</b></span> (score '+d.riesgo_score+')<br/>'+
+      '<b>Prioridad:</b> '+d.prioridad+' · <b>Plan:</b> '+(d.plan||'')+'<br/>'+
+      '<b>KM:</b> '+d.km+' · <b>KG:</b> '+d.kg_basura+'<br/>'+
+      '<b>CLP Multa:</b> '+fmtCLP(d.clp_multas)+'<br/>'+
+      '<b>Lugar:</b> '+(d.tipo_lugar||'')+'<br/>'+
+      '<b>Elem intervenir:</b> '+(d.tipo_elemento||'—')
+    );
+    markersLayer.addLayer(m);
+    n++;
+  });
+  return n;
+}
+
+function applyFilters(){
+  const v = id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const ch = id=>{const e=document.getElementById(id);return e?e.checked:false;};
+  const fC=v('fCompania'),fR=v('fRiesgo'),fE=v('fEstado'),fEl=v('fElem'),fM=v('fMat');
+  const fP=+v('fPrio');
+  const fI=ch('fInside');
+  const fH=ch('fHasCoord');
+  DATA_FILTERED = DATA_ALL.filter(d=>{
+    if(fC && d.fuente!==fC) return false;
+    if(fR && d.riesgo!==fR) return false;
+    if(fE && d.estado_clasificado!==fE) return false;
+    if(fEl && d.elemento_red!==fEl) return false;
+    if(fM && d.material!==fM) return false;
+    if((d.prioridad||0)>fP) return false;
+    if(fH && (!d.lat||!d.lng)) return false;
+    if(fI && !d._inside) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function updateKPIs(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const pctAlto = d.length? alto/d.length*100:0;
+  const avgScore = d.length? d.reduce((a,x)=>a+(+x.riesgo_score||0),0)/d.length : 0;
+  const idx = Math.min(100, Math.round(pctAlto*0.4 + (avgScore/18*100)*0.3 + Math.min(100,(clp/1000000)*1.5)*0.15 + Math.min(100,kg/50)*0.15));
+
+  const set = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiMultas', fmt(multas));
+  set('kpiMultasCLP', fmtCLP(clp));
+  set('kpiKM', km.toFixed(2));
+  set('kpiKG', fmt(Math.round(kg)));
+  set('kpiRiesgo', idx);
+  set('kpiCostoKM', km>0? fmtCLP(clp/km):'$0');
+  set('density', (d.length/AREA_KM2).toFixed(1));
+  set('pctAlto', pctAlto.toFixed(1)+'%');
+  set('avgMulta', multas>0? fmtCLP(clp/multas):'$0');
+  set('avgPeso', d.length? (kg/d.length).toFixed(1)+' kg':'0 kg');
+  set('rec-count', d.length);
+  set('dataRecs', d.length);
+}
+
+function groupCount(data,key){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+1;});return m;}
+function groupSum(data,key,field){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+(+x[field]||0);});return m;}
+
+function makeChart(id,type,data,opts){
+  if(!chartJsReady) return;
+  opts = opts||{};
+  if(charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if(!el) return;
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#fff',font:{family:'Arial',size:11}}},
+      tooltip:{backgroundColor:'#0E1117',borderColor:COLORES.mustard,borderWidth:1,titleColor:COLORES.mustard,bodyColor:'#fff'}},
+    scales:(type==='pie'||type==='doughnut')?undefined:{
+      x:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid}},
+      y:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid},beginAtZero:true}}
+  };
+  charts[id] = new Chart(el,{type,data,options:Object.assign(base,opts)});
+}
+
+function updateCharts(){
+  if(!chartJsReady) return;
+  const d = DATA_FILTERED;
+  const g1 = groupCount(d,'fuente');
+  const l1 = Object.keys(g1).sort((a,b)=>g1[b]-g1[a]).slice(0,10);
+  makeChart('chartCompania','bar',{labels:l1,datasets:[{label:'Puntos',data:l1.map(k=>g1[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.blues[4],borderWidth:1.5}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+
+  const g2 = groupCount(d,'riesgo');
+  const ord = ['Alto','Medio','Bajo'].filter(k=>g2[k]);
+  makeChart('chartRiesgo','doughnut',{labels:ord,datasets:[{data:ord.map(k=>g2[k]),backgroundColor:ord.map(k=>colorRiesgo(k)),borderColor:'#0E1117',borderWidth:2}]});
+
+  const g3 = groupCount(d,'estado_clasificado');
+  const l3 = Object.keys(g3).sort((a,b)=>g3[b]-g3[a]).slice(0,8);
+  makeChart('chartEstado','bar',{labels:l3,datasets:[{label:'Puntos',data:l3.map(k=>g3[k]),backgroundColor:COLORES.blues[1],borderColor:COLORES.blues[3],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g4 = groupCount(d,'elemento_red');
+  makeChart('chartElem','pie',{labels:Object.keys(g4),datasets:[{data:Object.values(g4),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+
+  const g5 = groupCount(d,'material');
+  const l5 = Object.keys(g5).sort((a,b)=>g5[b]-g5[a]).slice(0,8);
+  makeChart('chartMat','bar',{labels:l5,datasets:[{label:'Puntos',data:l5.map(k=>g5[k]),backgroundColor:COLORES.blues[3],borderColor:COLORES.blues[4],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g6 = groupSum(d,'fuente','clp_multas');
+  const l6 = Object.keys(g6).sort((a,b)=>g6[b]-g6[a]).slice(0,8);
+  makeChart('chartTopCLP','bar',{labels:l6,datasets:[{label:'CLP',data:l6.map(k=>g6[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.mustard,borderWidth:1.5}]},
+    {indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCLP(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#C8D2E0',callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:COLORES.grid}},y:{ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}}}});
+
+  const g7 = {};
+  d.forEach(x=>{const k=(+x.prioridad)||0;if(!g7[k])g7[k]={n:0,clp:0};g7[k].n++;g7[k].clp+=(+x.clp_multas||0);});
+  const k7 = Object.keys(g7).sort((a,b)=>+a-+b);
+  makeChart('chartPrio','bar',{labels:k7.map(k=>'P'+k),datasets:[{label:'Puntos',data:k7.map(k=>g7[k].n),backgroundColor:COLORES.blues[3],yAxisID:'y'},{label:'CLP',data:k7.map(k=>g7[k].clp),type:'line',borderColor:COLORES.mustard,backgroundColor:'rgba(199,159,71,.2)',yAxisID:'y1',tension:.3,pointBackgroundColor:COLORES.mustard}]},
+    {scales:{y:{position:'left',ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}},y1:{position:'right',ticks:{color:COLORES.mustard,callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{drawOnChartArea:false}}}});
+
+  const g8 = groupCount(d,'tipo_lugar');
+  const l8 = Object.keys(g8).sort((a,b)=>g8[b]-g8[a]).slice(0,6);
+  makeChart('chartTipoLugar','pie',{labels:l8,datasets:[{data:l8.map(k=>g8[k]),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+}
+
+function updateTable(){
+  const tb = document.querySelector('#dataTable tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  DATA_FILTERED.slice(0,500).forEach(d=>{
+    const tr = document.createElement('tr');
+    const rLow = (d.riesgo||'').toLowerCase();
+    tr.innerHTML = '<td>'+d.id+'</td><td>'+(d.fuente||'')+'</td><td>'+(d.elemento_red||'')+'</td><td>'+(d.material||'')+'</td>'+
+      '<td><span class="badge estado">'+(d.estado_clasificado||'')+'</span></td>'+
+      '<td><span class="badge '+rLow+'">'+(d.riesgo||'')+'</span></td>'+
+      '<td>'+(d.prioridad||0)+'</td><td>'+(+d.km||0).toFixed(3)+'</td><td>'+fmt(d.kg_basura)+'</td><td>'+fmtCLP(d.clp_multas)+'</td>';
+    tr.onclick=()=>{if(d.lat&&d.lng&&map)map.setView([d.lat,d.lng],17);};
+    tb.appendChild(tr);
+  });
+}
+
+function updateAll(){
+  updateKPIs(); updateCharts(); updateTable();
+  if(leafletReady) renderMarkers(DATA_FILTERED);
+}
+
+function loadInitial(){
+  DATA_ALL = RAW_DATA.map(r=>Object.assign({},r));
+  DATA_ALL.forEach(d=>{d._inside = (d.lat&&d.lng)? pointInside(d) : false;});
+  const withCoords = DATA_ALL.filter(d=>d.lat && d.lng).length;
+  const inside = DATA_ALL.filter(d=>d._inside).length;
+  popSelect('fCompania', uniq(DATA_ALL,'fuente'));
+  popSelect('fEstado', uniq(DATA_ALL,'estado_clasificado'));
+  popSelect('fElem', uniq(DATA_ALL,'elemento_red'));
+  popSelect('fMat', uniq(DATA_ALL,'material'));
+  applyFilters();
+  setStatus('✓ Datos de Yumbel cargados correctamente', 'ok',
+    DATA_ALL.length+' registros oficiales dentro del polígono BCN');
+}
+
+/* Importación */
+function normalizeRecord(r){
+  const g = keys=>{for(const k of keys){const f=Object.keys(r).find(c=>c.toLowerCase().trim()===k.toLowerCase());if(f!==undefined && r[f]!=='' && r[f]!=null) return r[f];}return null;};
+  return {
+    id:g(['id','ID']) || 'EXT-'+Math.floor(Math.random()*100000),
+    fuente:g(['fuente','compania','compañía','empresa','GORE, Municipio, Denuncias Ciudadanía o Empresas']) || 'Desconocido',
+    region:g(['region','2. Región']) || '',
+    comuna:g(['comuna','3. Comuna']) || 'Yumbel',
+    plan:g(['plan','Plan']) || 'Por definir',
+    prioridad:+(g(['prioridad','4. Prioritario'])||0),
+    tipo_lugar:g(['tipo_lugar','5.Tipo de lugar']) || '',
+    tipo_elemento:g(['tipo_elemento','7.Tipo del o los elementos a intervenir y su respectivo estado'])||'',
+    elemento_red:g(['elemento_red','Elemento_Red']) || 'Sin dato',
+    material:g(['material','Material_Principal']) || 'Sin dato',
+    estado_clasificado:g(['estado_clasificado','Estado_Clasificado']) || 'Desconocido',
+    estado_final:g(['estado_final','21. Estado_Final']) || '',
+    riesgo:g(['riesgo','nivel_riesgo'])||'Medio', riesgo_score:+(g(['riesgo_score'])||5),
+    multas:+(g(['multas'])||1), clp_multas:+(g(['clp_multas','clp','monto'])||0),
+    km:+(g(['km','Estimacion_KM'])||0), kg_basura:+(g(['kg_basura','Estimacion_Peso_KG'])||0),
+    lat:+(g(['lat','latitud','16. Latitud (WGS84 5 DECIMALES)'])||0),
+    lng:+(g(['lng','longitud','17. Longitud (WGS84 5 DECIMALES)'])||0),
+  };
+}
+
+function parseFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const finish = (rows, src)=>{
+    DATA_ALL = rows.map(normalizeRecord);
+    DATA_ALL.forEach(d=>d._inside=pointInside(d));
+    popSelect('fCompania',uniq(DATA_ALL,'fuente'));
+    popSelect('fEstado',uniq(DATA_ALL,'estado_clasificado'));
+    popSelect('fElem',uniq(DATA_ALL,'elemento_red'));
+    popSelect('fMat',uniq(DATA_ALL,'material'));
+    applyFilters();
+    setStatus('✓ '+DATA_ALL.length+' registros oficiales', 'ok');
+  };
+  if(ext==='csv'){
+    if(typeof Papa==='undefined') return alert('PapaParse no cargó. Verifica conexión.');
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>finish(res.data, file.name)});
+  } else if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined') return alert('SheetJS no cargó. Verifica conexión.');
+    const r = new FileReader();
+    r.onload = e=>{
+      const wb = XLSX.read(e.target.result,{type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      finish(rows, file.name+' · '+wb.SheetNames[0]);
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function exportCSV(){
+  if(!DATA_FILTERED.length) return alert('Sin datos.');
+  const cols = Object.keys(DATA_FILTERED[0]).filter(c=>!c.startsWith('_'));
+  const rows = [cols.join(',')].concat(DATA_FILTERED.map(d=>cols.map(c=>JSON.stringify(d[c]===undefined?'':d[c])).join(','))).join('\n');
+  const b = new Blob([rows],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download='visor_yumbel_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+function genReporte(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const byF = groupSum(d,'fuente','clp_multas');
+  const top = Object.entries(byF).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const html = '<html><head><meta charset="utf-8"><title>Reporte Yumbel</title>'+
+    '<style>body{font-family:Arial;padding:30px;color:#222}h1{color:#8E6E2A;border-bottom:2px solid #C79F47}'+
+    '.kpi{display:inline-block;margin:8px;padding:14px 20px;background:#f5efe2;border:1px solid #C79F47;border-radius:6px}'+
+    '.kpi b{display:block;color:#8E6E2A;font-size:11px;letter-spacing:1px}.kpi span{font-size:22px;font-weight:bold}'+
+    'table{border-collapse:collapse;margin-top:14px;width:100%}td,th{border:1px solid #ddd;padding:6px 10px;font-size:12px;text-align:left}th{background:#8E6E2A;color:#fff}</style></head>'+
+    '<body><h1>Reporte de Gestión de Red · Yumbel</h1>'+
+    '<p>Fecha: '+new Date().toLocaleString('es-CL')+' · Registros: '+d.length+' · Superficie: '+AREA_KM2.toFixed(2)+' km²</p>'+
+    '<div class="kpi"><b>Multas</b><span>'+fmt(multas)+'</span></div>'+
+    '<div class="kpi"><b>CLP</b><span>'+fmtCLP(clp)+'</span></div>'+
+    '<div class="kpi"><b>KM</b><span>'+km.toFixed(2)+'</span></div>'+
+    '<div class="kpi"><b>KG basura</b><span>'+fmt(Math.round(kg))+'</span></div>'+
+    '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
+    '<h2>Top 5 fuentes por impacto CLP</h2>'+
+    '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
+    '</body></html>';
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+/* Eventos (defensivos) */
+function bind(id, ev, fn){const e=document.getElementById(id); if(e) e.addEventListener(ev, fn);}
+['fCompania','fRiesgo','fEstado','fElem','fMat','fInside','fHasCoord'].forEach(id=>bind(id,'change',applyFilters));
+bind('fPrio','input',e=>{document.getElementById('fPrioVal').textContent='Hasta '+e.target.value;applyFilters();});
+bind('btnReset','click',()=>{
+  ['fCompania','fRiesgo','fEstado','fElem','fMat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fInside').checked=false;
+  document.getElementById('fHasCoord').checked=true;
+  document.getElementById('fPrio').value=10;
+  document.getElementById('fPrioVal').textContent='Hasta 10';
+  applyFilters();
+});
+bind('btnExport','click',exportCSV);
+bind('btnReport','click',genReporte);
+bind('lyrPts','change',e=>{if(map){if(e.target.checked) map.addLayer(markersLayer); else map.removeLayer(markersLayer);}});
+bind('lyrPoly','change',e=>{if(map){if(e.target.checked) map.addLayer(polyLayer); else map.removeLayer(polyLayer);}});
+
+/* Boot — NO esperamos a 'load', ejecutamos apenas DOM listo */
+function boot(){
+  try{
+    const s = window.__CDN_STATUS__||{};
+    const failed = ['leaflet','markercluster','chart','papa','xlsx'].filter(k=>!s[k]);
+    if(failed.length){
+      setStatus('⚠ Librerías no cargadas: '+failed.join(', ')+'. Fuentes intentadas: '+(s.tries||[]).join(' | '), 'err');
+    } else {
+      setStatus('Librerías OK. Iniciando mapa y gráficos...', '', '');
+    }
+    chartJsReady = (typeof Chart !== 'undefined');
+    const leafletOk = initMap();
+    loadInitial();
+    if(!leafletOk) setStatus('Datos cargados, pero el mapa no se pudo inicializar. ['+(s.tries||[]).join(' | ')+']', 'err');
+    else if(!chartJsReady) setStatus('Datos cargados sin gráficos (Chart.js no disponible).', 'err');
+  }catch(err){
+    console.error(err);
+    setStatus('Error: '+err.message, 'err');
+  }
+}
+async function bootWhenReady(){
+  try{
+    await window.__LIBS_READY__;
+  }catch(e){}
+  boot();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
+else bootWhenReady();
+</script>
+</body></html>

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visor Gestión de Red · Los Álamos · Coordenada Pública</title>
+
+<!-- Librerías (con fallbacks de CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin=""/>
+<script>window.__CDN_STATUS__={leaflet:false,markercluster:false,chart:false,papa:false,xlsx:false,tries:[]};
+function loadScript(urls, check, label){
+  return new Promise(resolve=>{
+    let i=0;
+    function tryNext(){
+      if(i>=urls.length){window.__CDN_STATUS__.tries.push(label+': FAIL');resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i]; s.async=false;
+      s.onload=()=>{ if(check()){window.__CDN_STATUS__[label]=true;window.__CDN_STATUS__.tries.push(label+': '+urls[i].split('/')[2]);resolve(true);} else {i++;tryNext();} };
+      s.onerror=()=>{i++;tryNext();};
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__LIBS_READY__ = (async()=>{
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  ], ()=>typeof L!=='undefined', 'leaflet');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',
+    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+  ], ()=>typeof L!=='undefined' && typeof L.markerClusterGroup==='function', 'markercluster');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'
+  ], ()=>typeof Chart!=='undefined', 'chart');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+    'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+    'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+  ], ()=>typeof Papa!=='undefined', 'papa');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], ()=>typeof XLSX!=='undefined', 'xlsx');
+  return true;
+})();
+</script>
+
+<style>
+:root{
+  --bg-0:#0E1117;--bg-1:#151A22;--bg-2:#1C2430;--bg-3:#243041;--line:#2A3545;
+  --txt:#FFFFFF;--txt-2:#C8D2E0;
+  --mustard:#C79F47;--mustard-2:#B8862B;--mustard-soft:rgba(199,159,71,.14);
+  --blue-1:#1E3A5F;--blue-2:#2E5C8A;--blue-3:#3E7CB1;--blue-4:#5FA8D3;--blue-5:#8FCDF5;
+  --ok:#4ECDC4;--warn:#E0A458;--bad:#D96E6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--mustard);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(90deg,#0B0E14 0%,#141B26 60%,#1C2532 100%);border-bottom:2px solid var(--mustard);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header .brand{display:flex;align-items:center;gap:14px}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:var(--mustard);font-weight:bold}
+header .sub{color:var(--txt-2);font-size:12px}
+header .tag{background:var(--mustard);color:#1a1207;font-weight:bold;font-size:11px;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:1px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;transition:all .15s}
+.btn:hover{background:var(--bg-3);border-color:var(--mustard)}
+.btn.primary{background:var(--mustard);color:#1a1207;border-color:var(--mustard);font-weight:bold}
+.btn.primary:hover{background:var(--mustard-2)}
+select,input[type=text]{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+#statusBar{padding:8px 22px;background:#182030;color:var(--txt-2);border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#statusBar.ok{background:#162B1F;color:#b8eec7}
+#statusBar.err{background:#2B1616;color:#ffb3b3}
+main{flex:1;display:grid;grid-template-columns:280px 1fr;min-height:0}
+aside{background:var(--bg-1);border-right:1px solid var(--line);padding:16px;overflow-y:auto}
+aside h3{margin:0 0 10px 0;font-size:11px;letter-spacing:1.5px;color:var(--mustard);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside .filter-group{margin-bottom:14px}
+aside label{display:block;font-size:11px;color:var(--txt-2);margin-bottom:4px}
+aside select{width:100%}
+aside .stats-mini{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:8px}
+aside .stats-mini .lbl{font-size:10px;color:var(--txt-2);letter-spacing:1px}
+aside .stats-mini .val{font-size:18px;color:var(--mustard);font-weight:bold}
+.content{padding:18px;overflow-y:auto;background:var(--bg-0)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:linear-gradient(135deg,var(--bg-2) 0%,var(--bg-3) 100%);border:2px solid var(--mustard);border-radius:10px;padding:14px 16px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(199,159,71,.15);overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(199,159,71,.18),transparent 70%)}
+.kpi .kpi-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:bold}
+.kpi .kpi-value{font-size:26px;color:#fff;font-weight:bold;line-height:1.1}
+.kpi .kpi-sub{font-size:11px;color:var(--txt-2);margin-top:4px}
+.kpi .kpi-icon{position:absolute;bottom:8px;right:10px;font-size:26px;opacity:.28;color:var(--mustard)}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.panel{background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h2{margin:0 0 12px 0;font-size:13px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--line);padding-bottom:8px;font-weight:bold}
+.panel.map{padding:0;overflow:hidden;position:relative}
+.panel.map h2{padding:14px 14px 8px 14px;margin:0;border-bottom:1px solid var(--line)}
+#map{height:500px;width:100%;background:#0B0F15}
+.panel .chart-wrap{position:relative;height:260px}
+.table-wrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-3);position:sticky;top:0}
+thead th{padding:8px 10px;text-align:left;color:var(--mustard);border-bottom:1px solid var(--line);font-size:11px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--bg-2);color:var(--txt-2)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg-2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge.alto{background:#5B1F1F;color:#ffb3b3;border:1px solid #8a2f2f}
+.badge.medio{background:#4B3A1C;color:#f5d089;border:1px solid #7a5f32}
+.badge.bajo{background:#1E3A3A;color:#b3e8e0;border:1px solid #2c5858}
+.badge.estado{background:var(--bg-3);color:var(--mustard);border:1px solid var(--line)}
+footer{padding:10px 22px;background:#0A0D12;color:var(--txt-2);font-size:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important}
+.leaflet-control-attribution a{color:var(--mustard)!important}
+.leaflet-popup-content-wrapper{background:var(--bg-2);color:#fff;border:1px solid var(--mustard);font-family:Arial}
+.leaflet-popup-tip{background:var(--bg-2)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--mustard)}
+.banner{background:var(--mustard-soft);border:1px solid var(--mustard);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+.banner b{color:var(--mustard)}
+.layer-toggle{position:absolute;top:60px;right:10px;background:var(--bg-1);border:1px solid var(--line);border-radius:4px;padding:6px 8px;z-index:1000;font-size:11px}
+.layer-toggle label{display:block;color:#fff;margin:2px 0;cursor:pointer}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div style="width:40px;height:40px;background:var(--mustard);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1a1207;font-weight:bold;font-size:16px">LÁ</div>
+    <div>
+      <h1>Visor de <span class="accent">Gestión de Red</span> y Elementos en Desuso</h1>
+      <div class="sub">Comuna de <b style="color:#fff">Los Álamos</b> · Región Metropolitana · <span id="rec-count">0</span> puntos oficiales dentro del polígono · Polígono oficial <b>BCN</b></div>
+    </div>
+    <span class="tag">Datos Oficiales BCN</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnExport">💾 Exportar CSV</button>
+    <button class="btn primary" id="btnReport">📄 Reporte</button>
+  </div>
+</header>
+
+<div id="statusBar">
+  <span id="statusText">Inicializando...</span>
+  <span id="statusMeta"></span>
+</div>
+
+<main>
+  <aside>
+    <div class="banner">
+      <b>Los Álamos:</b> <span id="dataRecs">—</span> registros
+    </div>
+
+    <h3>Filtros</h3>
+    <div class="filter-group"><label>Compañía / Fuente</label><select id="fCompania"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Nivel de Riesgo</label><select id="fRiesgo"><option value="">Todos</option><option value="Alto">Alto</option><option value="Medio">Medio</option><option value="Bajo">Bajo</option></select></div>
+    <div class="filter-group"><label>Estado clasificado</label><select id="fEstado"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Elemento de Red</label><select id="fElem"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Material Principal</label><select id="fMat"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Prioridad (≤)</label><input type="range" id="fPrio" min="0" max="10" value="10" style="width:100%"/><span id="fPrioVal" style="color:var(--mustard);font-size:11px">Hasta 10</span></div>
+    <h3 style="margin-top:14px">Resumen rápido</h3>
+    <div class="stats-mini"><div class="lbl">Densidad (pts/km²)</div><div class="val" id="density">0</div></div>
+    <div class="stats-mini"><div class="lbl">% Riesgo Alto</div><div class="val" id="pctAlto">0%</div></div>
+    <div class="stats-mini"><div class="lbl">Multa promedio (CLP)</div><div class="val" id="avgMulta">$0</div></div>
+    <div class="stats-mini"><div class="lbl">Peso promedio / punto</div><div class="val" id="avgPeso">0 kg</div></div>
+
+    <button class="btn" id="btnReset" style="width:100%;margin-top:10px">🔁 Limpiar filtros</button>
+  </aside>
+
+  <div class="content">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Cantidad de Multas</div><div class="kpi-value" id="kpiMultas">0</div><div class="kpi-sub">1 multa x registro</div></div>
+      <div class="kpi"><div class="kpi-label">Estimación Multas CLP</div><div class="kpi-value" id="kpiMultasCLP">$0</div><div class="kpi-sub">según Ley 21.172</div></div>
+      <div class="kpi"><div class="kpi-label">Cantidad de KM</div><div class="kpi-value" id="kpiKM">0</div><div class="kpi-sub">cable/ducto afectado</div></div>
+      <div class="kpi"><div class="kpi-label">KG de Basura</div><div class="kpi-value" id="kpiKG">0</div><div class="kpi-sub">residuos estimados</div></div>
+      <div class="kpi"><div class="kpi-label">Índice Riesgo</div><div class="kpi-value" id="kpiRiesgo">0</div><div class="kpi-sub">compuesto 0-100</div></div>
+      <div class="kpi"><div class="kpi-label">Costo x KM</div><div class="kpi-value" id="kpiCostoKM">$0</div><div class="kpi-sub">multa/KM intervenido</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel map">
+        <h2>🗺️ Visor Geoespacial · Los Álamos (Polígono BCN)</h2>
+        <div id="map"></div>
+        <div class="layer-toggle">
+          <label><input type="checkbox" id="lyrPts" checked/> Puntos</label>
+          <label><input type="checkbox" id="lyrPoly" checked/> Polígono BCN</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📊 Distribución por Compañía / Fuente</h2>
+        <div class="chart-wrap"><canvas id="chartCompania"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel"><h2>⚠️ Nivel de Riesgo</h2><div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div></div>
+      <div class="panel"><h2>🔧 Estado Clasificado</h2><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+      <div class="panel"><h2>📦 Elemento de Red</h2><div class="chart-wrap"><canvas id="chartElem"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🧪 Material Principal</h2><div class="chart-wrap"><canvas id="chartMat"></canvas></div></div>
+      <div class="panel"><h2>🏢 Top Fuentes por Impacto CLP</h2><div class="chart-wrap"><canvas id="chartTopCLP"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🎯 Prioridad x CLP</h2><div class="chart-wrap"><canvas id="chartPrio"></canvas></div></div>
+      <div class="panel"><h2>🛣️ Tipo de lugar</h2><div class="chart-wrap"><canvas id="chartTipoLugar"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Detalle de Puntos <span style="float:right;font-size:11px;color:var(--txt-2)">Click en fila para centrar en el mapa · Hasta 500</span></h2>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr><th>ID</th><th>Fuente</th><th>Elemento</th><th>Material</th><th>Estado</th><th>Riesgo</th><th>Prio</th><th>KM</th><th>KG</th><th>CLP</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div><b style="color:var(--mustard)">Visor Gestión de Red · Los Álamos</b> — Coordenada Pública · Ley 21.172 · Decreto N°176</div>
+  <div>Plantilla extensible a otras comunas · Próximo: API REST para expedientes automáticos</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Datos reales embebidos
+   ============================================================ */
+const RAW_DATA = [{"id":"LOS-20001","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62712,"lng":-73.45677},{"id":"LOS-20002","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62357,"lng":-73.44871},{"id":"LOS-20003","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62214,"lng":-73.46471},{"id":"LOS-20004","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62981,"lng":-73.45278},{"id":"LOS-20005","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6248,"lng":-73.4202},{"id":"LOS-20006","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62325,"lng":-73.46186},{"id":"LOS-20007","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62608,"lng":-73.46391},{"id":"LOS-20008","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62493,"lng":-73.47238},{"id":"LOS-20009","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62771,"lng":-73.44697},{"id":"LOS-20010","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63404,"lng":-73.45322},{"id":"LOS-20011","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63523,"lng":-73.45198},{"id":"LOS-20012","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6309,"lng":-73.40613},{"id":"LOS-20013","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62686,"lng":-73.40623},{"id":"LOS-20014","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.64432,"lng":-73.39179},{"id":"LOS-20015","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.66375,"lng":-73.39267},{"id":"LOS-20016","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6697,"lng":-73.39197},{"id":"LOS-20017","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.67549,"lng":-73.39573},{"id":"LOS-20018","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.61952,"lng":-73.41713},{"id":"LOS-20019","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62909,"lng":-73.45699},{"id":"LOS-20020","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62696,"lng":-73.46714},{"id":"LOS-20021","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6245,"lng":-73.46768},{"id":"LOS-20022","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":22,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62237,"lng":-73.46842},{"id":"LOS-20023","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":23,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6224,"lng":-73.47045},{"id":"LOS-20024","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":24,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62673,"lng":-73.47326},{"id":"LOS-20025","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":25,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62618,"lng":-73.47213},{"id":"LOS-20026","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":26,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63226,"lng":-73.4529},{"id":"LOS-20027","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":27,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63167,"lng":-73.45},{"id":"LOS-20028","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":28,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63037,"lng":-73.44781},{"id":"LOS-20029","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":29,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62158,"lng":-73.41272},{"id":"LOS-20030","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":30,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.61901,"lng":-73.41295},{"id":"LOS-20031","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":31,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63073,"lng":-73.41062},{"id":"LOS-20032","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":32,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.65381,"lng":-73.39203},{"id":"LOS-20033","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":33,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.66922,"lng":-73.38798},{"id":"LOS-20034","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":34,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.67669,"lng":-73.38691},{"id":"LOS-20035","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":35,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.61513,"lng":-73.41255},{"id":"LOS-20036","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":36,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.61573,"lng":-73.41763},{"id":"LOS-20037","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":37,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6137,"lng":-73.41725},{"id":"LOS-20038","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":38,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.61242,"lng":-73.41317},{"id":"LOS-20039","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":39,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.61022,"lng":-73.41627},{"id":"LOS-20040","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":40,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6118,"lng":-73.41032},{"id":"LOS-20041","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":41,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.60802,"lng":-73.4111},{"id":"LOS-20042","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":42,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.60504,"lng":-73.40821},{"id":"LOS-20043","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":43,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.60783,"lng":-73.41621},{"id":"LOS-20044","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":44,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6293,"lng":-73.46133},{"id":"LOS-20045","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":45,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.6329,"lng":-73.45918},{"id":"LOS-20046","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":46,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.63208,"lng":-73.4765},{"id":"LOS-20047","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":47,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.62868,"lng":-73.46475},{"id":"LOS-20048","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":51,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63458,"lng":-73.45355},{"id":"LOS-20049","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":52,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63458,"lng":-73.45307},{"id":"LOS-20050","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":53,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63479,"lng":-73.45269},{"id":"LOS-20051","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":54,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63425,"lng":-73.45191},{"id":"LOS-20052","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":55,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63093,"lng":-73.40639},{"id":"LOS-20053","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":56,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61731,"lng":-73.41355},{"id":"LOS-20054","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":57,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63556,"lng":-73.4525},{"id":"LOS-20055","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":58,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62097,"lng":-73.41689},{"id":"LOS-20056","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":59,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60982,"lng":-73.41289},{"id":"LOS-20057","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":60,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62664,"lng":-73.45937},{"id":"LOS-20058","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":61,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62808,"lng":-73.45372},{"id":"LOS-20059","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":62,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66709,"lng":-73.39241},{"id":"LOS-20060","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":63,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63023,"lng":-73.44981},{"id":"LOS-20061","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":64,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61438,"lng":-73.4176},{"id":"LOS-20062","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":65,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62314,"lng":-73.46459},{"id":"LOS-20063","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":66,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66529,"lng":-73.39237},{"id":"LOS-20064","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":67,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61287,"lng":-73.41411},{"id":"LOS-20065","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":68,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63271,"lng":-73.45174},{"id":"LOS-20066","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":69,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60933,"lng":-73.41647},{"id":"LOS-20067","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":70,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61048,"lng":-73.41154},{"id":"LOS-20068","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":71,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62467,"lng":-73.41001},{"id":"LOS-20069","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":72,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61813,"lng":-73.41769},{"id":"LOS-20070","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":73,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66909,"lng":-73.38856},{"id":"LOS-20071","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":74,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62573,"lng":-73.40684},{"id":"LOS-20072","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":75,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63336,"lng":-73.41078},{"id":"LOS-20073","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":76,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61094,"lng":-73.41157},{"id":"LOS-20074","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":77,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66801,"lng":-73.38709},{"id":"LOS-20075","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":78,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62685,"lng":-73.4127},{"id":"LOS-20076","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":79,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61424,"lng":-73.41567},{"id":"LOS-20077","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":80,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63349,"lng":-73.45081},{"id":"LOS-20078","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":81,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62745,"lng":-73.40259},{"id":"LOS-20079","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":82,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62973,"lng":-73.45306},{"id":"LOS-20080","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":83,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62705,"lng":-73.46353},{"id":"LOS-20081","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":84,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66656,"lng":-73.38929},{"id":"LOS-20082","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":85,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63048,"lng":-73.449},{"id":"LOS-20083","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":86,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62591,"lng":-73.4675},{"id":"LOS-20084","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":87,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60883,"lng":-73.41823},{"id":"LOS-20085","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":88,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60674,"lng":-73.41346},{"id":"LOS-20086","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":89,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60687,"lng":-73.41405},{"id":"LOS-20087","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":90,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60305,"lng":-73.4007},{"id":"LOS-20088","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":91,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63402,"lng":-73.45357},{"id":"LOS-20089","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":92,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6343,"lng":-73.45407},{"id":"LOS-20090","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":93,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62356,"lng":-73.46962},{"id":"LOS-20091","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":94,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62313,"lng":-73.46809},{"id":"LOS-20092","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":95,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61811,"lng":-73.41167},{"id":"LOS-20093","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":96,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60536,"lng":-73.40566},{"id":"LOS-20094","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":97,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62189,"lng":-73.46324},{"id":"LOS-20095","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":98,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62196,"lng":-73.46817},{"id":"LOS-20096","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":99,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63463,"lng":-73.45198},{"id":"LOS-20097","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":100,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62251,"lng":-73.41552},{"id":"LOS-20098","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61057,"lng":-73.40971},{"id":"LOS-20099","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":2,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61024,"lng":-73.41462},{"id":"LOS-20100","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62213,"lng":-73.41372},{"id":"LOS-20101","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62692,"lng":-73.40415},{"id":"LOS-20102","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.67119,"lng":-73.39185},{"id":"LOS-20103","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62878,"lng":-73.45256},{"id":"LOS-20104","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.64271,"lng":-73.39077},{"id":"LOS-20105","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":8,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66883,"lng":-73.38747},{"id":"LOS-20106","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6554,"lng":-73.39265},{"id":"LOS-20107","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61328,"lng":-73.41558},{"id":"LOS-20108","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":11,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6336,"lng":-73.45396},{"id":"LOS-20109","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62545,"lng":-73.45721},{"id":"LOS-20110","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62471,"lng":-73.46806},{"id":"LOS-20111","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63171,"lng":-73.45022},{"id":"LOS-20112","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62056,"lng":-73.41368},{"id":"LOS-20113","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6133,"lng":-73.41098},{"id":"LOS-20114","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6249,"lng":-73.42553},{"id":"LOS-20115","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62759,"lng":-73.46254},{"id":"LOS-20116","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.67241,"lng":-73.3911},{"id":"LOS-20117","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.67257,"lng":-73.38841},{"id":"LOS-20118","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62024,"lng":-73.4143},{"id":"LOS-20119","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":22,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61229,"lng":-73.41213},{"id":"LOS-20120","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":23,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63059,"lng":-73.44945},{"id":"LOS-20121","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":24,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62352,"lng":-73.46696},{"id":"LOS-20122","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":25,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60745,"lng":-73.40987},{"id":"LOS-20123","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":26,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62453,"lng":-73.46233},{"id":"LOS-20124","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":27,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62713,"lng":-73.41086},{"id":"LOS-20125","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":28,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61733,"lng":-73.41676},{"id":"LOS-20126","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":29,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62165,"lng":-73.46143},{"id":"LOS-20127","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":30,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62247,"lng":-73.46496},{"id":"LOS-20128","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":31,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62348,"lng":-73.46819},{"id":"LOS-20129","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":32,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63383,"lng":-73.4546},{"id":"LOS-20130","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":33,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63365,"lng":-73.45351},{"id":"LOS-20131","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":34,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60301,"lng":-73.40166},{"id":"LOS-20132","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":35,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62954,"lng":-73.4725},{"id":"LOS-20133","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":36,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62786,"lng":-73.41178},{"id":"LOS-20134","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":37,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62683,"lng":-73.46681},{"id":"LOS-20135","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":38,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63202,"lng":-73.45118},{"id":"LOS-20136","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":39,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60975,"lng":-73.40951},{"id":"LOS-20137","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":40,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.65906,"lng":-73.39187},{"id":"LOS-20138","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":41,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61059,"lng":-73.41549},{"id":"LOS-20139","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":42,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62415,"lng":-73.46508},{"id":"LOS-20140","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":43,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62612,"lng":-73.46008},{"id":"LOS-20141","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":44,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61653,"lng":-73.41713},{"id":"LOS-20142","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":45,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.67055,"lng":-73.38741},{"id":"LOS-20143","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":46,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6194,"lng":-73.41286},{"id":"LOS-20144","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":47,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62595,"lng":-73.47009},{"id":"LOS-20145","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":48,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63114,"lng":-73.44744},{"id":"LOS-20146","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":49,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63445,"lng":-73.45195},{"id":"LOS-20147","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":50,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62854,"lng":-73.4651},{"id":"LOS-20148","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":51,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63458,"lng":-73.45355},{"id":"LOS-20149","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":52,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63458,"lng":-73.45307},{"id":"LOS-20150","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":53,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63479,"lng":-73.45269},{"id":"LOS-20151","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":54,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63425,"lng":-73.45191},{"id":"LOS-20152","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":55,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63093,"lng":-73.40639},{"id":"LOS-20153","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":56,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61731,"lng":-73.41355},{"id":"LOS-20154","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":57,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63556,"lng":-73.4525},{"id":"LOS-20155","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":58,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62097,"lng":-73.41689},{"id":"LOS-20156","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":59,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60982,"lng":-73.41289},{"id":"LOS-20157","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":60,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62664,"lng":-73.45937},{"id":"LOS-20158","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":61,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62808,"lng":-73.45372},{"id":"LOS-20159","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":62,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66709,"lng":-73.39241},{"id":"LOS-20160","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":63,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63023,"lng":-73.44981},{"id":"LOS-20161","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":64,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61438,"lng":-73.4176},{"id":"LOS-20162","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":65,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62314,"lng":-73.46459},{"id":"LOS-20163","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":66,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66529,"lng":-73.39237},{"id":"LOS-20164","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":67,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61287,"lng":-73.41411},{"id":"LOS-20165","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":68,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63271,"lng":-73.45174},{"id":"LOS-20166","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":69,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60933,"lng":-73.41647},{"id":"LOS-20167","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":70,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61048,"lng":-73.41154},{"id":"LOS-20168","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":71,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62467,"lng":-73.41001},{"id":"LOS-20169","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":72,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61813,"lng":-73.41769},{"id":"LOS-20170","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":73,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66909,"lng":-73.38856},{"id":"LOS-20171","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":74,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62573,"lng":-73.40684},{"id":"LOS-20172","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":75,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63336,"lng":-73.41078},{"id":"LOS-20173","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":76,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61094,"lng":-73.41157},{"id":"LOS-20174","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":77,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66801,"lng":-73.38709},{"id":"LOS-20175","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":78,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62685,"lng":-73.4127},{"id":"LOS-20176","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":79,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61424,"lng":-73.41567},{"id":"LOS-20177","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":80,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63349,"lng":-73.45081},{"id":"LOS-20178","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":81,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62745,"lng":-73.40259},{"id":"LOS-20179","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":82,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62973,"lng":-73.45306},{"id":"LOS-20180","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":83,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62705,"lng":-73.46353},{"id":"LOS-20181","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":84,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.66656,"lng":-73.38929},{"id":"LOS-20182","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":85,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63048,"lng":-73.449},{"id":"LOS-20183","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":86,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62591,"lng":-73.4675},{"id":"LOS-20184","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":87,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60883,"lng":-73.41823},{"id":"LOS-20185","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":88,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60674,"lng":-73.41346},{"id":"LOS-20186","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":89,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60687,"lng":-73.41405},{"id":"LOS-20187","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":90,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60305,"lng":-73.4007},{"id":"LOS-20188","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":91,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63402,"lng":-73.45357},{"id":"LOS-20189","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":92,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.6343,"lng":-73.45407},{"id":"LOS-20190","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":93,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62356,"lng":-73.46962},{"id":"LOS-20191","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":94,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62313,"lng":-73.46809},{"id":"LOS-20192","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":95,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.61811,"lng":-73.41167},{"id":"LOS-20193","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":96,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.60536,"lng":-73.40566},{"id":"LOS-20194","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":97,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62189,"lng":-73.46324},{"id":"LOS-20195","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":98,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62196,"lng":-73.46817},{"id":"LOS-20196","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":99,"tipo_lugar":"Pasaje","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.63463,"lng":-73.45198},{"id":"LOS-20197","fuente":"ClaroVTR","region":"Región del Biobío (VIII)","comuna":"Los Álamos","plan":"Por definir","prioridad":100,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-37.62251,"lng":-73.41552}];
+const LO_PRADO_POLYGON = {"type":"Feature","properties":{"objectid":"209","cod_comuna":"8206","codregion":"8","Region":"Región del Bío-Bío","Provincia":"Arauco","st_area_sh":"9.60669188152e+08","st_length_":"2.41877724652e+05","shape_leng":"191513.65813900","dis_elec":"21","cir_sena":"10","Comuna":"Los Álamos"},"geometry":{"type":"Polygon","coordinates":[[[-73.42261,-37.54471],[-73.41581,-37.54574],[-73.41014,-37.546],[-73.40437,-37.54658],[-73.40174,-37.55095],[-73.39892,-37.54951],[-73.40028,-37.54721],[-73.3958,-37.54813],[-73.392,-37.54873],[-73.38778,-37.54983],[-73.38468,-37.54957],[-73.38104,-37.54908],[-73.3787,-37.55223],[-73.37528,-37.55451],[-73.37336,-37.56027],[-73.36799,-37.56264],[-73.36281,-37.56475],[-73.36088,-37.56879],[-73.35744,-37.57239],[-73.35456,-37.57552],[-73.34973,-37.57676],[-73.34017,-37.57899],[-73.33387,-37.58243],[-73.32241,-37.58311],[-73.31884,-37.58816],[-73.31216,-37.59447],[-73.30435,-37.5947],[-73.30002,-37.5937],[-73.28992,-37.59642],[-73.28405,-37.59776],[-73.28015,-37.59858],[-73.27455,-37.59738],[-73.27051,-37.5985],[-73.26469,-37.59779],[-73.25849,-37.59737],[-73.252,-37.59903],[-73.24745,-37.59957],[-73.24196,-37.60132],[-73.23611,-37.60051],[-73.23095,-37.59873],[-73.22498,-37.59806],[-73.21977,-37.59687],[-73.21515,-37.59703],[-73.21163,-37.59503],[-73.20874,-37.59609],[-73.20609,-37.599],[-73.2004,-37.59708],[-73.19662,-37.60041],[-73.19065,-37.60127],[-73.18649,-37.60282],[-73.18403,-37.60297],[-73.18092,-37.60542],[-73.17655,-37.60367],[-73.17067,-37.6068],[-73.16549,-37.607],[-73.16296,-37.60768],[-73.16015,-37.61103],[-73.1582,-37.61645],[-73.15701,-37.62188],[-73.15161,-37.6283],[-73.14513,-37.63282],[-73.13654,-37.63546],[-73.13103,-37.63493],[-73.12719,-37.64015],[-73.12762,-37.64517],[-73.1265,-37.64815],[-73.1239,-37.65128],[-73.12176,-37.65564],[-73.11782,-37.66236],[-73.12418,-37.66712],[-73.12288,-37.67372],[-73.12627,-37.6793],[-73.12127,-37.68237],[-73.11796,-37.68795],[-73.11938,-37.68888],[-73.12109,-37.68898],[-73.12284,-37.68881],[-73.12425,-37.68977],[-73.12196,-37.69111],[-73.11955,-37.69234],[-73.1177,-37.69385],[-73.11681,-37.70409],[-73.1263,-37.71401],[-73.13583,-37.71679],[-73.14848,-37.71635],[-73.1567,-37.71836],[-73.16066,-37.72236],[-73.17273,-37.72319],[-73.18801,-37.72188],[-73.20025,-37.71948],[-73.21557,-37.72293],[-73.21978,-37.73601],[-73.22206,-37.74497],[-73.22993,-37.74639],[-73.23733,-37.74607],[-73.24199,-37.7449],[-73.24701,-37.74566],[-73.25342,-37.74384],[-73.25691,-37.74164],[-73.262,-37.74231],[-73.2677,-37.74076],[-73.27304,-37.73705],[-73.27794,-37.73411],[-73.28378,-37.72948],[-73.28659,-37.72722],[-73.29447,-37.72404],[-73.29797,-37.72195],[-73.30409,-37.72042],[-73.30741,-37.71946],[-73.31338,-37.718],[-73.31757,-37.71609],[-73.32094,-37.71663],[-73.32536,-37.71681],[-73.32769,-37.71316],[-73.33209,-37.71207],[-73.33544,-37.71026],[-73.33639,-37.70819],[-73.33979,-37.7044],[-73.3425,-37.7001],[-73.34662,-37.69808],[-73.35159,-37.69672],[-73.35285,-37.69427],[-73.35603,-37.69415],[-73.35933,-37.6935],[-73.36384,-37.69349],[-73.36798,-37.69518],[-73.37008,-37.69724],[-73.37426,-37.69867],[-73.37569,-37.70264],[-73.37597,-37.70593],[-73.37307,-37.70601],[-73.37214,-37.71028],[-73.37528,-37.71006],[-73.38108,-37.70824],[-73.38753,-37.70999],[-73.39076,-37.69645],[-73.39792,-37.70694],[-73.40179,-37.71133],[-73.40462,-37.71624],[-73.40837,-37.71003],[-73.41255,-37.70571],[-73.42176,-37.70854],[-73.42792,-37.71136],[-73.43452,-37.71552],[-73.4362,-37.72169],[-73.43868,-37.72539],[-73.44078,-37.73047],[-73.44169,-37.73624],[-73.44438,-37.74],[-73.44818,-37.74277],[-73.45093,-37.74711],[-73.45271,-37.75103],[-73.45739,-37.75498],[-73.45905,-37.75787],[-73.45929,-37.76245],[-73.46061,-37.76455],[-73.46436,-37.76861],[-73.46583,-37.77351],[-73.46598,-37.77638],[-73.46829,-37.77755],[-73.4706,-37.77873],[-73.46828,-37.7816],[-73.46972,-37.78463],[-73.47125,-37.78775],[-73.47404,-37.78975],[-73.47518,-37.79393],[-73.47603,-37.79779],[-73.47443,-37.80028],[-73.47467,-37.80272],[-73.479,-37.81109],[-73.48656,-37.82132],[-73.48782,-37.82447],[-73.48902,-37.82642],[-73.49028,-37.82783],[-73.49116,-37.82911],[-73.49205,-37.83075],[-73.49367,-37.83225],[-73.49282,-37.83421],[-73.49514,-37.83706],[-73.49776,-37.84071],[-73.50052,-37.84265],[-73.50214,-37.84346],[-73.50427,-37.84523],[-73.5082,-37.84618],[-73.51189,-37.84624],[-73.51445,-37.84516],[-73.51682,-37.84579],[-73.51734,-37.84721],[-73.51735,-37.84815],[-73.51679,-37.84907],[-73.51717,-37.85112],[-73.51858,-37.85386],[-73.5211,-37.85336],[-73.52446,-37.85425],[-73.52721,-37.85516],[-73.52794,-37.85709],[-73.53027,-37.85931],[-73.53308,-37.86037],[-73.53173,-37.86191],[-73.5348,-37.86265],[-73.5397,-37.8624],[-73.53926,-37.86955],[-73.54656,-37.86769],[-73.55546,-37.85373],[-73.57082,-37.83089],[-73.57916,-37.82],[-73.57921,-37.81568],[-73.57679,-37.8155],[-73.57409,-37.81288],[-73.571,-37.81163],[-73.56681,-37.80967],[-73.56294,-37.80974],[-73.55893,-37.80785],[-73.55561,-37.80488],[-73.5543,-37.80157],[-73.55095,-37.79901],[-73.55124,-37.79495],[-73.55082,-37.79177],[-73.54921,-37.78917],[-73.54879,-37.78546],[-73.54619,-37.78112],[-73.54177,-37.7775],[-73.53396,-37.77395],[-73.53089,-37.76854],[-73.52818,-37.76467],[-73.5239,-37.75852],[-73.52021,-37.75338],[-73.51506,-37.74826],[-73.5124,-37.74308],[-73.51358,-37.73585],[-73.51263,-37.73178],[-73.50973,-37.72813],[-73.51201,-37.72481],[-73.51069,-37.72172],[-73.5063,-37.71673],[-73.50461,-37.70788],[-73.50279,-37.69886],[-73.50039,-37.69087],[-73.5057,-37.68766],[-73.51181,-37.68604],[-73.51556,-37.68277],[-73.51999,-37.68071],[-73.51794,-37.67603],[-73.51716,-37.67042],[-73.50805,-37.66189],[-73.49726,-37.64873],[-73.50242,-37.65269],[-73.50505,-37.6457],[-73.50807,-37.63938],[-73.51118,-37.63223],[-73.51413,-37.62607],[-73.5165,-37.62133],[-73.51885,-37.61412],[-73.52483,-37.61277],[-73.5321,-37.60984],[-73.53227,-37.60564],[-73.53431,-37.60181],[-73.53799,-37.60103],[-73.53959,-37.59801],[-73.53628,-37.59444],[-73.53719,-37.58897],[-73.53934,-37.58289],[-73.53337,-37.58509],[-73.52805,-37.58909],[-73.52613,-37.59431],[-73.5198,-37.60038],[-73.51212,-37.60651],[-73.5075,-37.60939],[-73.50704,-37.6141],[-73.50252,-37.61229],[-73.50304,-37.60798],[-73.49597,-37.60493],[-73.49907,-37.60206],[-73.5039,-37.59437],[-73.49938,-37.5921],[-73.49496,-37.59285],[-73.4926,-37.59646],[-73.49284,-37.60064],[-73.48701,-37.60192],[-73.48204,-37.60043],[-73.47815,-37.60063],[-73.47419,-37.59721],[-73.4752,-37.5928],[-73.47314,-37.5891],[-73.46853,-37.58535],[-73.46569,-37.58155],[-73.46309,-37.57812],[-73.4609,-37.57451],[-73.4557,-37.57306],[-73.45536,-37.56977],[-73.45987,-37.56654],[-73.46399,-37.5637],[-73.46268,-37.56076],[-73.46253,-37.55823],[-73.45748,-37.55983],[-73.45372,-37.5619],[-73.45157,-37.56159],[-73.44894,-37.55796],[-73.45223,-37.55519],[-73.45112,-37.55109],[-73.4491,-37.55218],[-73.4461,-37.55274],[-73.44115,-37.55413],[-73.43978,-37.55683],[-73.43691,-37.55882],[-73.43164,-37.56051],[-73.43202,-37.55903],[-73.43686,-37.55514],[-73.43283,-37.5503],[-73.42919,-37.54622],[-73.42619,-37.54356],[-73.42261,-37.54471]]]}};
+
+function setStatus(txt, cls, meta){
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = txt;
+  if(meta!==undefined) document.getElementById('statusMeta').textContent = meta;
+  bar.className = cls || '';
+}
+
+/* ============================================================
+   Point in polygon (puro JS, sin depender de Turf)
+   ============================================================ */
+function pipRing(lng, lat, ring){
+  let inside = false;
+  const n = ring.length;
+  for(let i=0, j=n-1; i<n; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-15)+xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInside(d){
+  if(!d.lat || !d.lng) return false;
+  try{
+    const rings = LO_PRADO_POLYGON.geometry.coordinates;
+    // Polygon: primer anillo exterior, resto agujeros
+    if(!pipRing(d.lng, d.lat, rings[0])) return false;
+    for(let i=1; i<rings.length; i++){
+      if(pipRing(d.lng, d.lat, rings[i])) return false; // en agujero
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+const COLORES = {
+  mustard:'#C79F47',
+  blues:['#1E3A5F','#2E5C8A','#3E7CB1','#5FA8D3','#8FCDF5','#0F2847','#567AA6','#73A9D4','#1D4E7A'],
+  bluesLine:'#5FA8D3', grid:'#2A3545'
+};
+
+let AREA_KM2 = 6.67;
+try{
+  if(LO_PRADO_POLYGON.properties && LO_PRADO_POLYGON.properties.st_area_sh){
+    AREA_KM2 = parseFloat(LO_PRADO_POLYGON.properties.st_area_sh)/1e6;
+  }
+}catch(e){}
+
+let CENTER = [-33.4419,-70.7256];
+try{
+  const ring = LO_PRADO_POLYGON.geometry.coordinates[0];
+  let sx=0,sy=0;
+  ring.forEach(p=>{sx+=p[0];sy+=p[1];});
+  CENTER = [sy/ring.length, sx/ring.length];
+}catch(e){}
+
+let DATA_ALL = [];
+let DATA_FILTERED = [];
+let map, polyLayer, markersLayer;
+let charts = {};
+let chartJsReady = false;
+let leafletReady = false;
+
+const fmt = n=>(n||0).toLocaleString('es-CL');
+const fmtCLP = n=>'$'+fmt(Math.round(n||0));
+const colorRiesgo = r=> r==='Alto'?'#D96E6E': r==='Medio'?'#E0A458':'#4ECDC4';
+const uniq = (arr,k)=>{
+  const s = new Set();
+  arr.forEach(x=>{if(x[k]!==undefined && x[k]!==null && x[k]!=='') s.add(x[k]);});
+  return [...s].sort();
+};
+function popSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML='';
+  if(first) sel.appendChild(first);
+  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+  sel.value = current;
+}
+
+function initMap(){
+  if(typeof L === 'undefined'){
+    setStatus('Error: Leaflet no se cargó. Revisa tu conexión a internet.', 'err');
+    return false;
+  }
+  try{
+    map = L.map('map',{preferCanvas:true}).setView(CENTER, 14);
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Voyager',subdomains:'abcd',maxZoom:20});
+    let __tileLoad=0,__tileErr=0;
+    voyager.on('tileload',()=>{__tileLoad++; if(__tileLoad===1) setStatus('Mapa: teselas cargando (' + __tileLoad + ').', '', ''); });
+    voyager.on('tileerror',()=>{__tileErr++; if(__tileErr===1) setStatus('⚠ Error cargando teselas del mapa (' + __tileErr + '). Probando basemap alternativo...', 'err'); if(__tileErr===3){ map.removeLayer(voyager); osm.addTo(map);} });
+    voyager.addTo(map);
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Dark',subdomains:'abcd',maxZoom:20});
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB',subdomains:'abcd',maxZoom:20});
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap France · HOT',maxZoom:19});
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19});
+    const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB',subdomains:'abcd',maxZoom:20,pane:'shadowPane'});
+    L.control.layers({"Calles (Voyager)":voyager,"Oscuro":dark,"Calles OSM":osm,"Humanitario":osmHOT,"Satelital":sat}, {"Etiquetas sobre satelital":satLabels}).addTo(map);
+
+    polyLayer = L.geoJSON(LO_PRADO_POLYGON,{style:{color:COLORES.mustard,weight:3,fillColor:COLORES.mustard,fillOpacity:0.07,dashArray:'6 4'}}).addTo(map);
+    polyLayer.bindTooltip('Los Álamos · Polígono oficial BCN ('+AREA_KM2.toFixed(2)+' km²)',{sticky:true});
+
+    if(L.markerClusterGroup){
+      markersLayer = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        iconCreateFunction:c=>L.divIcon({html:'<div style="background:#C79F47;color:#1a1207;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid #fff;font-family:Arial">'+c.getChildCount()+'</div>',className:'',iconSize:[38,38]})
+      });
+    } else {
+      markersLayer = L.layerGroup();
+    }
+    map.addLayer(markersLayer);
+
+    try{ map.fitBounds(polyLayer.getBounds().pad(0.05)); }catch(e){}
+    leafletReady = true;
+    return true;
+  }catch(e){
+    console.error(e);
+    setStatus('Error inicializando mapa: '+e.message, 'err');
+    return false;
+  }
+}
+
+function renderMarkers(data){
+  if(!leafletReady || !markersLayer) return;
+  markersLayer.clearLayers();
+  let n=0;
+  data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
+    const col = colorRiesgo(d.riesgo);
+    const m = L.circleMarker([d.lat,d.lng],{radius:6,color:'#fff',weight:1.3,fillColor:col,fillOpacity:.85});
+    m.bindPopup(
+      '<b>'+d.id+'</b><br/>'+
+      '<b>Fuente:</b> '+(d.fuente||'')+'<br/>'+
+      '<b>Elemento:</b> '+(d.elemento_red||'')+' / '+(d.material||'')+'<br/>'+
+      '<b>Estado:</b> '+(d.estado_clasificado||'')+'<br/>'+
+      '<b>Riesgo:</b> <span style="color:'+col+'"><b>'+d.riesgo+'</b></span> (score '+d.riesgo_score+')<br/>'+
+      '<b>Prioridad:</b> '+d.prioridad+' · <b>Plan:</b> '+(d.plan||'')+'<br/>'+
+      '<b>KM:</b> '+d.km+' · <b>KG:</b> '+d.kg_basura+'<br/>'+
+      '<b>CLP Multa:</b> '+fmtCLP(d.clp_multas)+'<br/>'+
+      '<b>Lugar:</b> '+(d.tipo_lugar||'')+'<br/>'+
+      '<b>Elem intervenir:</b> '+(d.tipo_elemento||'—')
+    );
+    markersLayer.addLayer(m);
+    n++;
+  });
+  return n;
+}
+
+function applyFilters(){
+  const v = id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const ch = id=>{const e=document.getElementById(id);return e?e.checked:false;};
+  const fC=v('fCompania'),fR=v('fRiesgo'),fE=v('fEstado'),fEl=v('fElem'),fM=v('fMat');
+  const fP=+v('fPrio');
+  const fI=ch('fInside');
+  const fH=ch('fHasCoord');
+  DATA_FILTERED = DATA_ALL.filter(d=>{
+    if(fC && d.fuente!==fC) return false;
+    if(fR && d.riesgo!==fR) return false;
+    if(fE && d.estado_clasificado!==fE) return false;
+    if(fEl && d.elemento_red!==fEl) return false;
+    if(fM && d.material!==fM) return false;
+    if((d.prioridad||0)>fP) return false;
+    if(fH && (!d.lat||!d.lng)) return false;
+    if(fI && !d._inside) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function updateKPIs(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const pctAlto = d.length? alto/d.length*100:0;
+  const avgScore = d.length? d.reduce((a,x)=>a+(+x.riesgo_score||0),0)/d.length : 0;
+  const idx = Math.min(100, Math.round(pctAlto*0.4 + (avgScore/18*100)*0.3 + Math.min(100,(clp/1000000)*1.5)*0.15 + Math.min(100,kg/50)*0.15));
+
+  const set = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiMultas', fmt(multas));
+  set('kpiMultasCLP', fmtCLP(clp));
+  set('kpiKM', km.toFixed(2));
+  set('kpiKG', fmt(Math.round(kg)));
+  set('kpiRiesgo', idx);
+  set('kpiCostoKM', km>0? fmtCLP(clp/km):'$0');
+  set('density', (d.length/AREA_KM2).toFixed(1));
+  set('pctAlto', pctAlto.toFixed(1)+'%');
+  set('avgMulta', multas>0? fmtCLP(clp/multas):'$0');
+  set('avgPeso', d.length? (kg/d.length).toFixed(1)+' kg':'0 kg');
+  set('rec-count', d.length);
+  set('dataRecs', d.length);
+}
+
+function groupCount(data,key){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+1;});return m;}
+function groupSum(data,key,field){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+(+x[field]||0);});return m;}
+
+function makeChart(id,type,data,opts){
+  if(!chartJsReady) return;
+  opts = opts||{};
+  if(charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if(!el) return;
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#fff',font:{family:'Arial',size:11}}},
+      tooltip:{backgroundColor:'#0E1117',borderColor:COLORES.mustard,borderWidth:1,titleColor:COLORES.mustard,bodyColor:'#fff'}},
+    scales:(type==='pie'||type==='doughnut')?undefined:{
+      x:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid}},
+      y:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid},beginAtZero:true}}
+  };
+  charts[id] = new Chart(el,{type,data,options:Object.assign(base,opts)});
+}
+
+function updateCharts(){
+  if(!chartJsReady) return;
+  const d = DATA_FILTERED;
+  const g1 = groupCount(d,'fuente');
+  const l1 = Object.keys(g1).sort((a,b)=>g1[b]-g1[a]).slice(0,10);
+  makeChart('chartCompania','bar',{labels:l1,datasets:[{label:'Puntos',data:l1.map(k=>g1[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.blues[4],borderWidth:1.5}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+
+  const g2 = groupCount(d,'riesgo');
+  const ord = ['Alto','Medio','Bajo'].filter(k=>g2[k]);
+  makeChart('chartRiesgo','doughnut',{labels:ord,datasets:[{data:ord.map(k=>g2[k]),backgroundColor:ord.map(k=>colorRiesgo(k)),borderColor:'#0E1117',borderWidth:2}]});
+
+  const g3 = groupCount(d,'estado_clasificado');
+  const l3 = Object.keys(g3).sort((a,b)=>g3[b]-g3[a]).slice(0,8);
+  makeChart('chartEstado','bar',{labels:l3,datasets:[{label:'Puntos',data:l3.map(k=>g3[k]),backgroundColor:COLORES.blues[1],borderColor:COLORES.blues[3],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g4 = groupCount(d,'elemento_red');
+  makeChart('chartElem','pie',{labels:Object.keys(g4),datasets:[{data:Object.values(g4),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+
+  const g5 = groupCount(d,'material');
+  const l5 = Object.keys(g5).sort((a,b)=>g5[b]-g5[a]).slice(0,8);
+  makeChart('chartMat','bar',{labels:l5,datasets:[{label:'Puntos',data:l5.map(k=>g5[k]),backgroundColor:COLORES.blues[3],borderColor:COLORES.blues[4],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g6 = groupSum(d,'fuente','clp_multas');
+  const l6 = Object.keys(g6).sort((a,b)=>g6[b]-g6[a]).slice(0,8);
+  makeChart('chartTopCLP','bar',{labels:l6,datasets:[{label:'CLP',data:l6.map(k=>g6[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.mustard,borderWidth:1.5}]},
+    {indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCLP(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#C8D2E0',callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:COLORES.grid}},y:{ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}}}});
+
+  const g7 = {};
+  d.forEach(x=>{const k=(+x.prioridad)||0;if(!g7[k])g7[k]={n:0,clp:0};g7[k].n++;g7[k].clp+=(+x.clp_multas||0);});
+  const k7 = Object.keys(g7).sort((a,b)=>+a-+b);
+  makeChart('chartPrio','bar',{labels:k7.map(k=>'P'+k),datasets:[{label:'Puntos',data:k7.map(k=>g7[k].n),backgroundColor:COLORES.blues[3],yAxisID:'y'},{label:'CLP',data:k7.map(k=>g7[k].clp),type:'line',borderColor:COLORES.mustard,backgroundColor:'rgba(199,159,71,.2)',yAxisID:'y1',tension:.3,pointBackgroundColor:COLORES.mustard}]},
+    {scales:{y:{position:'left',ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}},y1:{position:'right',ticks:{color:COLORES.mustard,callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{drawOnChartArea:false}}}});
+
+  const g8 = groupCount(d,'tipo_lugar');
+  const l8 = Object.keys(g8).sort((a,b)=>g8[b]-g8[a]).slice(0,6);
+  makeChart('chartTipoLugar','pie',{labels:l8,datasets:[{data:l8.map(k=>g8[k]),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+}
+
+function updateTable(){
+  const tb = document.querySelector('#dataTable tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  DATA_FILTERED.slice(0,500).forEach(d=>{
+    const tr = document.createElement('tr');
+    const rLow = (d.riesgo||'').toLowerCase();
+    tr.innerHTML = '<td>'+d.id+'</td><td>'+(d.fuente||'')+'</td><td>'+(d.elemento_red||'')+'</td><td>'+(d.material||'')+'</td>'+
+      '<td><span class="badge estado">'+(d.estado_clasificado||'')+'</span></td>'+
+      '<td><span class="badge '+rLow+'">'+(d.riesgo||'')+'</span></td>'+
+      '<td>'+(d.prioridad||0)+'</td><td>'+(+d.km||0).toFixed(3)+'</td><td>'+fmt(d.kg_basura)+'</td><td>'+fmtCLP(d.clp_multas)+'</td>';
+    tr.onclick=()=>{if(d.lat&&d.lng&&map)map.setView([d.lat,d.lng],17);};
+    tb.appendChild(tr);
+  });
+}
+
+function updateAll(){
+  updateKPIs(); updateCharts(); updateTable();
+  if(leafletReady) renderMarkers(DATA_FILTERED);
+}
+
+function loadInitial(){
+  DATA_ALL = RAW_DATA.map(r=>Object.assign({},r));
+  DATA_ALL.forEach(d=>{d._inside = (d.lat&&d.lng)? pointInside(d) : false;});
+  const withCoords = DATA_ALL.filter(d=>d.lat && d.lng).length;
+  const inside = DATA_ALL.filter(d=>d._inside).length;
+  popSelect('fCompania', uniq(DATA_ALL,'fuente'));
+  popSelect('fEstado', uniq(DATA_ALL,'estado_clasificado'));
+  popSelect('fElem', uniq(DATA_ALL,'elemento_red'));
+  popSelect('fMat', uniq(DATA_ALL,'material'));
+  applyFilters();
+  setStatus('✓ Datos de Los Álamos cargados correctamente', 'ok',
+    DATA_ALL.length+' registros oficiales dentro del polígono BCN');
+}
+
+/* Importación */
+function normalizeRecord(r){
+  const g = keys=>{for(const k of keys){const f=Object.keys(r).find(c=>c.toLowerCase().trim()===k.toLowerCase());if(f!==undefined && r[f]!=='' && r[f]!=null) return r[f];}return null;};
+  return {
+    id:g(['id','ID']) || 'EXT-'+Math.floor(Math.random()*100000),
+    fuente:g(['fuente','compania','compañía','empresa','GORE, Municipio, Denuncias Ciudadanía o Empresas']) || 'Desconocido',
+    region:g(['region','2. Región']) || '',
+    comuna:g(['comuna','3. Comuna']) || 'Los Álamos',
+    plan:g(['plan','Plan']) || 'Por definir',
+    prioridad:+(g(['prioridad','4. Prioritario'])||0),
+    tipo_lugar:g(['tipo_lugar','5.Tipo de lugar']) || '',
+    tipo_elemento:g(['tipo_elemento','7.Tipo del o los elementos a intervenir y su respectivo estado'])||'',
+    elemento_red:g(['elemento_red','Elemento_Red']) || 'Sin dato',
+    material:g(['material','Material_Principal']) || 'Sin dato',
+    estado_clasificado:g(['estado_clasificado','Estado_Clasificado']) || 'Desconocido',
+    estado_final:g(['estado_final','21. Estado_Final']) || '',
+    riesgo:g(['riesgo','nivel_riesgo'])||'Medio', riesgo_score:+(g(['riesgo_score'])||5),
+    multas:+(g(['multas'])||1), clp_multas:+(g(['clp_multas','clp','monto'])||0),
+    km:+(g(['km','Estimacion_KM'])||0), kg_basura:+(g(['kg_basura','Estimacion_Peso_KG'])||0),
+    lat:+(g(['lat','latitud','16. Latitud (WGS84 5 DECIMALES)'])||0),
+    lng:+(g(['lng','longitud','17. Longitud (WGS84 5 DECIMALES)'])||0),
+  };
+}
+
+function parseFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const finish = (rows, src)=>{
+    DATA_ALL = rows.map(normalizeRecord);
+    DATA_ALL.forEach(d=>d._inside=pointInside(d));
+    popSelect('fCompania',uniq(DATA_ALL,'fuente'));
+    popSelect('fEstado',uniq(DATA_ALL,'estado_clasificado'));
+    popSelect('fElem',uniq(DATA_ALL,'elemento_red'));
+    popSelect('fMat',uniq(DATA_ALL,'material'));
+    applyFilters();
+    setStatus('✓ '+DATA_ALL.length+' registros oficiales', 'ok');
+  };
+  if(ext==='csv'){
+    if(typeof Papa==='undefined') return alert('PapaParse no cargó. Verifica conexión.');
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>finish(res.data, file.name)});
+  } else if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined') return alert('SheetJS no cargó. Verifica conexión.');
+    const r = new FileReader();
+    r.onload = e=>{
+      const wb = XLSX.read(e.target.result,{type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      finish(rows, file.name+' · '+wb.SheetNames[0]);
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function exportCSV(){
+  if(!DATA_FILTERED.length) return alert('Sin datos.');
+  const cols = Object.keys(DATA_FILTERED[0]).filter(c=>!c.startsWith('_'));
+  const rows = [cols.join(',')].concat(DATA_FILTERED.map(d=>cols.map(c=>JSON.stringify(d[c]===undefined?'':d[c])).join(','))).join('\n');
+  const b = new Blob([rows],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download='visor_los_alamos_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+function genReporte(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const byF = groupSum(d,'fuente','clp_multas');
+  const top = Object.entries(byF).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const html = '<html><head><meta charset="utf-8"><title>Reporte Los Álamos</title>'+
+    '<style>body{font-family:Arial;padding:30px;color:#222}h1{color:#8E6E2A;border-bottom:2px solid #C79F47}'+
+    '.kpi{display:inline-block;margin:8px;padding:14px 20px;background:#f5efe2;border:1px solid #C79F47;border-radius:6px}'+
+    '.kpi b{display:block;color:#8E6E2A;font-size:11px;letter-spacing:1px}.kpi span{font-size:22px;font-weight:bold}'+
+    'table{border-collapse:collapse;margin-top:14px;width:100%}td,th{border:1px solid #ddd;padding:6px 10px;font-size:12px;text-align:left}th{background:#8E6E2A;color:#fff}</style></head>'+
+    '<body><h1>Reporte de Gestión de Red · Los Álamos</h1>'+
+    '<p>Fecha: '+new Date().toLocaleString('es-CL')+' · Registros: '+d.length+' · Superficie: '+AREA_KM2.toFixed(2)+' km²</p>'+
+    '<div class="kpi"><b>Multas</b><span>'+fmt(multas)+'</span></div>'+
+    '<div class="kpi"><b>CLP</b><span>'+fmtCLP(clp)+'</span></div>'+
+    '<div class="kpi"><b>KM</b><span>'+km.toFixed(2)+'</span></div>'+
+    '<div class="kpi"><b>KG basura</b><span>'+fmt(Math.round(kg))+'</span></div>'+
+    '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
+    '<h2>Top 5 fuentes por impacto CLP</h2>'+
+    '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
+    '</body></html>';
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+/* Eventos (defensivos) */
+function bind(id, ev, fn){const e=document.getElementById(id); if(e) e.addEventListener(ev, fn);}
+['fCompania','fRiesgo','fEstado','fElem','fMat','fInside','fHasCoord'].forEach(id=>bind(id,'change',applyFilters));
+bind('fPrio','input',e=>{document.getElementById('fPrioVal').textContent='Hasta '+e.target.value;applyFilters();});
+bind('btnReset','click',()=>{
+  ['fCompania','fRiesgo','fEstado','fElem','fMat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fInside').checked=false;
+  document.getElementById('fHasCoord').checked=true;
+  document.getElementById('fPrio').value=10;
+  document.getElementById('fPrioVal').textContent='Hasta 10';
+  applyFilters();
+});
+bind('btnExport','click',exportCSV);
+bind('btnReport','click',genReporte);
+bind('lyrPts','change',e=>{if(map){if(e.target.checked) map.addLayer(markersLayer); else map.removeLayer(markersLayer);}});
+bind('lyrPoly','change',e=>{if(map){if(e.target.checked) map.addLayer(polyLayer); else map.removeLayer(polyLayer);}});
+
+/* Boot — NO esperamos a 'load', ejecutamos apenas DOM listo */
+function boot(){
+  try{
+    const s = window.__CDN_STATUS__||{};
+    const failed = ['leaflet','markercluster','chart','papa','xlsx'].filter(k=>!s[k]);
+    if(failed.length){
+      setStatus('⚠ Librerías no cargadas: '+failed.join(', ')+'. Fuentes intentadas: '+(s.tries||[]).join(' | '), 'err');
+    } else {
+      setStatus('Librerías OK. Iniciando mapa y gráficos...', '', '');
+    }
+    chartJsReady = (typeof Chart !== 'undefined');
+    const leafletOk = initMap();
+    loadInitial();
+    if(!leafletOk) setStatus('Datos cargados, pero el mapa no se pudo inicializar. ['+(s.tries||[]).join(' | ')+']', 'err');
+    else if(!chartJsReady) setStatus('Datos cargados sin gráficos (Chart.js no disponible).', 'err');
+  }catch(err){
+    console.error(err);
+    setStatus('Error: '+err.message, 'err');
+  }
+}
+async function bootWhenReady(){
+  try{
+    await window.__LIBS_READY__;
+  }catch(e){}
+  boot();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
+else bootWhenReady();
+</script>
+</body></html>

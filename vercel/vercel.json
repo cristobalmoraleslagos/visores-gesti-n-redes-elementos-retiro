@@ -97,6 +97,21 @@
       "source": "/mel",
       "destination": "/melipilla",
       "permanent": true
+    },
+    {
+      "source": "/biobio/concepción",
+      "destination": "/biobio/concepcion",
+      "permanent": true
+    },
+    {
+      "source": "/biobio/los-angeles",
+      "destination": "/biobio/los-angeles",
+      "permanent": false
+    },
+    {
+      "source": "/biobío",
+      "destination": "/biobio",
+      "permanent": true
     }
   ]
 }

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visor Gestión de Red · Contulmo · Coordenada Pública</title>
+
+<!-- Librerías (con fallbacks de CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin=""/>
+<script>window.__CDN_STATUS__={leaflet:false,markercluster:false,chart:false,papa:false,xlsx:false,tries:[]};
+function loadScript(urls, check, label){
+  return new Promise(resolve=>{
+    let i=0;
+    function tryNext(){
+      if(i>=urls.length){window.__CDN_STATUS__.tries.push(label+': FAIL');resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i]; s.async=false;
+      s.onload=()=>{ if(check()){window.__CDN_STATUS__[label]=true;window.__CDN_STATUS__.tries.push(label+': '+urls[i].split('/')[2]);resolve(true);} else {i++;tryNext();} };
+      s.onerror=()=>{i++;tryNext();};
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__LIBS_READY__ = (async()=>{
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  ], ()=>typeof L!=='undefined', 'leaflet');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',
+    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+  ], ()=>typeof L!=='undefined' && typeof L.markerClusterGroup==='function', 'markercluster');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'
+  ], ()=>typeof Chart!=='undefined', 'chart');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+    'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+    'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+  ], ()=>typeof Papa!=='undefined', 'papa');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], ()=>typeof XLSX!=='undefined', 'xlsx');
+  return true;
+})();
+</script>
+
+<style>
+:root{
+  --bg-0:#0E1117;--bg-1:#151A22;--bg-2:#1C2430;--bg-3:#243041;--line:#2A3545;
+  --txt:#FFFFFF;--txt-2:#C8D2E0;
+  --mustard:#C79F47;--mustard-2:#B8862B;--mustard-soft:rgba(199,159,71,.14);
+  --blue-1:#1E3A5F;--blue-2:#2E5C8A;--blue-3:#3E7CB1;--blue-4:#5FA8D3;--blue-5:#8FCDF5;
+  --ok:#4ECDC4;--warn:#E0A458;--bad:#D96E6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--mustard);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(90deg,#0B0E14 0%,#141B26 60%,#1C2532 100%);border-bottom:2px solid var(--mustard);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header .brand{display:flex;align-items:center;gap:14px}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:var(--mustard);font-weight:bold}
+header .sub{color:var(--txt-2);font-size:12px}
+header .tag{background:var(--mustard);color:#1a1207;font-weight:bold;font-size:11px;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:1px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;transition:all .15s}
+.btn:hover{background:var(--bg-3);border-color:var(--mustard)}
+.btn.primary{background:var(--mustard);color:#1a1207;border-color:var(--mustard);font-weight:bold}
+.btn.primary:hover{background:var(--mustard-2)}
+select,input[type=text]{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+#statusBar{padding:8px 22px;background:#182030;color:var(--txt-2);border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#statusBar.ok{background:#162B1F;color:#b8eec7}
+#statusBar.err{background:#2B1616;color:#ffb3b3}
+main{flex:1;display:grid;grid-template-columns:280px 1fr;min-height:0}
+aside{background:var(--bg-1);border-right:1px solid var(--line);padding:16px;overflow-y:auto}
+aside h3{margin:0 0 10px 0;font-size:11px;letter-spacing:1.5px;color:var(--mustard);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside .filter-group{margin-bottom:14px}
+aside label{display:block;font-size:11px;color:var(--txt-2);margin-bottom:4px}
+aside select{width:100%}
+aside .stats-mini{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:8px}
+aside .stats-mini .lbl{font-size:10px;color:var(--txt-2);letter-spacing:1px}
+aside .stats-mini .val{font-size:18px;color:var(--mustard);font-weight:bold}
+.content{padding:18px;overflow-y:auto;background:var(--bg-0)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:linear-gradient(135deg,var(--bg-2) 0%,var(--bg-3) 100%);border:2px solid var(--mustard);border-radius:10px;padding:14px 16px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(199,159,71,.15);overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(199,159,71,.18),transparent 70%)}
+.kpi .kpi-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:bold}
+.kpi .kpi-value{font-size:26px;color:#fff;font-weight:bold;line-height:1.1}
+.kpi .kpi-sub{font-size:11px;color:var(--txt-2);margin-top:4px}
+.kpi .kpi-icon{position:absolute;bottom:8px;right:10px;font-size:26px;opacity:.28;color:var(--mustard)}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.panel{background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h2{margin:0 0 12px 0;font-size:13px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--line);padding-bottom:8px;font-weight:bold}
+.panel.map{padding:0;overflow:hidden;position:relative}
+.panel.map h2{padding:14px 14px 8px 14px;margin:0;border-bottom:1px solid var(--line)}
+#map{height:500px;width:100%;background:#0B0F15}
+.panel .chart-wrap{position:relative;height:260px}
+.table-wrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-3);position:sticky;top:0}
+thead th{padding:8px 10px;text-align:left;color:var(--mustard);border-bottom:1px solid var(--line);font-size:11px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--bg-2);color:var(--txt-2)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg-2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge.alto{background:#5B1F1F;color:#ffb3b3;border:1px solid #8a2f2f}
+.badge.medio{background:#4B3A1C;color:#f5d089;border:1px solid #7a5f32}
+.badge.bajo{background:#1E3A3A;color:#b3e8e0;border:1px solid #2c5858}
+.badge.estado{background:var(--bg-3);color:var(--mustard);border:1px solid var(--line)}
+footer{padding:10px 22px;background:#0A0D12;color:var(--txt-2);font-size:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important}
+.leaflet-control-attribution a{color:var(--mustard)!important}
+.leaflet-popup-content-wrapper{background:var(--bg-2);color:#fff;border:1px solid var(--mustard);font-family:Arial}
+.leaflet-popup-tip{background:var(--bg-2)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--mustard)}
+.banner{background:var(--mustard-soft);border:1px solid var(--mustard);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+.banner b{color:var(--mustard)}
+.layer-toggle{position:absolute;top:60px;right:10px;background:var(--bg-1);border:1px solid var(--line);border-radius:4px;padding:6px 8px;z-index:1000;font-size:11px}
+.layer-toggle label{display:block;color:#fff;margin:2px 0;cursor:pointer}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div style="width:40px;height:40px;background:var(--mustard);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1a1207;font-weight:bold;font-size:16px">CO</div>
+    <div>
+      <h1>Visor de <span class="accent">Gestión de Red</span> y Elementos en Desuso</h1>
+      <div class="sub">Comuna de <b style="color:#fff">Contulmo</b> · Región Metropolitana · <span id="rec-count">0</span> puntos oficiales dentro del polígono · Polígono oficial <b>BCN</b></div>
+    </div>
+    <span class="tag">Datos Oficiales BCN</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnExport">💾 Exportar CSV</button>
+    <button class="btn primary" id="btnReport">📄 Reporte</button>
+  </div>
+</header>
+
+<div id="statusBar">
+  <span id="statusText">Inicializando...</span>
+  <span id="statusMeta"></span>
+</div>
+
+<main>
+  <aside>
+    <div class="banner">
+      <b>Contulmo:</b> <span id="dataRecs">—</span> registros
+    </div>
+
+    <h3>Filtros</h3>
+    <div class="filter-group"><label>Compañía / Fuente</label><select id="fCompania"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Nivel de Riesgo</label><select id="fRiesgo"><option value="">Todos</option><option value="Alto">Alto</option><option value="Medio">Medio</option><option value="Bajo">Bajo</option></select></div>
+    <div class="filter-group"><label>Estado clasificado</label><select id="fEstado"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Elemento de Red</label><select id="fElem"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Material Principal</label><select id="fMat"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Prioridad (≤)</label><input type="range" id="fPrio" min="0" max="10" value="10" style="width:100%"/><span id="fPrioVal" style="color:var(--mustard);font-size:11px">Hasta 10</span></div>
+    <h3 style="margin-top:14px">Resumen rápido</h3>
+    <div class="stats-mini"><div class="lbl">Densidad (pts/km²)</div><div class="val" id="density">0</div></div>
+    <div class="stats-mini"><div class="lbl">% Riesgo Alto</div><div class="val" id="pctAlto">0%</div></div>
+    <div class="stats-mini"><div class="lbl">Multa promedio (CLP)</div><div class="val" id="avgMulta">$0</div></div>
+    <div class="stats-mini"><div class="lbl">Peso promedio / punto</div><div class="val" id="avgPeso">0 kg</div></div>
+
+    <button class="btn" id="btnReset" style="width:100%;margin-top:10px">🔁 Limpiar filtros</button>
+  </aside>
+
+  <div class="content">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Cantidad de Multas</div><div class="kpi-value" id="kpiMultas">0</div><div class="kpi-sub">1 multa x registro</div></div>
+      <div class="kpi"><div class="kpi-label">Estimación Multas CLP</div><div class="kpi-value" id="kpiMultasCLP">$0</div><div class="kpi-sub">según Ley 21.172</div></div>
+      <div class="kpi"><div class="kpi-label">Cantidad de KM</div><div class="kpi-value" id="kpiKM">0</div><div class="kpi-sub">cable/ducto afectado</div></div>
+      <div class="kpi"><div class="kpi-label">KG de Basura</div><div class="kpi-value" id="kpiKG">0</div><div class="kpi-sub">residuos estimados</div></div>
+      <div class="kpi"><div class="kpi-label">Índice Riesgo</div><div class="kpi-value" id="kpiRiesgo">0</div><div class="kpi-sub">compuesto 0-100</div></div>
+      <div class="kpi"><div class="kpi-label">Costo x KM</div><div class="kpi-value" id="kpiCostoKM">$0</div><div class="kpi-sub">multa/KM intervenido</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel map">
+        <h2>🗺️ Visor Geoespacial · Contulmo (Polígono BCN)</h2>
+        <div id="map"></div>
+        <div class="layer-toggle">
+          <label><input type="checkbox" id="lyrPts" checked/> Puntos</label>
+          <label><input type="checkbox" id="lyrPoly" checked/> Polígono BCN</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📊 Distribución por Compañía / Fuente</h2>
+        <div class="chart-wrap"><canvas id="chartCompania"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel"><h2>⚠️ Nivel de Riesgo</h2><div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div></div>
+      <div class="panel"><h2>🔧 Estado Clasificado</h2><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+      <div class="panel"><h2>📦 Elemento de Red</h2><div class="chart-wrap"><canvas id="chartElem"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🧪 Material Principal</h2><div class="chart-wrap"><canvas id="chartMat"></canvas></div></div>
+      <div class="panel"><h2>🏢 Top Fuentes por Impacto CLP</h2><div class="chart-wrap"><canvas id="chartTopCLP"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🎯 Prioridad x CLP</h2><div class="chart-wrap"><canvas id="chartPrio"></canvas></div></div>
+      <div class="panel"><h2>🛣️ Tipo de lugar</h2><div class="chart-wrap"><canvas id="chartTipoLugar"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Detalle de Puntos <span style="float:right;font-size:11px;color:var(--txt-2)">Click en fila para centrar en el mapa · Hasta 500</span></h2>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr><th>ID</th><th>Fuente</th><th>Elemento</th><th>Material</th><th>Estado</th><th>Riesgo</th><th>Prio</th><th>KM</th><th>KG</th><th>CLP</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div><b style="color:var(--mustard)">Visor Gestión de Red · Contulmo</b> — Coordenada Pública · Ley 21.172 · Decreto N°176</div>
+  <div>Plantilla extensible a otras comunas · Próximo: API REST para expedientes automáticos</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Datos reales embebidos
+   ============================================================ */
+const RAW_DATA = [{"id":"CON-20001","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01679,"lng":-73.22795},{"id":"CON-20002","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.93352,"lng":-73.21932},{"id":"CON-20003","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01132,"lng":-73.22894},{"id":"CON-20004","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.02628,"lng":-73.23419},{"id":"CON-20005","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.02595,"lng":-73.23134},{"id":"CON-20006","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.95931,"lng":-73.22109},{"id":"CON-20007","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01663,"lng":-73.2325},{"id":"CON-20008","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.02058,"lng":-73.23185},{"id":"CON-20009","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.00884,"lng":-73.22538},{"id":"CON-20010","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01112,"lng":-73.22104},{"id":"CON-20011","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.95453,"lng":-73.23774},{"id":"CON-20012","fuente":"HOLDCO","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-37.95511,"lng":-73.22784},{"id":"CON-20013","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.00947,"lng":-73.22912},{"id":"CON-20014","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01103,"lng":-73.22896},{"id":"CON-20015","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01218,"lng":-73.22887},{"id":"CON-20016","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01256,"lng":-73.22898},{"id":"CON-20017","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01299,"lng":-73.22903},{"id":"CON-20018","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01299,"lng":-73.22903},{"id":"CON-20019","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01352,"lng":-73.22907},{"id":"CON-20020","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01409,"lng":-73.2291},{"id":"CON-20021","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.0146,"lng":-73.22913},{"id":"CON-20022","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01539,"lng":-73.22917},{"id":"CON-20023","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01645,"lng":-73.22925},{"id":"CON-20024","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01699,"lng":-73.2293},{"id":"CON-20025","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01737,"lng":-73.22931},{"id":"CON-20026","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01469,"lng":-73.22794},{"id":"CON-20027","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"acometida","elemento_red":"Cableado","material":"Acometida","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":1.2,"lat":-38.01474,"lng":-73.22652},{"id":"CON-20028","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01644,"lng":-73.2311},{"id":"CON-20029","fuente":"Telefónica Chile S.A.","region":"Región del Biobío (VIII)","comuna":"Contulmo","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"cable","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-38.01728,"lng":-73.23111}];
+const LO_PRADO_POLYGON = {"type":"Feature","properties":{"objectid":"206","cod_comuna":"8204","codregion":"8","Region":"Región del Bío-Bío","Provincia":"Arauco","st_area_sh":"1.03027071981e+09","st_length_":"2.49973114356e+05","shape_leng":"196938.93109700","dis_elec":"21","cir_sena":"10","Comuna":"Contulmo"},"geometry":{"type":"Polygon","coordinates":[[[-73.27132,-37.83925],[-73.26202,-37.83922],[-73.25668,-37.84046],[-73.25026,-37.84187],[-73.24817,-37.84413],[-73.24636,-37.84846],[-73.24436,-37.85294],[-73.24032,-37.85727],[-73.23544,-37.86148],[-73.23147,-37.86503],[-73.22416,-37.86345],[-73.21999,-37.86104],[-73.21583,-37.86295],[-73.21267,-37.87011],[-73.20914,-37.87498],[-73.20196,-37.87619],[-73.19481,-37.8757],[-73.19128,-37.8711],[-73.18663,-37.86934],[-73.18341,-37.86463],[-73.17988,-37.86172],[-73.17519,-37.86075],[-73.1749,-37.85804],[-73.17204,-37.85477],[-73.16688,-37.85476],[-73.16028,-37.85327],[-73.15502,-37.85544],[-73.15094,-37.85151],[-73.14692,-37.84776],[-73.14195,-37.84952],[-73.13503,-37.85141],[-73.12997,-37.8511],[-73.12654,-37.85349],[-73.11972,-37.85747],[-73.11597,-37.86132],[-73.11122,-37.86004],[-73.10381,-37.86052],[-73.09986,-37.86174],[-73.09546,-37.86118],[-73.08937,-37.86044],[-73.08146,-37.86211],[-73.07967,-37.86496],[-73.08422,-37.86726],[-73.09098,-37.87057],[-73.10087,-37.87071],[-73.10784,-37.8713],[-73.11301,-37.87031],[-73.11791,-37.87261],[-73.12157,-37.87605],[-73.12543,-37.87787],[-73.12328,-37.88235],[-73.12455,-37.88599],[-73.12594,-37.88871],[-73.12807,-37.89174],[-73.13042,-37.89481],[-73.12725,-37.89714],[-73.12345,-37.90158],[-73.11856,-37.90393],[-73.11125,-37.9064],[-73.11306,-37.90958],[-73.11265,-37.91469],[-73.11268,-37.92336],[-73.11035,-37.92878],[-73.11399,-37.93201],[-73.11304,-37.93778],[-73.11579,-37.94144],[-73.12025,-37.9426],[-73.12159,-37.949],[-73.11923,-37.95336],[-73.12003,-37.95942],[-73.1235,-37.96359],[-73.12588,-37.96623],[-73.12863,-37.96999],[-73.13003,-37.97347],[-73.13446,-37.97442],[-73.13791,-37.97476],[-73.14058,-37.97592],[-73.14015,-37.97826],[-73.14299,-37.9782],[-73.1475,-37.97822],[-73.15531,-37.97879],[-73.15999,-37.98211],[-73.16436,-37.98439],[-73.16813,-37.98514],[-73.17303,-37.98625],[-73.17749,-37.98525],[-73.18257,-37.98617],[-73.18607,-37.98796],[-73.18603,-37.99047],[-73.18473,-37.99399],[-73.18214,-37.99749],[-73.1818,-38.00178],[-73.18393,-38.00598],[-73.18657,-38.00938],[-73.19155,-38.01152],[-73.19487,-38.01756],[-73.19613,-38.02274],[-73.19929,-38.02664],[-73.20288,-38.03004],[-73.20414,-38.03443],[-73.20596,-38.03948],[-73.20272,-38.04471],[-73.2055,-38.05004],[-73.20437,-38.0531],[-73.19764,-38.05471],[-73.19186,-38.05663],[-73.18533,-38.06206],[-73.18079,-38.06294],[-73.17581,-38.06186],[-73.17427,-38.05807],[-73.17009,-38.05662],[-73.16513,-38.06189],[-73.16119,-38.06516],[-73.15996,-38.07087],[-73.15765,-38.07412],[-73.15319,-38.0761],[-73.14724,-38.0775],[-73.14012,-38.07713],[-73.13123,-38.07708],[-73.12492,-38.07645],[-73.12141,-38.08061],[-73.11742,-38.08321],[-73.11284,-38.08464],[-73.10906,-38.08723],[-73.10377,-38.09083],[-73.09828,-38.09559],[-73.08981,-38.09647],[-73.0823,-38.095],[-73.08077,-38.09797],[-73.07838,-38.09968],[-73.07847,-38.10261],[-73.07654,-38.10739],[-73.07618,-38.11727],[-73.07321,-38.12732],[-73.0759,-38.1327],[-73.07896,-38.13932],[-73.08679,-38.1415],[-73.08875,-38.14384],[-73.08905,-38.14861],[-73.08763,-38.15204],[-73.0832,-38.1577],[-73.08177,-38.16185],[-73.07891,-38.16626],[-73.07686,-38.17089],[-73.07781,-38.17573],[-73.07902,-38.17758],[-73.08226,-38.17903],[-73.08479,-38.18001],[-73.08688,-38.18328],[-73.08713,-38.18515],[-73.09019,-38.18801],[-73.09243,-38.19186],[-73.09748,-38.19051],[-73.10495,-38.19107],[-73.1096,-38.18738],[-73.11407,-38.18618],[-73.12073,-38.18846],[-73.12316,-38.18654],[-73.12753,-38.18342],[-73.13199,-38.18402],[-73.13271,-38.18865],[-73.13276,-38.19333],[-73.13455,-38.19651],[-73.13304,-38.20172],[-73.13337,-38.2054],[-73.13742,-38.21257],[-73.13945,-38.21599],[-73.14804,-38.21805],[-73.15649,-38.21914],[-73.16124,-38.21776],[-73.16629,-38.22261],[-73.17218,-38.22635],[-73.18345,-38.2292],[-73.19931,-38.23157],[-73.20088,-38.23273],[-73.20038,-38.23787],[-73.2,-38.2433],[-73.20582,-38.25021],[-73.21201,-38.25164],[-73.22079,-38.25668],[-73.22175,-38.26442],[-73.22249,-38.26921],[-73.22357,-38.27292],[-73.22656,-38.27456],[-73.23366,-38.27525],[-73.24218,-38.27572],[-73.24673,-38.27941],[-73.25771,-38.28248],[-73.26152,-38.28398],[-73.26509,-38.28509],[-73.27241,-38.29317],[-73.28394,-38.29388],[-73.2823,-38.29137],[-73.27952,-38.28622],[-73.27584,-38.28231],[-73.27013,-38.2773],[-73.26354,-38.27355],[-73.25968,-38.27005],[-73.25516,-38.26559],[-73.25687,-38.25975],[-73.25378,-38.25524],[-73.25084,-38.25289],[-73.24716,-38.25291],[-73.24351,-38.24994],[-73.24016,-38.24901],[-73.23762,-38.24716],[-73.23469,-38.24421],[-73.23461,-38.24288],[-73.23778,-38.24117],[-73.24023,-38.23792],[-73.24282,-38.23697],[-73.24417,-38.23277],[-73.24376,-38.22958],[-73.24687,-38.22754],[-73.24885,-38.22521],[-73.24976,-38.22119],[-73.25144,-38.21587],[-73.25907,-38.21164],[-73.26824,-38.20724],[-73.28802,-38.20274],[-73.29762,-38.19698],[-73.31107,-38.18148],[-73.32037,-38.17229],[-73.32613,-38.16208],[-73.3181,-38.1449],[-73.322,-38.12569],[-73.30756,-38.11027],[-73.30078,-38.1001],[-73.30164,-38.09197],[-73.30408,-38.08513],[-73.30606,-38.08356],[-73.31011,-38.07945],[-73.31181,-38.07482],[-73.31478,-38.07181],[-73.31567,-38.06978],[-73.31478,-38.06658],[-73.31165,-38.06395],[-73.30723,-38.06296],[-73.30445,-38.06222],[-73.30206,-38.0619],[-73.30024,-38.06264],[-73.2986,-38.06421],[-73.29688,-38.06648],[-73.29345,-38.06803],[-73.29069,-38.07034],[-73.28789,-38.07134],[-73.28562,-38.07082],[-73.28284,-38.07072],[-73.28064,-38.07009],[-73.27878,-38.06968],[-73.27747,-38.06933],[-73.27616,-38.06881],[-73.27464,-38.06863],[-73.27364,-38.0696],[-73.27017,-38.068],[-73.26688,-38.06641],[-73.26548,-38.06414],[-73.26662,-38.0629],[-73.26569,-38.05926],[-73.26236,-38.05795],[-73.2603,-38.05737],[-73.2578,-38.05745],[-73.2556,-38.05944],[-73.25675,-38.05081],[-73.25974,-38.0491],[-73.26154,-38.04123],[-73.26324,-38.03613],[-73.26558,-38.0282],[-73.26915,-38.02185],[-73.27373,-38.01839],[-73.27933,-38.01904],[-73.29137,-38.01893],[-73.29762,-38.0149],[-73.29966,-38.01085],[-73.30303,-38.0064],[-73.30843,-38.00228],[-73.31238,-37.99878],[-73.3111,-37.99364],[-73.31443,-37.98995],[-73.31147,-37.98354],[-73.30615,-37.97852],[-73.30861,-37.97436],[-73.3153,-37.97154],[-73.3226,-37.97264],[-73.3307,-37.96813],[-73.33457,-37.96395],[-73.33842,-37.95748],[-73.34036,-37.953],[-73.34715,-37.95187],[-73.35092,-37.94817],[-73.35099,-37.94481],[-73.34371,-37.94617],[-73.33404,-37.94644],[-73.329,-37.949],[-73.32185,-37.94794],[-73.31559,-37.94678],[-73.31122,-37.94448],[-73.30346,-37.94383],[-73.29705,-37.94039],[-73.29512,-37.93352],[-73.29067,-37.92509],[-73.30208,-37.92268],[-73.32306,-37.91593],[-73.31381,-37.90004],[-73.31212,-37.8983],[-73.30797,-37.89635],[-73.30545,-37.8962],[-73.30219,-37.89441],[-73.30099,-37.89236],[-73.29968,-37.88965],[-73.29747,-37.88718],[-73.29619,-37.88562],[-73.29353,-37.88389],[-73.29224,-37.88104],[-73.29053,-37.87933],[-73.28767,-37.87784],[-73.28513,-37.87565],[-73.28056,-37.87363],[-73.27451,-37.86982],[-73.27109,-37.86783],[-73.26606,-37.86661],[-73.26341,-37.86291],[-73.26035,-37.8608],[-73.25823,-37.85774],[-73.25597,-37.85387],[-73.25807,-37.85208],[-73.26184,-37.85061],[-73.26621,-37.84905],[-73.27011,-37.84677],[-73.27274,-37.84457],[-73.27443,-37.84197],[-73.27531,-37.83936],[-73.27132,-37.83925]]]}};
+
+function setStatus(txt, cls, meta){
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = txt;
+  if(meta!==undefined) document.getElementById('statusMeta').textContent = meta;
+  bar.className = cls || '';
+}
+
+/* ============================================================
+   Point in polygon (puro JS, sin depender de Turf)
+   ============================================================ */
+function pipRing(lng, lat, ring){
+  let inside = false;
+  const n = ring.length;
+  for(let i=0, j=n-1; i<n; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-15)+xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInside(d){
+  if(!d.lat || !d.lng) return false;
+  try{
+    const rings = LO_PRADO_POLYGON.geometry.coordinates;
+    // Polygon: primer anillo exterior, resto agujeros
+    if(!pipRing(d.lng, d.lat, rings[0])) return false;
+    for(let i=1; i<rings.length; i++){
+      if(pipRing(d.lng, d.lat, rings[i])) return false; // en agujero
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+const COLORES = {
+  mustard:'#C79F47',
+  blues:['#1E3A5F','#2E5C8A','#3E7CB1','#5FA8D3','#8FCDF5','#0F2847','#567AA6','#73A9D4','#1D4E7A'],
+  bluesLine:'#5FA8D3', grid:'#2A3545'
+};
+
+let AREA_KM2 = 6.67;
+try{
+  if(LO_PRADO_POLYGON.properties && LO_PRADO_POLYGON.properties.st_area_sh){
+    AREA_KM2 = parseFloat(LO_PRADO_POLYGON.properties.st_area_sh)/1e6;
+  }
+}catch(e){}
+
+let CENTER = [-33.4419,-70.7256];
+try{
+  const ring = LO_PRADO_POLYGON.geometry.coordinates[0];
+  let sx=0,sy=0;
+  ring.forEach(p=>{sx+=p[0];sy+=p[1];});
+  CENTER = [sy/ring.length, sx/ring.length];
+}catch(e){}
+
+let DATA_ALL = [];
+let DATA_FILTERED = [];
+let map, polyLayer, markersLayer;
+let charts = {};
+let chartJsReady = false;
+let leafletReady = false;
+
+const fmt = n=>(n||0).toLocaleString('es-CL');
+const fmtCLP = n=>'$'+fmt(Math.round(n||0));
+const colorRiesgo = r=> r==='Alto'?'#D96E6E': r==='Medio'?'#E0A458':'#4ECDC4';
+const uniq = (arr,k)=>{
+  const s = new Set();
+  arr.forEach(x=>{if(x[k]!==undefined && x[k]!==null && x[k]!=='') s.add(x[k]);});
+  return [...s].sort();
+};
+function popSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML='';
+  if(first) sel.appendChild(first);
+  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+  sel.value = current;
+}
+
+function initMap(){
+  if(typeof L === 'undefined'){
+    setStatus('Error: Leaflet no se cargó. Revisa tu conexión a internet.', 'err');
+    return false;
+  }
+  try{
+    map = L.map('map',{preferCanvas:true}).setView(CENTER, 14);
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Voyager',subdomains:'abcd',maxZoom:20});
+    let __tileLoad=0,__tileErr=0;
+    voyager.on('tileload',()=>{__tileLoad++; if(__tileLoad===1) setStatus('Mapa: teselas cargando (' + __tileLoad + ').', '', ''); });
+    voyager.on('tileerror',()=>{__tileErr++; if(__tileErr===1) setStatus('⚠ Error cargando teselas del mapa (' + __tileErr + '). Probando basemap alternativo...', 'err'); if(__tileErr===3){ map.removeLayer(voyager); osm.addTo(map);} });
+    voyager.addTo(map);
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Dark',subdomains:'abcd',maxZoom:20});
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB',subdomains:'abcd',maxZoom:20});
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap France · HOT',maxZoom:19});
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19});
+    const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB',subdomains:'abcd',maxZoom:20,pane:'shadowPane'});
+    L.control.layers({"Calles (Voyager)":voyager,"Oscuro":dark,"Calles OSM":osm,"Humanitario":osmHOT,"Satelital":sat}, {"Etiquetas sobre satelital":satLabels}).addTo(map);
+
+    polyLayer = L.geoJSON(LO_PRADO_POLYGON,{style:{color:COLORES.mustard,weight:3,fillColor:COLORES.mustard,fillOpacity:0.07,dashArray:'6 4'}}).addTo(map);
+    polyLayer.bindTooltip('Contulmo · Polígono oficial BCN ('+AREA_KM2.toFixed(2)+' km²)',{sticky:true});
+
+    if(L.markerClusterGroup){
+      markersLayer = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        iconCreateFunction:c=>L.divIcon({html:'<div style="background:#C79F47;color:#1a1207;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid #fff;font-family:Arial">'+c.getChildCount()+'</div>',className:'',iconSize:[38,38]})
+      });
+    } else {
+      markersLayer = L.layerGroup();
+    }
+    map.addLayer(markersLayer);
+
+    try{ map.fitBounds(polyLayer.getBounds().pad(0.05)); }catch(e){}
+    leafletReady = true;
+    return true;
+  }catch(e){
+    console.error(e);
+    setStatus('Error inicializando mapa: '+e.message, 'err');
+    return false;
+  }
+}
+
+function renderMarkers(data){
+  if(!leafletReady || !markersLayer) return;
+  markersLayer.clearLayers();
+  let n=0;
+  data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
+    const col = colorRiesgo(d.riesgo);
+    const m = L.circleMarker([d.lat,d.lng],{radius:6,color:'#fff',weight:1.3,fillColor:col,fillOpacity:.85});
+    m.bindPopup(
+      '<b>'+d.id+'</b><br/>'+
+      '<b>Fuente:</b> '+(d.fuente||'')+'<br/>'+
+      '<b>Elemento:</b> '+(d.elemento_red||'')+' / '+(d.material||'')+'<br/>'+
+      '<b>Estado:</b> '+(d.estado_clasificado||'')+'<br/>'+
+      '<b>Riesgo:</b> <span style="color:'+col+'"><b>'+d.riesgo+'</b></span> (score '+d.riesgo_score+')<br/>'+
+      '<b>Prioridad:</b> '+d.prioridad+' · <b>Plan:</b> '+(d.plan||'')+'<br/>'+
+      '<b>KM:</b> '+d.km+' · <b>KG:</b> '+d.kg_basura+'<br/>'+
+      '<b>CLP Multa:</b> '+fmtCLP(d.clp_multas)+'<br/>'+
+      '<b>Lugar:</b> '+(d.tipo_lugar||'')+'<br/>'+
+      '<b>Elem intervenir:</b> '+(d.tipo_elemento||'—')
+    );
+    markersLayer.addLayer(m);
+    n++;
+  });
+  return n;
+}
+
+function applyFilters(){
+  const v = id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const ch = id=>{const e=document.getElementById(id);return e?e.checked:false;};
+  const fC=v('fCompania'),fR=v('fRiesgo'),fE=v('fEstado'),fEl=v('fElem'),fM=v('fMat');
+  const fP=+v('fPrio');
+  const fI=ch('fInside');
+  const fH=ch('fHasCoord');
+  DATA_FILTERED = DATA_ALL.filter(d=>{
+    if(fC && d.fuente!==fC) return false;
+    if(fR && d.riesgo!==fR) return false;
+    if(fE && d.estado_clasificado!==fE) return false;
+    if(fEl && d.elemento_red!==fEl) return false;
+    if(fM && d.material!==fM) return false;
+    if((d.prioridad||0)>fP) return false;
+    if(fH && (!d.lat||!d.lng)) return false;
+    if(fI && !d._inside) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function updateKPIs(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const pctAlto = d.length? alto/d.length*100:0;
+  const avgScore = d.length? d.reduce((a,x)=>a+(+x.riesgo_score||0),0)/d.length : 0;
+  const idx = Math.min(100, Math.round(pctAlto*0.4 + (avgScore/18*100)*0.3 + Math.min(100,(clp/1000000)*1.5)*0.15 + Math.min(100,kg/50)*0.15));
+
+  const set = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiMultas', fmt(multas));
+  set('kpiMultasCLP', fmtCLP(clp));
+  set('kpiKM', km.toFixed(2));
+  set('kpiKG', fmt(Math.round(kg)));
+  set('kpiRiesgo', idx);
+  set('kpiCostoKM', km>0? fmtCLP(clp/km):'$0');
+  set('density', (d.length/AREA_KM2).toFixed(1));
+  set('pctAlto', pctAlto.toFixed(1)+'%');
+  set('avgMulta', multas>0? fmtCLP(clp/multas):'$0');
+  set('avgPeso', d.length? (kg/d.length).toFixed(1)+' kg':'0 kg');
+  set('rec-count', d.length);
+  set('dataRecs', d.length);
+}
+
+function groupCount(data,key){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+1;});return m;}
+function groupSum(data,key,field){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+(+x[field]||0);});return m;}
+
+function makeChart(id,type,data,opts){
+  if(!chartJsReady) return;
+  opts = opts||{};
+  if(charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if(!el) return;
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#fff',font:{family:'Arial',size:11}}},
+      tooltip:{backgroundColor:'#0E1117',borderColor:COLORES.mustard,borderWidth:1,titleColor:COLORES.mustard,bodyColor:'#fff'}},
+    scales:(type==='pie'||type==='doughnut')?undefined:{
+      x:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid}},
+      y:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid},beginAtZero:true}}
+  };
+  charts[id] = new Chart(el,{type,data,options:Object.assign(base,opts)});
+}
+
+function updateCharts(){
+  if(!chartJsReady) return;
+  const d = DATA_FILTERED;
+  const g1 = groupCount(d,'fuente');
+  const l1 = Object.keys(g1).sort((a,b)=>g1[b]-g1[a]).slice(0,10);
+  makeChart('chartCompania','bar',{labels:l1,datasets:[{label:'Puntos',data:l1.map(k=>g1[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.blues[4],borderWidth:1.5}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+
+  const g2 = groupCount(d,'riesgo');
+  const ord = ['Alto','Medio','Bajo'].filter(k=>g2[k]);
+  makeChart('chartRiesgo','doughnut',{labels:ord,datasets:[{data:ord.map(k=>g2[k]),backgroundColor:ord.map(k=>colorRiesgo(k)),borderColor:'#0E1117',borderWidth:2}]});
+
+  const g3 = groupCount(d,'estado_clasificado');
+  const l3 = Object.keys(g3).sort((a,b)=>g3[b]-g3[a]).slice(0,8);
+  makeChart('chartEstado','bar',{labels:l3,datasets:[{label:'Puntos',data:l3.map(k=>g3[k]),backgroundColor:COLORES.blues[1],borderColor:COLORES.blues[3],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g4 = groupCount(d,'elemento_red');
+  makeChart('chartElem','pie',{labels:Object.keys(g4),datasets:[{data:Object.values(g4),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+
+  const g5 = groupCount(d,'material');
+  const l5 = Object.keys(g5).sort((a,b)=>g5[b]-g5[a]).slice(0,8);
+  makeChart('chartMat','bar',{labels:l5,datasets:[{label:'Puntos',data:l5.map(k=>g5[k]),backgroundColor:COLORES.blues[3],borderColor:COLORES.blues[4],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g6 = groupSum(d,'fuente','clp_multas');
+  const l6 = Object.keys(g6).sort((a,b)=>g6[b]-g6[a]).slice(0,8);
+  makeChart('chartTopCLP','bar',{labels:l6,datasets:[{label:'CLP',data:l6.map(k=>g6[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.mustard,borderWidth:1.5}]},
+    {indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCLP(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#C8D2E0',callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:COLORES.grid}},y:{ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}}}});
+
+  const g7 = {};
+  d.forEach(x=>{const k=(+x.prioridad)||0;if(!g7[k])g7[k]={n:0,clp:0};g7[k].n++;g7[k].clp+=(+x.clp_multas||0);});
+  const k7 = Object.keys(g7).sort((a,b)=>+a-+b);
+  makeChart('chartPrio','bar',{labels:k7.map(k=>'P'+k),datasets:[{label:'Puntos',data:k7.map(k=>g7[k].n),backgroundColor:COLORES.blues[3],yAxisID:'y'},{label:'CLP',data:k7.map(k=>g7[k].clp),type:'line',borderColor:COLORES.mustard,backgroundColor:'rgba(199,159,71,.2)',yAxisID:'y1',tension:.3,pointBackgroundColor:COLORES.mustard}]},
+    {scales:{y:{position:'left',ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}},y1:{position:'right',ticks:{color:COLORES.mustard,callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{drawOnChartArea:false}}}});
+
+  const g8 = groupCount(d,'tipo_lugar');
+  const l8 = Object.keys(g8).sort((a,b)=>g8[b]-g8[a]).slice(0,6);
+  makeChart('chartTipoLugar','pie',{labels:l8,datasets:[{data:l8.map(k=>g8[k]),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+}
+
+function updateTable(){
+  const tb = document.querySelector('#dataTable tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  DATA_FILTERED.slice(0,500).forEach(d=>{
+    const tr = document.createElement('tr');
+    const rLow = (d.riesgo||'').toLowerCase();
+    tr.innerHTML = '<td>'+d.id+'</td><td>'+(d.fuente||'')+'</td><td>'+(d.elemento_red||'')+'</td><td>'+(d.material||'')+'</td>'+
+      '<td><span class="badge estado">'+(d.estado_clasificado||'')+'</span></td>'+
+      '<td><span class="badge '+rLow+'">'+(d.riesgo||'')+'</span></td>'+
+      '<td>'+(d.prioridad||0)+'</td><td>'+(+d.km||0).toFixed(3)+'</td><td>'+fmt(d.kg_basura)+'</td><td>'+fmtCLP(d.clp_multas)+'</td>';
+    tr.onclick=()=>{if(d.lat&&d.lng&&map)map.setView([d.lat,d.lng],17);};
+    tb.appendChild(tr);
+  });
+}
+
+function updateAll(){
+  updateKPIs(); updateCharts(); updateTable();
+  if(leafletReady) renderMarkers(DATA_FILTERED);
+}
+
+function loadInitial(){
+  DATA_ALL = RAW_DATA.map(r=>Object.assign({},r));
+  DATA_ALL.forEach(d=>{d._inside = (d.lat&&d.lng)? pointInside(d) : false;});
+  const withCoords = DATA_ALL.filter(d=>d.lat && d.lng).length;
+  const inside = DATA_ALL.filter(d=>d._inside).length;
+  popSelect('fCompania', uniq(DATA_ALL,'fuente'));
+  popSelect('fEstado', uniq(DATA_ALL,'estado_clasificado'));
+  popSelect('fElem', uniq(DATA_ALL,'elemento_red'));
+  popSelect('fMat', uniq(DATA_ALL,'material'));
+  applyFilters();
+  setStatus('✓ Datos de Contulmo cargados correctamente', 'ok',
+    DATA_ALL.length+' registros oficiales dentro del polígono BCN');
+}
+
+/* Importación */
+function normalizeRecord(r){
+  const g = keys=>{for(const k of keys){const f=Object.keys(r).find(c=>c.toLowerCase().trim()===k.toLowerCase());if(f!==undefined && r[f]!=='' && r[f]!=null) return r[f];}return null;};
+  return {
+    id:g(['id','ID']) || 'EXT-'+Math.floor(Math.random()*100000),
+    fuente:g(['fuente','compania','compañía','empresa','GORE, Municipio, Denuncias Ciudadanía o Empresas']) || 'Desconocido',
+    region:g(['region','2. Región']) || '',
+    comuna:g(['comuna','3. Comuna']) || 'Contulmo',
+    plan:g(['plan','Plan']) || 'Por definir',
+    prioridad:+(g(['prioridad','4. Prioritario'])||0),
+    tipo_lugar:g(['tipo_lugar','5.Tipo de lugar']) || '',
+    tipo_elemento:g(['tipo_elemento','7.Tipo del o los elementos a intervenir y su respectivo estado'])||'',
+    elemento_red:g(['elemento_red','Elemento_Red']) || 'Sin dato',
+    material:g(['material','Material_Principal']) || 'Sin dato',
+    estado_clasificado:g(['estado_clasificado','Estado_Clasificado']) || 'Desconocido',
+    estado_final:g(['estado_final','21. Estado_Final']) || '',
+    riesgo:g(['riesgo','nivel_riesgo'])||'Medio', riesgo_score:+(g(['riesgo_score'])||5),
+    multas:+(g(['multas'])||1), clp_multas:+(g(['clp_multas','clp','monto'])||0),
+    km:+(g(['km','Estimacion_KM'])||0), kg_basura:+(g(['kg_basura','Estimacion_Peso_KG'])||0),
+    lat:+(g(['lat','latitud','16. Latitud (WGS84 5 DECIMALES)'])||0),
+    lng:+(g(['lng','longitud','17. Longitud (WGS84 5 DECIMALES)'])||0),
+  };
+}
+
+function parseFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const finish = (rows, src)=>{
+    DATA_ALL = rows.map(normalizeRecord);
+    DATA_ALL.forEach(d=>d._inside=pointInside(d));
+    popSelect('fCompania',uniq(DATA_ALL,'fuente'));
+    popSelect('fEstado',uniq(DATA_ALL,'estado_clasificado'));
+    popSelect('fElem',uniq(DATA_ALL,'elemento_red'));
+    popSelect('fMat',uniq(DATA_ALL,'material'));
+    applyFilters();
+    setStatus('✓ '+DATA_ALL.length+' registros oficiales', 'ok');
+  };
+  if(ext==='csv'){
+    if(typeof Papa==='undefined') return alert('PapaParse no cargó. Verifica conexión.');
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>finish(res.data, file.name)});
+  } else if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined') return alert('SheetJS no cargó. Verifica conexión.');
+    const r = new FileReader();
+    r.onload = e=>{
+      const wb = XLSX.read(e.target.result,{type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      finish(rows, file.name+' · '+wb.SheetNames[0]);
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function exportCSV(){
+  if(!DATA_FILTERED.length) return alert('Sin datos.');
+  const cols = Object.keys(DATA_FILTERED[0]).filter(c=>!c.startsWith('_'));
+  const rows = [cols.join(',')].concat(DATA_FILTERED.map(d=>cols.map(c=>JSON.stringify(d[c]===undefined?'':d[c])).join(','))).join('\n');
+  const b = new Blob([rows],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download='visor_contulmo_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+function genReporte(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const byF = groupSum(d,'fuente','clp_multas');
+  const top = Object.entries(byF).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const html = '<html><head><meta charset="utf-8"><title>Reporte Contulmo</title>'+
+    '<style>body{font-family:Arial;padding:30px;color:#222}h1{color:#8E6E2A;border-bottom:2px solid #C79F47}'+
+    '.kpi{display:inline-block;margin:8px;padding:14px 20px;background:#f5efe2;border:1px solid #C79F47;border-radius:6px}'+
+    '.kpi b{display:block;color:#8E6E2A;font-size:11px;letter-spacing:1px}.kpi span{font-size:22px;font-weight:bold}'+
+    'table{border-collapse:collapse;margin-top:14px;width:100%}td,th{border:1px solid #ddd;padding:6px 10px;font-size:12px;text-align:left}th{background:#8E6E2A;color:#fff}</style></head>'+
+    '<body><h1>Reporte de Gestión de Red · Contulmo</h1>'+
+    '<p>Fecha: '+new Date().toLocaleString('es-CL')+' · Registros: '+d.length+' · Superficie: '+AREA_KM2.toFixed(2)+' km²</p>'+
+    '<div class="kpi"><b>Multas</b><span>'+fmt(multas)+'</span></div>'+
+    '<div class="kpi"><b>CLP</b><span>'+fmtCLP(clp)+'</span></div>'+
+    '<div class="kpi"><b>KM</b><span>'+km.toFixed(2)+'</span></div>'+
+    '<div class="kpi"><b>KG basura</b><span>'+fmt(Math.round(kg))+'</span></div>'+
+    '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
+    '<h2>Top 5 fuentes por impacto CLP</h2>'+
+    '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
+    '</body></html>';
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+/* Eventos (defensivos) */
+function bind(id, ev, fn){const e=document.getElementById(id); if(e) e.addEventListener(ev, fn);}
+['fCompania','fRiesgo','fEstado','fElem','fMat','fInside','fHasCoord'].forEach(id=>bind(id,'change',applyFilters));
+bind('fPrio','input',e=>{document.getElementById('fPrioVal').textContent='Hasta '+e.target.value;applyFilters();});
+bind('btnReset','click',()=>{
+  ['fCompania','fRiesgo','fEstado','fElem','fMat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fInside').checked=false;
+  document.getElementById('fHasCoord').checked=true;
+  document.getElementById('fPrio').value=10;
+  document.getElementById('fPrioVal').textContent='Hasta 10';
+  applyFilters();
+});
+bind('btnExport','click',exportCSV);
+bind('btnReport','click',genReporte);
+bind('lyrPts','change',e=>{if(map){if(e.target.checked) map.addLayer(markersLayer); else map.removeLayer(markersLayer);}});
+bind('lyrPoly','change',e=>{if(map){if(e.target.checked) map.addLayer(polyLayer); else map.removeLayer(polyLayer);}});
+
+/* Boot — NO esperamos a 'load', ejecutamos apenas DOM listo */
+function boot(){
+  try{
+    const s = window.__CDN_STATUS__||{};
+    const failed = ['leaflet','markercluster','chart','papa','xlsx'].filter(k=>!s[k]);
+    if(failed.length){
+      setStatus('⚠ Librerías no cargadas: '+failed.join(', ')+'. Fuentes intentadas: '+(s.tries||[]).join(' | '), 'err');
+    } else {
+      setStatus('Librerías OK. Iniciando mapa y gráficos...', '', '');
+    }
+    chartJsReady = (typeof Chart !== 'undefined');
+    const leafletOk = initMap();
+    loadInitial();
+    if(!leafletOk) setStatus('Datos cargados, pero el mapa no se pudo inicializar. ['+(s.tries||[]).join(' | ')+']', 'err');
+    else if(!chartJsReady) setStatus('Datos cargados sin gráficos (Chart.js no disponible).', 'err');
+  }catch(err){
+    console.error(err);
+    setStatus('Error: '+err.message, 'err');
+  }
+}
+async function bootWhenReady(){
+  try{
+    await window.__LIBS_READY__;
+  }catch(e){}
+  boot();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
+else bootWhenReady();
+</script>
+</body></html>
