@@ -30,6 +30,12 @@ vercel/
 │   ├── talcahuano/index.html
 │   ├── los-angeles/index.html
 │   └── ... (32 comunas total)
+├── coquimbo/                 · landing regional Coquimbo
+│   ├── index.html            · 15 cards agrupadas por provincia
+│   ├── la-serena/index.html
+│   ├── coquimbo/index.html
+│   ├── ovalle/index.html
+│   └── ... (15 comunas total)
 ├── nacional/index.html
 ├── base-madre/index.html
 ```
@@ -54,6 +60,8 @@ vercel/
 | `lo-espejo` | `/lo-espejo` | Lo Espejo | comunal |
 | `biobio` | `/biobio` | Región del Biobío (landing) | regional |
 | `biobio/<comuna>` | `/biobio/<comuna>` | 32 comunas Biobío | comunal |
+| `coquimbo` | `/coquimbo` | Región de Coquimbo (landing) | regional |
+| `coquimbo/<comuna>` | `/coquimbo/<comuna>` | 15 comunas Coquimbo | comunal |
 | `nacional` | `/nacional` | Nacional · Público | nacional |
 | `base-madre` | `/base-madre` | Base Madre | maestro |
 

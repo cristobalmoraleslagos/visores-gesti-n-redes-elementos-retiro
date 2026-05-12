@@ -112,6 +112,21 @@
       "source": "/biobío",
       "destination": "/biobio",
       "permanent": true
+    },
+    {
+      "source": "/coquimbo/vicuña",
+      "destination": "/coquimbo/vicuna",
+      "permanent": true
+    },
+    {
+      "source": "/coquimbo/río-hurtado",
+      "destination": "/coquimbo/rio-hurtado",
+      "permanent": true
+    },
+    {
+      "source": "/coquimbo/combarbalá",
+      "destination": "/coquimbo/combarbala",
+      "permanent": true
     }
   ]
 }
