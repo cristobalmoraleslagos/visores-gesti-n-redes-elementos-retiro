@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visor Gestión de Red · Salamanca · Coordenada Pública</title>
+
+<!-- Librerías (con fallbacks de CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin=""/>
+<script>window.__CDN_STATUS__={leaflet:false,markercluster:false,chart:false,papa:false,xlsx:false,tries:[]};
+function loadScript(urls, check, label){
+  return new Promise(resolve=>{
+    let i=0;
+    function tryNext(){
+      if(i>=urls.length){window.__CDN_STATUS__.tries.push(label+': FAIL');resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i]; s.async=false;
+      s.onload=()=>{ if(check()){window.__CDN_STATUS__[label]=true;window.__CDN_STATUS__.tries.push(label+': '+urls[i].split('/')[2]);resolve(true);} else {i++;tryNext();} };
+      s.onerror=()=>{i++;tryNext();};
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__LIBS_READY__ = (async()=>{
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  ], ()=>typeof L!=='undefined', 'leaflet');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js',
+    'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js',
+    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+  ], ()=>typeof L!=='undefined' && typeof L.markerClusterGroup==='function', 'markercluster');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'
+  ], ()=>typeof Chart!=='undefined', 'chart');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+    'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+    'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+  ], ()=>typeof Papa!=='undefined', 'papa');
+  await loadScript([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], ()=>typeof XLSX!=='undefined', 'xlsx');
+  return true;
+})();
+</script>
+
+<style>
+:root{
+  --bg-0:#0E1117;--bg-1:#151A22;--bg-2:#1C2430;--bg-3:#243041;--line:#2A3545;
+  --txt:#FFFFFF;--txt-2:#C8D2E0;
+  --mustard:#C79F47;--mustard-2:#B8862B;--mustard-soft:rgba(199,159,71,.14);
+  --blue-1:#1E3A5F;--blue-2:#2E5C8A;--blue-3:#3E7CB1;--blue-4:#5FA8D3;--blue-5:#8FCDF5;
+  --ok:#4ECDC4;--warn:#E0A458;--bad:#D96E6E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--mustard);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(90deg,#0B0E14 0%,#141B26 60%,#1C2532 100%);border-bottom:2px solid var(--mustard);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header .brand{display:flex;align-items:center;gap:14px}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:var(--mustard);font-weight:bold}
+header .sub{color:var(--txt-2);font-size:12px}
+header .tag{background:var(--mustard);color:#1a1207;font-weight:bold;font-size:11px;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:1px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;transition:all .15s}
+.btn:hover{background:var(--bg-3);border-color:var(--mustard)}
+.btn.primary{background:var(--mustard);color:#1a1207;border-color:var(--mustard);font-weight:bold}
+.btn.primary:hover{background:var(--mustard-2)}
+select,input[type=text]{background:var(--bg-2);color:var(--txt);border:1px solid var(--line);padding:7px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+#statusBar{padding:8px 22px;background:#182030;color:var(--txt-2);border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#statusBar.ok{background:#162B1F;color:#b8eec7}
+#statusBar.err{background:#2B1616;color:#ffb3b3}
+main{flex:1;display:grid;grid-template-columns:280px 1fr;min-height:0}
+aside{background:var(--bg-1);border-right:1px solid var(--line);padding:16px;overflow-y:auto}
+aside h3{margin:0 0 10px 0;font-size:11px;letter-spacing:1.5px;color:var(--mustard);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside .filter-group{margin-bottom:14px}
+aside label{display:block;font-size:11px;color:var(--txt-2);margin-bottom:4px}
+aside select{width:100%}
+aside .stats-mini{background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:8px}
+aside .stats-mini .lbl{font-size:10px;color:var(--txt-2);letter-spacing:1px}
+aside .stats-mini .val{font-size:18px;color:var(--mustard);font-weight:bold}
+.content{padding:18px;overflow-y:auto;background:var(--bg-0)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:linear-gradient(135deg,var(--bg-2) 0%,var(--bg-3) 100%);border:2px solid var(--mustard);border-radius:10px;padding:14px 16px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1px rgba(199,159,71,.15);overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(199,159,71,.18),transparent 70%)}
+.kpi .kpi-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:bold}
+.kpi .kpi-value{font-size:26px;color:#fff;font-weight:bold;line-height:1.1}
+.kpi .kpi-sub{font-size:11px;color:var(--txt-2);margin-top:4px}
+.kpi .kpi-icon{position:absolute;bottom:8px;right:10px;font-size:26px;opacity:.28;color:var(--mustard)}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.panel{background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h2{margin:0 0 12px 0;font-size:13px;color:var(--mustard);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--line);padding-bottom:8px;font-weight:bold}
+.panel.map{padding:0;overflow:hidden;position:relative}
+.panel.map h2{padding:14px 14px 8px 14px;margin:0;border-bottom:1px solid var(--line)}
+#map{height:500px;width:100%;background:#0B0F15}
+.panel .chart-wrap{position:relative;height:260px}
+.table-wrap{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-3);position:sticky;top:0}
+thead th{padding:8px 10px;text-align:left;color:var(--mustard);border-bottom:1px solid var(--line);font-size:11px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--bg-2);color:var(--txt-2)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg-2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge.alto{background:#5B1F1F;color:#ffb3b3;border:1px solid #8a2f2f}
+.badge.medio{background:#4B3A1C;color:#f5d089;border:1px solid #7a5f32}
+.badge.bajo{background:#1E3A3A;color:#b3e8e0;border:1px solid #2c5858}
+.badge.estado{background:var(--bg-3);color:var(--mustard);border:1px solid var(--line)}
+footer{padding:10px 22px;background:#0A0D12;color:var(--txt-2);font-size:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important}
+.leaflet-control-attribution a{color:var(--mustard)!important}
+.leaflet-popup-content-wrapper{background:var(--bg-2);color:#fff;border:1px solid var(--mustard);font-family:Arial}
+.leaflet-popup-tip{background:var(--bg-2)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--mustard)}
+.banner{background:var(--mustard-soft);border:1px solid var(--mustard);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+.banner b{color:var(--mustard)}
+.layer-toggle{position:absolute;top:60px;right:10px;background:var(--bg-1);border:1px solid var(--line);border-radius:4px;padding:6px 8px;z-index:1000;font-size:11px}
+.layer-toggle label{display:block;color:#fff;margin:2px 0;cursor:pointer}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div style="width:40px;height:40px;background:var(--mustard);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1a1207;font-weight:bold;font-size:16px">SA</div>
+    <div>
+      <h1>Visor de <span class="accent">Gestión de Red</span> y Elementos en Desuso</h1>
+      <div class="sub">Comuna de <b style="color:#fff">Salamanca</b> · Región Metropolitana · <span id="rec-count">0</span> puntos oficiales dentro del polígono · Polígono oficial <b>BCN</b></div>
+    </div>
+    <span class="tag">Datos Oficiales BCN</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="btnExport">💾 Exportar CSV</button>
+    <button class="btn primary" id="btnReport">📄 Reporte</button>
+  </div>
+</header>
+
+<div id="statusBar">
+  <span id="statusText">Inicializando...</span>
+  <span id="statusMeta"></span>
+</div>
+
+<main>
+  <aside>
+    <div class="banner">
+      <b>Salamanca:</b> <span id="dataRecs">—</span> registros
+    </div>
+
+    <h3>Filtros</h3>
+    <div class="filter-group"><label>Compañía / Fuente</label><select id="fCompania"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Nivel de Riesgo</label><select id="fRiesgo"><option value="">Todos</option><option value="Alto">Alto</option><option value="Medio">Medio</option><option value="Bajo">Bajo</option></select></div>
+    <div class="filter-group"><label>Estado clasificado</label><select id="fEstado"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Elemento de Red</label><select id="fElem"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Material Principal</label><select id="fMat"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Prioridad (≤)</label><input type="range" id="fPrio" min="0" max="10" value="10" style="width:100%"/><span id="fPrioVal" style="color:var(--mustard);font-size:11px">Hasta 10</span></div>
+    <h3 style="margin-top:14px">Resumen rápido</h3>
+    <div class="stats-mini"><div class="lbl">Densidad (pts/km²)</div><div class="val" id="density">0</div></div>
+    <div class="stats-mini"><div class="lbl">% Riesgo Alto</div><div class="val" id="pctAlto">0%</div></div>
+    <div class="stats-mini"><div class="lbl">Multa promedio (CLP)</div><div class="val" id="avgMulta">$0</div></div>
+    <div class="stats-mini"><div class="lbl">Peso promedio / punto</div><div class="val" id="avgPeso">0 kg</div></div>
+
+    <button class="btn" id="btnReset" style="width:100%;margin-top:10px">🔁 Limpiar filtros</button>
+  </aside>
+
+  <div class="content">
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">Cantidad de Multas</div><div class="kpi-value" id="kpiMultas">0</div><div class="kpi-sub">1 multa x registro</div></div>
+      <div class="kpi"><div class="kpi-label">Estimación Multas CLP</div><div class="kpi-value" id="kpiMultasCLP">$0</div><div class="kpi-sub">según Ley 21.172</div></div>
+      <div class="kpi"><div class="kpi-label">Cantidad de KM</div><div class="kpi-value" id="kpiKM">0</div><div class="kpi-sub">cable/ducto afectado</div></div>
+      <div class="kpi"><div class="kpi-label">KG de Basura</div><div class="kpi-value" id="kpiKG">0</div><div class="kpi-sub">residuos estimados</div></div>
+      <div class="kpi"><div class="kpi-label">Índice Riesgo</div><div class="kpi-value" id="kpiRiesgo">0</div><div class="kpi-sub">compuesto 0-100</div></div>
+      <div class="kpi"><div class="kpi-label">Costo x KM</div><div class="kpi-value" id="kpiCostoKM">$0</div><div class="kpi-sub">multa/KM intervenido</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel map">
+        <h2>🗺️ Visor Geoespacial · Salamanca (Polígono BCN)</h2>
+        <div id="map"></div>
+        <div class="layer-toggle">
+          <label><input type="checkbox" id="lyrPts" checked/> Puntos</label>
+          <label><input type="checkbox" id="lyrPoly" checked/> Polígono BCN</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📊 Distribución por Compañía / Fuente</h2>
+        <div class="chart-wrap"><canvas id="chartCompania"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel"><h2>⚠️ Nivel de Riesgo</h2><div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div></div>
+      <div class="panel"><h2>🔧 Estado Clasificado</h2><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+      <div class="panel"><h2>📦 Elemento de Red</h2><div class="chart-wrap"><canvas id="chartElem"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🧪 Material Principal</h2><div class="chart-wrap"><canvas id="chartMat"></canvas></div></div>
+      <div class="panel"><h2>🏢 Top Fuentes por Impacto CLP</h2><div class="chart-wrap"><canvas id="chartTopCLP"></canvas></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel"><h2>🎯 Prioridad x CLP</h2><div class="chart-wrap"><canvas id="chartPrio"></canvas></div></div>
+      <div class="panel"><h2>🛣️ Tipo de lugar</h2><div class="chart-wrap"><canvas id="chartTipoLugar"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Detalle de Puntos <span style="float:right;font-size:11px;color:var(--txt-2)">Click en fila para centrar en el mapa · Hasta 500</span></h2>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr><th>ID</th><th>Fuente</th><th>Elemento</th><th>Material</th><th>Estado</th><th>Riesgo</th><th>Prio</th><th>KM</th><th>KG</th><th>CLP</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div><b style="color:var(--mustard)">Visor Gestión de Red · Salamanca</b> — Coordenada Pública · Ley 21.172 · Decreto N°176</div>
+  <div>Plantilla extensible a otras comunas · Próximo: API REST para expedientes automáticos</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Datos reales embebidos
+   ============================================================ */
+const RAW_DATA = [{"id":"SAL-20001","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78092,"lng":-70.96028},{"id":"SAL-20002","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78585,"lng":-70.96327},{"id":"SAL-20003","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78527,"lng":-70.95995},{"id":"SAL-20004","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.79345,"lng":-70.95038},{"id":"SAL-20005","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77987,"lng":-70.96674},{"id":"SAL-20006","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77601,"lng":-70.96503},{"id":"SAL-20007","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77836,"lng":-70.96911},{"id":"SAL-20008","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77444,"lng":-70.97197},{"id":"SAL-20009","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7766,"lng":-70.97312},{"id":"SAL-20010","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77568,"lng":-70.97407},{"id":"SAL-20011","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77324,"lng":-70.98024},{"id":"SAL-20012","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78343,"lng":-70.96501},{"id":"SAL-20013","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78709,"lng":-70.96074},{"id":"SAL-20014","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78735,"lng":-70.95754},{"id":"SAL-20015","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78888,"lng":-70.95908},{"id":"SAL-20016","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7899,"lng":-70.95723},{"id":"SAL-20017","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78033,"lng":-70.96363},{"id":"SAL-20018","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78384,"lng":-70.96019},{"id":"SAL-20019","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77802,"lng":-70.95999},{"id":"SAL-20020","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77772,"lng":-70.95123},{"id":"SAL-20021","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77867,"lng":-70.95555},{"id":"SAL-20022","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":22,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77728,"lng":-70.96216},{"id":"SAL-20023","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":23,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77298,"lng":-70.96161},{"id":"SAL-20024","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":24,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78159,"lng":-70.96852},{"id":"SAL-20025","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":25,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77569,"lng":-70.96725},{"id":"SAL-20026","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":26,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77564,"lng":-70.97039},{"id":"SAL-20027","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":27,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.76101,"lng":-70.96935},{"id":"SAL-20028","fuente":"HOLDCO","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":28,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cables aéreos","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7699,"lng":-70.97963},{"id":"SAL-20032","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":1,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77467,"lng":-70.96969},{"id":"SAL-20033","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":2,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77825,"lng":-70.96208},{"id":"SAL-20034","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":3,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7788,"lng":-70.96399},{"id":"SAL-20035","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":4,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78015,"lng":-70.96098},{"id":"SAL-20036","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":5,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78236,"lng":-70.96538},{"id":"SAL-20037","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":6,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78005,"lng":-70.96381},{"id":"SAL-20038","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":7,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77985,"lng":-70.96368},{"id":"SAL-20039","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":8,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7803,"lng":-70.96237},{"id":"SAL-20040","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":9,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77913,"lng":-70.96327},{"id":"SAL-20041","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":10,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77919,"lng":-70.9617},{"id":"SAL-20042","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":11,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77934,"lng":-70.96593},{"id":"SAL-20043","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":12,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77976,"lng":-70.96747},{"id":"SAL-20044","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":13,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77629,"lng":-70.96956},{"id":"SAL-20045","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":14,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77657,"lng":-70.96601},{"id":"SAL-20046","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":15,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77597,"lng":-70.96729},{"id":"SAL-20047","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":16,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77518,"lng":-70.96871},{"id":"SAL-20048","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":17,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77699,"lng":-70.96478},{"id":"SAL-20049","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":18,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77696,"lng":-70.96828},{"id":"SAL-20050","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":19,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77814,"lng":-70.96858},{"id":"SAL-20051","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":20,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77911,"lng":-70.96995},{"id":"SAL-20052","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":21,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78168,"lng":-70.96094},{"id":"SAL-20053","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":22,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78115,"lng":-70.96202},{"id":"SAL-20054","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":23,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78065,"lng":-70.96313},{"id":"SAL-20055","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":24,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77882,"lng":-70.96718},{"id":"SAL-20056","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":25,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78168,"lng":-70.96382},{"id":"SAL-20057","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":26,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78298,"lng":-70.96106},{"id":"SAL-20058","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":27,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7782,"lng":-70.96526},{"id":"SAL-20059","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":28,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77903,"lng":-70.96503},{"id":"SAL-20060","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":29,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77848,"lng":-70.96468},{"id":"SAL-20061","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":30,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77783,"lng":-70.96731},{"id":"SAL-20062","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":31,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78165,"lng":-70.96646},{"id":"SAL-20063","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":32,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7823,"lng":-70.96687},{"id":"SAL-20064","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":33,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7829,"lng":-70.96679},{"id":"SAL-20065","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":34,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78333,"lng":-70.96748},{"id":"SAL-20066","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":35,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78168,"lng":-70.96326},{"id":"SAL-20067","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":36,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78315,"lng":-70.96221},{"id":"SAL-20068","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":40,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78619,"lng":-70.96271},{"id":"SAL-20069","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":41,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7854,"lng":-70.96128},{"id":"SAL-20070","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":42,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78486,"lng":-70.96083},{"id":"SAL-20071","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":43,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78438,"lng":-70.95978},{"id":"SAL-20072","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":44,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7766,"lng":-70.97428},{"id":"SAL-20073","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":45,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77674,"lng":-70.9745},{"id":"SAL-20074","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":46,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77654,"lng":-70.97262},{"id":"SAL-20075","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":47,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7768,"lng":-70.9721},{"id":"SAL-20076","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":48,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77653,"lng":-70.972},{"id":"SAL-20077","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":49,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aereo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77662,"lng":-70.9725},{"id":"SAL-20078","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":50,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77598,"lng":-70.97294},{"id":"SAL-20079","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":51,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77569,"lng":-70.97324},{"id":"SAL-20080","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":52,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77486,"lng":-70.97285},{"id":"SAL-20081","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":53,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77479,"lng":-70.97321},{"id":"SAL-20082","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":54,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.775,"lng":-70.97315},{"id":"SAL-20083","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":55,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77564,"lng":-70.97372},{"id":"SAL-20084","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":59,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7748,"lng":-70.97016},{"id":"SAL-20085","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":60,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7753,"lng":-70.97086},{"id":"SAL-20086","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":61,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78615,"lng":-70.96271},{"id":"SAL-20087","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":62,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7857,"lng":-70.96161},{"id":"SAL-20088","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":63,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78602,"lng":-70.96114},{"id":"SAL-20090","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":65,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78536,"lng":-70.9605},{"id":"SAL-20091","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":66,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78443,"lng":-70.95991},{"id":"SAL-20092","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":67,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78589,"lng":-70.90076},{"id":"SAL-20093","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":68,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78634,"lng":-70.96089},{"id":"SAL-20094","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":69,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78628,"lng":-70.96078},{"id":"SAL-20095","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":70,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78556,"lng":-70.95908},{"id":"SAL-20096","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":71,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78571,"lng":-70.95931},{"id":"SAL-20097","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":72,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78619,"lng":-70.96012},{"id":"SAL-20098","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":73,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78649,"lng":-70.96063},{"id":"SAL-20099","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":74,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7874,"lng":-70.95769},{"id":"SAL-20100","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":75,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78788,"lng":-70.95731},{"id":"SAL-20101","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":76,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.788,"lng":-70.95814},{"id":"SAL-20103","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":78,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78827,"lng":-70.95844},{"id":"SAL-20104","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":79,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7888,"lng":-70.95889},{"id":"SAL-20105","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":80,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78866,"lng":-70.9594},{"id":"SAL-20106","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":81,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78877,"lng":-70.9598},{"id":"SAL-20107","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":82,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.79033,"lng":-70.95713},{"id":"SAL-20108","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":83,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77432,"lng":-70.97402},{"id":"SAL-20109","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":84,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77417,"lng":-70.94713},{"id":"SAL-20110","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":85,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77453,"lng":-70.97021},{"id":"SAL-20111","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":86,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77472,"lng":-70.96972},{"id":"SAL-20112","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":87,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77521,"lng":-70.96883},{"id":"SAL-20113","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":88,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77575,"lng":-70.96756},{"id":"SAL-20114","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":89,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7761,"lng":-70.96699},{"id":"SAL-20115","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":90,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77638,"lng":-70.96628},{"id":"SAL-20116","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":91,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77672,"lng":-70.96562},{"id":"SAL-20117","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":92,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77694,"lng":-70.96507},{"id":"SAL-20118","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":93,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77753,"lng":-70.96386},{"id":"SAL-20119","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":94,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77774,"lng":-70.96339},{"id":"SAL-20120","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":95,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77819,"lng":-70.96228},{"id":"SAL-20121","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":96,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77854,"lng":-70.96165},{"id":"SAL-20122","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":97,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77887,"lng":-70.9607},{"id":"SAL-20123","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":98,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77915,"lng":-70.95902},{"id":"SAL-20124","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":99,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77881,"lng":-70.95897},{"id":"SAL-20125","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":100,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77831,"lng":-70.95802},{"id":"SAL-20126","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77847,"lng":-70.9579},{"id":"SAL-20127","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77883,"lng":-70.9579},{"id":"SAL-20128","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77738,"lng":-70.97865},{"id":"SAL-20129","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.769,"lng":-70.97747},{"id":"SAL-20130","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.76969,"lng":-70.97874},{"id":"SAL-20131","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.76964,"lng":-70.9799},{"id":"SAL-20132","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77451,"lng":-70.98195},{"id":"SAL-20133","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77478,"lng":-70.98006},{"id":"SAL-20134","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78935,"lng":-71.01812},{"id":"SAL-20135","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78522,"lng":-71.02206},{"id":"SAL-20136","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.79584,"lng":-71.05643},{"id":"SAL-20137","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.79176,"lng":-71.05757},{"id":"SAL-20138","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77685,"lng":-70.96364},{"id":"SAL-20139","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77591,"lng":-70.96334},{"id":"SAL-20140","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77475,"lng":-70.96256},{"id":"SAL-20141","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77512,"lng":-70.96321},{"id":"SAL-20142","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77449,"lng":-70.96347},{"id":"SAL-20143","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77456,"lng":-70.9634},{"id":"SAL-20144","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77421,"lng":-70.96315},{"id":"SAL-20145","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77985,"lng":-70.97112},{"id":"SAL-20146","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.781,"lng":-70.96862},{"id":"SAL-20147","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78168,"lng":-70.96706},{"id":"SAL-20148","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78393,"lng":-70.96204},{"id":"SAL-20149","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7851,"lng":-70.96273},{"id":"SAL-20150","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7845,"lng":-70.96397},{"id":"SAL-20151","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78385,"lng":-70.96537},{"id":"SAL-20152","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78327,"lng":-70.96664},{"id":"SAL-20153","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7827,"lng":-70.4674},{"id":"SAL-20154","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78225,"lng":-70.46833},{"id":"SAL-20155","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78097,"lng":-70.96774},{"id":"SAL-20156","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77474,"lng":-70.96702},{"id":"SAL-20157","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77863,"lng":-70.46639},{"id":"SAL-20158","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77732,"lng":-70.96563},{"id":"SAL-20159","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77679,"lng":-70.96702},{"id":"SAL-20160","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77796,"lng":-70.96774},{"id":"SAL-20161","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77889,"lng":-70.96825},{"id":"SAL-20162","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78003,"lng":-70.96888},{"id":"SAL-20163","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78048,"lng":-70.96442},{"id":"SAL-20164","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77863,"lng":-70.96974},{"id":"SAL-20165","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77718,"lng":-70.96845},{"id":"SAL-20166","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77607,"lng":-70.96936},{"id":"SAL-20167","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77459,"lng":-70.96748},{"id":"SAL-20168","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77546,"lng":-70.96453},{"id":"SAL-20169","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77684,"lng":-70.47044},{"id":"SAL-20170","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77802,"lng":-70.47106},{"id":"SAL-20171","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77894,"lng":-70.47168},{"id":"SAL-20172","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.78052,"lng":-70.47238},{"id":"SAL-20173","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.7736,"lng":-70.47021},{"id":"SAL-20174","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77431,"lng":-70.46721},{"id":"SAL-20175","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77548,"lng":-70.96641},{"id":"SAL-20176","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77345,"lng":-70.96481},{"id":"SAL-20177","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77371,"lng":-70.96508},{"id":"SAL-20178","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77302,"lng":-70.96608},{"id":"SAL-20179","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77426,"lng":-70.96583},{"id":"SAL-20180","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.77586,"lng":-70.96534},{"id":"SAL-20181","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.8808,"lng":-70.7345},{"id":"SAL-20182","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.881,"lng":-70.73313},{"id":"SAL-20183","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88173,"lng":-70.72704},{"id":"SAL-20184","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88477,"lng":-70.72473},{"id":"SAL-20185","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88404,"lng":-70.72837},{"id":"SAL-20186","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88338,"lng":-70.73034},{"id":"SAL-20187","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.8846,"lng":-70.7318},{"id":"SAL-20188","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88264,"lng":-70.72958},{"id":"SAL-20189","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88397,"lng":-70.73734},{"id":"SAL-20190","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88249,"lng":-70.73335},{"id":"SAL-20191","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88168,"lng":-70.73271},{"id":"SAL-20192","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.89709,"lng":-70.63761},{"id":"SAL-20193","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.89676,"lng":-70.62606},{"id":"SAL-20194","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.89664,"lng":-70.62066},{"id":"SAL-20195","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.8979,"lng":-70.62799},{"id":"SAL-20196","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.88065,"lng":-70.73812},{"id":"SAL-20197","fuente":"Gobierno Regional","region":"Región de Coquimbo (IV)","comuna":"Salamanca","plan":"Por definir","prioridad":0,"tipo_lugar":"Calles y Avenidas","tipo_elemento":"Cable aeréo","elemento_red":"Cableado","material":"Mixto_General","estado_clasificado":"Desconocido","estado_final":"Válido","riesgo":"Bajo","riesgo_score":0,"multas":1,"clp_multas":72307,"km":0.04,"kg_basura":6.0,"lat":-31.90366,"lng":-70.77917}];
+const LO_PRADO_POLYGON = {"type":"Feature","properties":{"objectid":"65","cod_comuna":"4204","codregion":"4","Region":"Región de Coquimbo","Provincia":"Choapa","st_area_sh":"4.79545823004e+09","st_length_":"4.40576778684e+05","shape_leng":"372597.42871200","Comuna":"Salamanca"},"geometry":{"type":"Polygon","coordinates":[[[-70.31051,-32.23857],[-70.31675,-32.2502],[-70.32223,-32.26883],[-70.32832,-32.27651],[-70.34383,-32.2654],[-70.36274,-32.25432],[-70.38572,-32.26887],[-70.40968,-32.2791],[-70.41859,-32.28075],[-70.42888,-32.27221],[-70.43701,-32.27062],[-70.43721,-32.26426],[-70.43626,-32.25831],[-70.43626,-32.25276],[-70.43574,-32.24277],[-70.43391,-32.23331],[-70.43308,-32.22768],[-70.43677,-32.22639],[-70.44015,-32.22391],[-70.44362,-32.22109],[-70.44741,-32.22279],[-70.45174,-32.22425],[-70.45436,-32.22151],[-70.45497,-32.21743],[-70.45503,-32.21052],[-70.45158,-32.19601],[-70.44681,-32.18527],[-70.45433,-32.17685],[-70.46615,-32.17213],[-70.47621,-32.174],[-70.4899,-32.17219],[-70.50374,-32.16977],[-70.50294,-32.15777],[-70.51568,-32.15485],[-70.52523,-32.15049],[-70.53526,-32.14951],[-70.53534,-32.15942],[-70.53309,-32.16904],[-70.54095,-32.17281],[-70.55126,-32.17159],[-70.56953,-32.16547],[-70.58586,-32.16366],[-70.5956,-32.16263],[-70.60613,-32.15627],[-70.61261,-32.14986],[-70.62005,-32.14576],[-70.62961,-32.14401],[-70.64275,-32.13952],[-70.65364,-32.13394],[-70.65456,-32.12126],[-70.65383,-32.11327],[-70.65526,-32.10268],[-70.65587,-32.09441],[-70.65304,-32.08522],[-70.64479,-32.07704],[-70.65472,-32.06338],[-70.66248,-32.05846],[-70.67597,-32.06208],[-70.68875,-32.0621],[-70.69266,-32.05677],[-70.69516,-32.04502],[-70.70246,-32.03239],[-70.72668,-32.02822],[-70.73814,-32.02129],[-70.74945,-32.02798],[-70.77105,-32.03997],[-70.77974,-32.04009],[-70.78955,-32.04286],[-70.79302,-32.04024],[-70.80266,-32.03437],[-70.81408,-32.03853],[-70.8251,-32.04235],[-70.8352,-32.04746],[-70.84812,-32.05189],[-70.85642,-32.05195],[-70.86382,-32.0561],[-70.87588,-32.06285],[-70.88603,-32.06132],[-70.89852,-32.06531],[-70.91361,-32.06312],[-70.92697,-32.07359],[-70.93468,-32.07753],[-70.93976,-32.06444],[-70.95119,-32.05775],[-70.95353,-32.04777],[-70.96934,-32.04547],[-70.97633,-32.03881],[-70.97427,-32.03192],[-70.97194,-32.02592],[-70.96936,-32.01956],[-70.96822,-32.01381],[-70.96651,-32.00878],[-70.96682,-32.00264],[-70.96539,-31.9967],[-70.97116,-31.9919],[-70.97212,-31.98486],[-70.97287,-31.97828],[-70.97053,-31.97153],[-70.96812,-31.96484],[-70.96967,-31.95904],[-70.96851,-31.95279],[-70.97087,-31.94675],[-70.97633,-31.94358],[-70.98289,-31.93951],[-70.98992,-31.93565],[-70.99733,-31.9343],[-71.00168,-31.92995],[-71.01011,-31.92648],[-71.01602,-31.92405],[-71.02111,-31.92523],[-71.02693,-31.91985],[-71.03256,-31.91274],[-71.03912,-31.90829],[-71.04648,-31.9072],[-71.05276,-31.90958],[-71.05899,-31.9089],[-71.06359,-31.90538],[-71.07053,-31.90088],[-71.07728,-31.90343],[-71.08113,-31.89889],[-71.08574,-31.88536],[-71.0904,-31.88069],[-71.08886,-31.86549],[-71.09294,-31.8539],[-71.08835,-31.84318],[-71.09623,-31.82917],[-71.09783,-31.8198],[-71.09642,-31.81016],[-71.08768,-31.80127],[-71.0873,-31.78739],[-71.08946,-31.77538],[-71.08992,-31.74858],[-71.09394,-31.73721],[-71.09348,-31.72739],[-71.09072,-31.71845],[-71.08123,-31.71153],[-71.07238,-31.70995],[-71.06634,-31.70046],[-71.05976,-31.69867],[-71.04932,-31.69878],[-71.04367,-31.69127],[-71.02872,-31.69005],[-71.02782,-31.68152],[-71.03143,-31.67433],[-71.02744,-31.66896],[-71.02133,-31.66598],[-71.01035,-31.65891],[-71.00583,-31.65768],[-70.9983,-31.66064],[-70.99206,-31.6659],[-70.98559,-31.66929],[-70.97669,-31.67224],[-70.96164,-31.67824],[-70.94925,-31.67224],[-70.94361,-31.66139],[-70.9337,-31.65936],[-70.92194,-31.66165],[-70.9131,-31.66967],[-70.91055,-31.66112],[-70.89522,-31.65934],[-70.8858,-31.65471],[-70.87754,-31.64834],[-70.86447,-31.64434],[-70.85591,-31.63468],[-70.849,-31.63539],[-70.84045,-31.63895],[-70.82584,-31.63704],[-70.81143,-31.63487],[-70.80361,-31.63406],[-70.78451,-31.62756],[-70.77673,-31.61867],[-70.76615,-31.61847],[-70.75528,-31.61808],[-70.7434,-31.61957],[-70.7339,-31.62286],[-70.72336,-31.63015],[-70.71496,-31.63843],[-70.70808,-31.63394],[-70.69914,-31.62798],[-70.68455,-31.62526],[-70.67405,-31.62282],[-70.66463,-31.62041],[-70.65026,-31.61449],[-70.6449,-31.60361],[-70.64554,-31.58549],[-70.63587,-31.57221],[-70.62713,-31.5655],[-70.62229,-31.55642],[-70.62222,-31.54462],[-70.61897,-31.53752],[-70.60727,-31.53587],[-70.59718,-31.5412],[-70.59076,-31.54706],[-70.58209,-31.55188],[-70.56993,-31.55643],[-70.56142,-31.56403],[-70.55872,-31.57364],[-70.56398,-31.58176],[-70.56588,-31.58916],[-70.56473,-31.59791],[-70.56196,-31.60298],[-70.55237,-31.60602],[-70.54517,-31.60981],[-70.54272,-31.61766],[-70.53691,-31.6266],[-70.53159,-31.63265],[-70.52959,-31.63966],[-70.52169,-31.64437],[-70.51116,-31.64988],[-70.50578,-31.65579],[-70.50837,-31.66267],[-70.51189,-31.67455],[-70.51175,-31.68506],[-70.51276,-31.68767],[-70.51334,-31.68955],[-70.49617,-31.69372],[-70.48387,-31.69129],[-70.47707,-31.69409],[-70.46957,-31.69744],[-70.46639,-31.71012],[-70.46565,-31.71722],[-70.4578,-31.73244],[-70.46174,-31.74388],[-70.46841,-31.75452],[-70.46757,-31.76148],[-70.46796,-31.76886],[-70.4627,-31.77974],[-70.46237,-31.78874],[-70.45619,-31.79623],[-70.46037,-31.80498],[-70.45118,-31.80923],[-70.45517,-31.8199],[-70.45886,-31.83306],[-70.45685,-31.8449],[-70.44928,-31.85021],[-70.44097,-31.85031],[-70.42319,-31.85946],[-70.40947,-31.86607],[-70.40178,-31.87498],[-70.38386,-31.87945],[-70.37378,-31.88511],[-70.3569,-31.88392],[-70.34569,-31.8889],[-70.33346,-31.88445],[-70.32,-31.88246],[-70.30685,-31.8848],[-70.29157,-31.88389],[-70.27605,-31.88778],[-70.26845,-31.89864],[-70.2656,-31.90757],[-70.25711,-31.91369],[-70.24026,-31.92008],[-70.23071,-31.92976],[-70.22363,-31.94445],[-70.21339,-31.95476],[-70.21037,-31.96574],[-70.20819,-31.97798],[-70.2278,-31.98021],[-70.24177,-31.99142],[-70.24835,-32.0],[-70.24982,-32.0142],[-70.25016,-32.0239],[-70.26054,-32.03117],[-70.26402,-32.03773],[-70.27914,-32.03775],[-70.28421,-32.04377],[-70.29558,-32.05238],[-70.3031,-32.04832],[-70.32381,-32.04927],[-70.33225,-32.04551],[-70.34417,-32.04224],[-70.3487,-32.03087],[-70.35651,-32.02599],[-70.36955,-32.02518],[-70.38104,-32.02847],[-70.38473,-32.03748],[-70.38684,-32.04622],[-70.37681,-32.05281],[-70.36551,-32.05586],[-70.35472,-32.06112],[-70.34825,-32.06256],[-70.33818,-32.06856],[-70.33793,-32.07993],[-70.3489,-32.09072],[-70.34271,-32.0997],[-70.34161,-32.10842],[-70.3328,-32.11903],[-70.3274,-32.12712],[-70.32005,-32.12992],[-70.31337,-32.13048],[-70.30391,-32.1371],[-70.31371,-32.14898],[-70.31359,-32.16374],[-70.31394,-32.17042],[-70.31598,-32.17856],[-70.30771,-32.18652],[-70.30872,-32.19516],[-70.30351,-32.20357],[-70.3029,-32.21159],[-70.30892,-32.21967],[-70.30978,-32.2262],[-70.30691,-32.23481],[-70.31051,-32.23857]]]}};
+
+function setStatus(txt, cls, meta){
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = txt;
+  if(meta!==undefined) document.getElementById('statusMeta').textContent = meta;
+  bar.className = cls || '';
+}
+
+/* ============================================================
+   Point in polygon (puro JS, sin depender de Turf)
+   ============================================================ */
+function pipRing(lng, lat, ring){
+  let inside = false;
+  const n = ring.length;
+  for(let i=0, j=n-1; i<n; j=i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-15)+xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInside(d){
+  if(!d.lat || !d.lng) return false;
+  try{
+    const rings = LO_PRADO_POLYGON.geometry.coordinates;
+    // Polygon: primer anillo exterior, resto agujeros
+    if(!pipRing(d.lng, d.lat, rings[0])) return false;
+    for(let i=1; i<rings.length; i++){
+      if(pipRing(d.lng, d.lat, rings[i])) return false; // en agujero
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+const COLORES = {
+  mustard:'#C79F47',
+  blues:['#1E3A5F','#2E5C8A','#3E7CB1','#5FA8D3','#8FCDF5','#0F2847','#567AA6','#73A9D4','#1D4E7A'],
+  bluesLine:'#5FA8D3', grid:'#2A3545'
+};
+
+let AREA_KM2 = 6.67;
+try{
+  if(LO_PRADO_POLYGON.properties && LO_PRADO_POLYGON.properties.st_area_sh){
+    AREA_KM2 = parseFloat(LO_PRADO_POLYGON.properties.st_area_sh)/1e6;
+  }
+}catch(e){}
+
+let CENTER = [-33.4419,-70.7256];
+try{
+  const ring = LO_PRADO_POLYGON.geometry.coordinates[0];
+  let sx=0,sy=0;
+  ring.forEach(p=>{sx+=p[0];sy+=p[1];});
+  CENTER = [sy/ring.length, sx/ring.length];
+}catch(e){}
+
+let DATA_ALL = [];
+let DATA_FILTERED = [];
+let map, polyLayer, markersLayer;
+let charts = {};
+let chartJsReady = false;
+let leafletReady = false;
+
+const fmt = n=>(n||0).toLocaleString('es-CL');
+const fmtCLP = n=>'$'+fmt(Math.round(n||0));
+const colorRiesgo = r=> r==='Alto'?'#D96E6E': r==='Medio'?'#E0A458':'#4ECDC4';
+const uniq = (arr,k)=>{
+  const s = new Set();
+  arr.forEach(x=>{if(x[k]!==undefined && x[k]!==null && x[k]!=='') s.add(x[k]);});
+  return [...s].sort();
+};
+function popSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML='';
+  if(first) sel.appendChild(first);
+  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+  sel.value = current;
+}
+
+function initMap(){
+  if(typeof L === 'undefined'){
+    setStatus('Error: Leaflet no se cargó. Revisa tu conexión a internet.', 'err');
+    return false;
+  }
+  try{
+    map = L.map('map',{preferCanvas:true}).setView(CENTER, 14);
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Voyager',subdomains:'abcd',maxZoom:20});
+    let __tileLoad=0,__tileErr=0;
+    voyager.on('tileload',()=>{__tileLoad++; if(__tileLoad===1) setStatus('Mapa: teselas cargando (' + __tileLoad + ').', '', ''); });
+    voyager.on('tileerror',()=>{__tileErr++; if(__tileErr===1) setStatus('⚠ Error cargando teselas del mapa (' + __tileErr + '). Probando basemap alternativo...', 'err'); if(__tileErr===3){ map.removeLayer(voyager); osm.addTo(map);} });
+    voyager.addTo(map);
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB Dark',subdomains:'abcd',maxZoom:20});
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · CartoDB',subdomains:'abcd',maxZoom:20});
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap France · HOT',maxZoom:19});
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19});
+    const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB',subdomains:'abcd',maxZoom:20,pane:'shadowPane'});
+    L.control.layers({"Calles (Voyager)":voyager,"Oscuro":dark,"Calles OSM":osm,"Humanitario":osmHOT,"Satelital":sat}, {"Etiquetas sobre satelital":satLabels}).addTo(map);
+
+    polyLayer = L.geoJSON(LO_PRADO_POLYGON,{style:{color:COLORES.mustard,weight:3,fillColor:COLORES.mustard,fillOpacity:0.07,dashArray:'6 4'}}).addTo(map);
+    polyLayer.bindTooltip('Salamanca · Polígono oficial BCN ('+AREA_KM2.toFixed(2)+' km²)',{sticky:true});
+
+    if(L.markerClusterGroup){
+      markersLayer = L.markerClusterGroup({
+        showCoverageOnHover:false,
+        iconCreateFunction:c=>L.divIcon({html:'<div style="background:#C79F47;color:#1a1207;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid #fff;font-family:Arial">'+c.getChildCount()+'</div>',className:'',iconSize:[38,38]})
+      });
+    } else {
+      markersLayer = L.layerGroup();
+    }
+    map.addLayer(markersLayer);
+
+    try{ map.fitBounds(polyLayer.getBounds().pad(0.05)); }catch(e){}
+    leafletReady = true;
+    return true;
+  }catch(e){
+    console.error(e);
+    setStatus('Error inicializando mapa: '+e.message, 'err');
+    return false;
+  }
+}
+
+function renderMarkers(data){
+  if(!leafletReady || !markersLayer) return;
+  markersLayer.clearLayers();
+  let n=0;
+  data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
+    const col = colorRiesgo(d.riesgo);
+    const m = L.circleMarker([d.lat,d.lng],{radius:6,color:'#fff',weight:1.3,fillColor:col,fillOpacity:.85});
+    m.bindPopup(
+      '<b>'+d.id+'</b><br/>'+
+      '<b>Fuente:</b> '+(d.fuente||'')+'<br/>'+
+      '<b>Elemento:</b> '+(d.elemento_red||'')+' / '+(d.material||'')+'<br/>'+
+      '<b>Estado:</b> '+(d.estado_clasificado||'')+'<br/>'+
+      '<b>Riesgo:</b> <span style="color:'+col+'"><b>'+d.riesgo+'</b></span> (score '+d.riesgo_score+')<br/>'+
+      '<b>Prioridad:</b> '+d.prioridad+' · <b>Plan:</b> '+(d.plan||'')+'<br/>'+
+      '<b>KM:</b> '+d.km+' · <b>KG:</b> '+d.kg_basura+'<br/>'+
+      '<b>CLP Multa:</b> '+fmtCLP(d.clp_multas)+'<br/>'+
+      '<b>Lugar:</b> '+(d.tipo_lugar||'')+'<br/>'+
+      '<b>Elem intervenir:</b> '+(d.tipo_elemento||'—')
+    );
+    markersLayer.addLayer(m);
+    n++;
+  });
+  return n;
+}
+
+function applyFilters(){
+  const v = id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const ch = id=>{const e=document.getElementById(id);return e?e.checked:false;};
+  const fC=v('fCompania'),fR=v('fRiesgo'),fE=v('fEstado'),fEl=v('fElem'),fM=v('fMat');
+  const fP=+v('fPrio');
+  const fI=ch('fInside');
+  const fH=ch('fHasCoord');
+  DATA_FILTERED = DATA_ALL.filter(d=>{
+    if(fC && d.fuente!==fC) return false;
+    if(fR && d.riesgo!==fR) return false;
+    if(fE && d.estado_clasificado!==fE) return false;
+    if(fEl && d.elemento_red!==fEl) return false;
+    if(fM && d.material!==fM) return false;
+    if((d.prioridad||0)>fP) return false;
+    if(fH && (!d.lat||!d.lng)) return false;
+    if(fI && !d._inside) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function updateKPIs(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const pctAlto = d.length? alto/d.length*100:0;
+  const avgScore = d.length? d.reduce((a,x)=>a+(+x.riesgo_score||0),0)/d.length : 0;
+  const idx = Math.min(100, Math.round(pctAlto*0.4 + (avgScore/18*100)*0.3 + Math.min(100,(clp/1000000)*1.5)*0.15 + Math.min(100,kg/50)*0.15));
+
+  const set = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiMultas', fmt(multas));
+  set('kpiMultasCLP', fmtCLP(clp));
+  set('kpiKM', km.toFixed(2));
+  set('kpiKG', fmt(Math.round(kg)));
+  set('kpiRiesgo', idx);
+  set('kpiCostoKM', km>0? fmtCLP(clp/km):'$0');
+  set('density', (d.length/AREA_KM2).toFixed(1));
+  set('pctAlto', pctAlto.toFixed(1)+'%');
+  set('avgMulta', multas>0? fmtCLP(clp/multas):'$0');
+  set('avgPeso', d.length? (kg/d.length).toFixed(1)+' kg':'0 kg');
+  set('rec-count', d.length);
+  set('dataRecs', d.length);
+}
+
+function groupCount(data,key){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+1;});return m;}
+function groupSum(data,key,field){const m={};data.forEach(x=>{const k=x[key]||'Sin dato';m[k]=(m[k]||0)+(+x[field]||0);});return m;}
+
+function makeChart(id,type,data,opts){
+  if(!chartJsReady) return;
+  opts = opts||{};
+  if(charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if(!el) return;
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#fff',font:{family:'Arial',size:11}}},
+      tooltip:{backgroundColor:'#0E1117',borderColor:COLORES.mustard,borderWidth:1,titleColor:COLORES.mustard,bodyColor:'#fff'}},
+    scales:(type==='pie'||type==='doughnut')?undefined:{
+      x:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid}},
+      y:{ticks:{color:'#C8D2E0',font:{family:'Arial',size:10}},grid:{color:COLORES.grid},beginAtZero:true}}
+  };
+  charts[id] = new Chart(el,{type,data,options:Object.assign(base,opts)});
+}
+
+function updateCharts(){
+  if(!chartJsReady) return;
+  const d = DATA_FILTERED;
+  const g1 = groupCount(d,'fuente');
+  const l1 = Object.keys(g1).sort((a,b)=>g1[b]-g1[a]).slice(0,10);
+  makeChart('chartCompania','bar',{labels:l1,datasets:[{label:'Puntos',data:l1.map(k=>g1[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.blues[4],borderWidth:1.5}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+
+  const g2 = groupCount(d,'riesgo');
+  const ord = ['Alto','Medio','Bajo'].filter(k=>g2[k]);
+  makeChart('chartRiesgo','doughnut',{labels:ord,datasets:[{data:ord.map(k=>g2[k]),backgroundColor:ord.map(k=>colorRiesgo(k)),borderColor:'#0E1117',borderWidth:2}]});
+
+  const g3 = groupCount(d,'estado_clasificado');
+  const l3 = Object.keys(g3).sort((a,b)=>g3[b]-g3[a]).slice(0,8);
+  makeChart('chartEstado','bar',{labels:l3,datasets:[{label:'Puntos',data:l3.map(k=>g3[k]),backgroundColor:COLORES.blues[1],borderColor:COLORES.blues[3],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g4 = groupCount(d,'elemento_red');
+  makeChart('chartElem','pie',{labels:Object.keys(g4),datasets:[{data:Object.values(g4),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+
+  const g5 = groupCount(d,'material');
+  const l5 = Object.keys(g5).sort((a,b)=>g5[b]-g5[a]).slice(0,8);
+  makeChart('chartMat','bar',{labels:l5,datasets:[{label:'Puntos',data:l5.map(k=>g5[k]),backgroundColor:COLORES.blues[3],borderColor:COLORES.blues[4],borderWidth:1.5}]},{plugins:{legend:{display:false}}});
+
+  const g6 = groupSum(d,'fuente','clp_multas');
+  const l6 = Object.keys(g6).sort((a,b)=>g6[b]-g6[a]).slice(0,8);
+  makeChart('chartTopCLP','bar',{labels:l6,datasets:[{label:'CLP',data:l6.map(k=>g6[k]),backgroundColor:COLORES.blues[2],borderColor:COLORES.mustard,borderWidth:1.5}]},
+    {indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCLP(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#C8D2E0',callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:COLORES.grid}},y:{ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}}}});
+
+  const g7 = {};
+  d.forEach(x=>{const k=(+x.prioridad)||0;if(!g7[k])g7[k]={n:0,clp:0};g7[k].n++;g7[k].clp+=(+x.clp_multas||0);});
+  const k7 = Object.keys(g7).sort((a,b)=>+a-+b);
+  makeChart('chartPrio','bar',{labels:k7.map(k=>'P'+k),datasets:[{label:'Puntos',data:k7.map(k=>g7[k].n),backgroundColor:COLORES.blues[3],yAxisID:'y'},{label:'CLP',data:k7.map(k=>g7[k].clp),type:'line',borderColor:COLORES.mustard,backgroundColor:'rgba(199,159,71,.2)',yAxisID:'y1',tension:.3,pointBackgroundColor:COLORES.mustard}]},
+    {scales:{y:{position:'left',ticks:{color:'#C8D2E0'},grid:{color:COLORES.grid}},y1:{position:'right',ticks:{color:COLORES.mustard,callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{drawOnChartArea:false}}}});
+
+  const g8 = groupCount(d,'tipo_lugar');
+  const l8 = Object.keys(g8).sort((a,b)=>g8[b]-g8[a]).slice(0,6);
+  makeChart('chartTipoLugar','pie',{labels:l8,datasets:[{data:l8.map(k=>g8[k]),backgroundColor:COLORES.blues,borderColor:'#0E1117',borderWidth:2}]});
+}
+
+function updateTable(){
+  const tb = document.querySelector('#dataTable tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  DATA_FILTERED.slice(0,500).forEach(d=>{
+    const tr = document.createElement('tr');
+    const rLow = (d.riesgo||'').toLowerCase();
+    tr.innerHTML = '<td>'+d.id+'</td><td>'+(d.fuente||'')+'</td><td>'+(d.elemento_red||'')+'</td><td>'+(d.material||'')+'</td>'+
+      '<td><span class="badge estado">'+(d.estado_clasificado||'')+'</span></td>'+
+      '<td><span class="badge '+rLow+'">'+(d.riesgo||'')+'</span></td>'+
+      '<td>'+(d.prioridad||0)+'</td><td>'+(+d.km||0).toFixed(3)+'</td><td>'+fmt(d.kg_basura)+'</td><td>'+fmtCLP(d.clp_multas)+'</td>';
+    tr.onclick=()=>{if(d.lat&&d.lng&&map)map.setView([d.lat,d.lng],17);};
+    tb.appendChild(tr);
+  });
+}
+
+function updateAll(){
+  updateKPIs(); updateCharts(); updateTable();
+  if(leafletReady) renderMarkers(DATA_FILTERED);
+}
+
+function loadInitial(){
+  DATA_ALL = RAW_DATA.map(r=>Object.assign({},r));
+  DATA_ALL.forEach(d=>{d._inside = (d.lat&&d.lng)? pointInside(d) : false;});
+  const withCoords = DATA_ALL.filter(d=>d.lat && d.lng).length;
+  const inside = DATA_ALL.filter(d=>d._inside).length;
+  popSelect('fCompania', uniq(DATA_ALL,'fuente'));
+  popSelect('fEstado', uniq(DATA_ALL,'estado_clasificado'));
+  popSelect('fElem', uniq(DATA_ALL,'elemento_red'));
+  popSelect('fMat', uniq(DATA_ALL,'material'));
+  applyFilters();
+  setStatus('✓ Datos de Salamanca cargados correctamente', 'ok',
+    DATA_ALL.length+' registros oficiales dentro del polígono BCN');
+}
+
+/* Importación */
+function normalizeRecord(r){
+  const g = keys=>{for(const k of keys){const f=Object.keys(r).find(c=>c.toLowerCase().trim()===k.toLowerCase());if(f!==undefined && r[f]!=='' && r[f]!=null) return r[f];}return null;};
+  return {
+    id:g(['id','ID']) || 'EXT-'+Math.floor(Math.random()*100000),
+    fuente:g(['fuente','compania','compañía','empresa','GORE, Municipio, Denuncias Ciudadanía o Empresas']) || 'Desconocido',
+    region:g(['region','2. Región']) || '',
+    comuna:g(['comuna','3. Comuna']) || 'Salamanca',
+    plan:g(['plan','Plan']) || 'Por definir',
+    prioridad:+(g(['prioridad','4. Prioritario'])||0),
+    tipo_lugar:g(['tipo_lugar','5.Tipo de lugar']) || '',
+    tipo_elemento:g(['tipo_elemento','7.Tipo del o los elementos a intervenir y su respectivo estado'])||'',
+    elemento_red:g(['elemento_red','Elemento_Red']) || 'Sin dato',
+    material:g(['material','Material_Principal']) || 'Sin dato',
+    estado_clasificado:g(['estado_clasificado','Estado_Clasificado']) || 'Desconocido',
+    estado_final:g(['estado_final','21. Estado_Final']) || '',
+    riesgo:g(['riesgo','nivel_riesgo'])||'Medio', riesgo_score:+(g(['riesgo_score'])||5),
+    multas:+(g(['multas'])||1), clp_multas:+(g(['clp_multas','clp','monto'])||0),
+    km:+(g(['km','Estimacion_KM'])||0), kg_basura:+(g(['kg_basura','Estimacion_Peso_KG'])||0),
+    lat:+(g(['lat','latitud','16. Latitud (WGS84 5 DECIMALES)'])||0),
+    lng:+(g(['lng','longitud','17. Longitud (WGS84 5 DECIMALES)'])||0),
+  };
+}
+
+function parseFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const finish = (rows, src)=>{
+    DATA_ALL = rows.map(normalizeRecord);
+    DATA_ALL.forEach(d=>d._inside=pointInside(d));
+    popSelect('fCompania',uniq(DATA_ALL,'fuente'));
+    popSelect('fEstado',uniq(DATA_ALL,'estado_clasificado'));
+    popSelect('fElem',uniq(DATA_ALL,'elemento_red'));
+    popSelect('fMat',uniq(DATA_ALL,'material'));
+    applyFilters();
+    setStatus('✓ '+DATA_ALL.length+' registros oficiales', 'ok');
+  };
+  if(ext==='csv'){
+    if(typeof Papa==='undefined') return alert('PapaParse no cargó. Verifica conexión.');
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>finish(res.data, file.name)});
+  } else if(ext==='xlsx'||ext==='xls'){
+    if(typeof XLSX==='undefined') return alert('SheetJS no cargó. Verifica conexión.');
+    const r = new FileReader();
+    r.onload = e=>{
+      const wb = XLSX.read(e.target.result,{type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      finish(rows, file.name+' · '+wb.SheetNames[0]);
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function exportCSV(){
+  if(!DATA_FILTERED.length) return alert('Sin datos.');
+  const cols = Object.keys(DATA_FILTERED[0]).filter(c=>!c.startsWith('_'));
+  const rows = [cols.join(',')].concat(DATA_FILTERED.map(d=>cols.map(c=>JSON.stringify(d[c]===undefined?'':d[c])).join(','))).join('\n');
+  const b = new Blob([rows],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download='visor_salamanca_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+function genReporte(){
+  const d = DATA_FILTERED;
+  const multas = d.reduce((a,x)=>a+(+x.multas||0),0);
+  const clp = d.reduce((a,x)=>a+(+x.clp_multas||0),0);
+  const km = d.reduce((a,x)=>a+(+x.km||0),0);
+  const kg = d.reduce((a,x)=>a+(+x.kg_basura||0),0);
+  const alto = d.filter(x=>x.riesgo==='Alto').length;
+  const byF = groupSum(d,'fuente','clp_multas');
+  const top = Object.entries(byF).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const html = '<html><head><meta charset="utf-8"><title>Reporte Salamanca</title>'+
+    '<style>body{font-family:Arial;padding:30px;color:#222}h1{color:#8E6E2A;border-bottom:2px solid #C79F47}'+
+    '.kpi{display:inline-block;margin:8px;padding:14px 20px;background:#f5efe2;border:1px solid #C79F47;border-radius:6px}'+
+    '.kpi b{display:block;color:#8E6E2A;font-size:11px;letter-spacing:1px}.kpi span{font-size:22px;font-weight:bold}'+
+    'table{border-collapse:collapse;margin-top:14px;width:100%}td,th{border:1px solid #ddd;padding:6px 10px;font-size:12px;text-align:left}th{background:#8E6E2A;color:#fff}</style></head>'+
+    '<body><h1>Reporte de Gestión de Red · Salamanca</h1>'+
+    '<p>Fecha: '+new Date().toLocaleString('es-CL')+' · Registros: '+d.length+' · Superficie: '+AREA_KM2.toFixed(2)+' km²</p>'+
+    '<div class="kpi"><b>Multas</b><span>'+fmt(multas)+'</span></div>'+
+    '<div class="kpi"><b>CLP</b><span>'+fmtCLP(clp)+'</span></div>'+
+    '<div class="kpi"><b>KM</b><span>'+km.toFixed(2)+'</span></div>'+
+    '<div class="kpi"><b>KG basura</b><span>'+fmt(Math.round(kg))+'</span></div>'+
+    '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
+    '<h2>Top 5 fuentes por impacto CLP</h2>'+
+    '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
+    '</body></html>';
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+/* Eventos (defensivos) */
+function bind(id, ev, fn){const e=document.getElementById(id); if(e) e.addEventListener(ev, fn);}
+['fCompania','fRiesgo','fEstado','fElem','fMat','fInside','fHasCoord'].forEach(id=>bind(id,'change',applyFilters));
+bind('fPrio','input',e=>{document.getElementById('fPrioVal').textContent='Hasta '+e.target.value;applyFilters();});
+bind('btnReset','click',()=>{
+  ['fCompania','fRiesgo','fEstado','fElem','fMat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fInside').checked=false;
+  document.getElementById('fHasCoord').checked=true;
+  document.getElementById('fPrio').value=10;
+  document.getElementById('fPrioVal').textContent='Hasta 10';
+  applyFilters();
+});
+bind('btnExport','click',exportCSV);
+bind('btnReport','click',genReporte);
+bind('lyrPts','change',e=>{if(map){if(e.target.checked) map.addLayer(markersLayer); else map.removeLayer(markersLayer);}});
+bind('lyrPoly','change',e=>{if(map){if(e.target.checked) map.addLayer(polyLayer); else map.removeLayer(polyLayer);}});
+
+/* Boot — NO esperamos a 'load', ejecutamos apenas DOM listo */
+function boot(){
+  try{
+    const s = window.__CDN_STATUS__||{};
+    const failed = ['leaflet','markercluster','chart','papa','xlsx'].filter(k=>!s[k]);
+    if(failed.length){
+      setStatus('⚠ Librerías no cargadas: '+failed.join(', ')+'. Fuentes intentadas: '+(s.tries||[]).join(' | '), 'err');
+    } else {
+      setStatus('Librerías OK. Iniciando mapa y gráficos...', '', '');
+    }
+    chartJsReady = (typeof Chart !== 'undefined');
+    const leafletOk = initMap();
+    loadInitial();
+    if(!leafletOk) setStatus('Datos cargados, pero el mapa no se pudo inicializar. ['+(s.tries||[]).join(' | ')+']', 'err');
+    else if(!chartJsReady) setStatus('Datos cargados sin gráficos (Chart.js no disponible).', 'err');
+  }catch(err){
+    console.error(err);
+    setStatus('Error: '+err.message, 'err');
+  }
+}
+async function bootWhenReady(){
+  try{
+    await window.__LIBS_READY__;
+  }catch(e){}
+  boot();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
+else bootWhenReady();
+</script>
+</body></html>

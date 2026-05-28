@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="Coordenada Pública · Región de Coquimbo · 15 visores comunales con polígonos BCN."/>
+<title>Coquimbo · Visores Regionales · Coordenada Pública</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0d1620;color:#fff;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(circle at 20% 10%, rgba(196,154,57,.12) 0%, transparent 45%),
+  radial-gradient(circle at 80% 90%, rgba(45,90,150,.18) 0%, transparent 45%),
+  linear-gradient(180deg,#0a1018 0%,#0d1620 100%)}
+header{padding:48px 32px 24px;text-align:center;border-bottom:1px solid #1c2a3a}
+header h1{margin:0;font-size:34px;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:#c49a39}
+header p{margin:10px 0 0;color:#9bb0c5;font-size:15px}
+header .crumb{margin-bottom:14px;color:#9bb0c5;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+header .crumb a{color:#c49a39;text-decoration:none}
+header .crumb a:hover{text-decoration:underline}
+.totals{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:24px}
+.totals .t{padding:14px 22px;background:#16263a;border-left:4px solid #c49a39;border-radius:6px;min-width:160px}
+.totals .t .v{font-size:22px;font-weight:bold;color:#c49a39}
+.totals .t .l{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9bb0c5;margin-top:4px}
+main{max-width:1280px;margin:0 auto;padding:32px}
+h2{margin:32px 0 16px;font-size:14px;color:#c49a39;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #2a3e54;padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:#16263a;border:1px solid #2a3e54;border-left:4px solid #2a4d77;border-radius:10px;padding:18px;text-decoration:none;color:inherit;
+  transition:border-color .15s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:12px}
+.card:hover{border-color:#c49a39;transform:translateY(-2px);box-shadow:0 8px 24px rgba(196,154,57,.12)}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-title{font-size:17px;font-weight:bold;color:#fff;line-height:1.2}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:4px;
+  background:#0d1620;border:1px solid #2a3e54;color:#c49a39;white-space:nowrap;font-weight:bold}
+.card-sub{font-size:11px;color:#9bb0c5}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.kpi{background:#0d1620;border:1px solid #1c2a3a;border-radius:6px;padding:7px 10px}
+.kpi-val{font-size:13px;font-weight:bold;color:#c49a39}
+.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#9bb0c5;margin-top:2px}
+.card-foot{font-size:11px;color:#c49a39;font-weight:bold;margin-top:auto;text-align:right}
+footer{padding:32px;text-align:center;color:#6c829a;font-size:12px;border-top:1px solid #1c2a3a;margin-top:48px}
+footer .brand{color:#c49a39;font-weight:bold}
+@media(max-width:600px){header h1{font-size:24px} .totals{gap:12px} .totals .t{min-width:130px;padding:10px 14px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<header>
+  <div class="crumb"><a href="/">← Coordenada Pública</a> · Región de Coquimbo</div>
+  <h1>Región de <span class="accent">Coquimbo</span></h1>
+  <p>3 provincias · 15 comunas · Polígonos oficiales BCN</p>
+  <div class="totals">
+    <div class="t"><div class="v">2.427</div><div class="l">Puntos oficiales</div></div>
+    <div class="t"><div class="v">$200.165.490</div><div class="l">CLP estimados</div></div>
+    <div class="t"><div class="v">92.44 KM</div><div class="l">Red analizada</div></div>
+    <div class="t"><div class="v">9.759 KG</div><div class="l">Basura estimada</div></div>
+    <div class="t"><div class="v">15</div><div class="l">Comunas</div></div>
+  </div>
+</header>
+<main>
+  <h2>Provincia de Elqui · 6 comunas · 1.043 pts · $89.866.178 · 41.2 km · 3.705 kg</h2>
+  <div class="grid">
+    <a class="card" href="/coquimbo/la-serena">
+      <div class="card-head">
+        <div class="card-title">La Serena</div>
+        <span class="badge">LS</span>
+      </div>
+      <div class="card-sub">Provincia de Elqui · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">395</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$31.784.687</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.36</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.168</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/coquimbo">
+      <div class="card-head">
+        <div class="card-title">Coquimbo</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Elqui · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">318</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.340.136</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.64</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">967</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/vicuna">
+      <div class="card-head">
+        <div class="card-title">Vicuña</div>
+        <span class="badge">VI</span>
+      </div>
+      <div class="card-sub">Provincia de Elqui · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">287</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$24.333.689</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.373</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/andacollo">
+      <div class="card-head">
+        <div class="card-title">Andacollo</div>
+        <span class="badge">AN</span>
+      </div>
+      <div class="card-sub">Provincia de Elqui · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">31</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$2.241.517</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.24</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">138</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/paihuano">
+      <div class="card-head">
+        <div class="card-title">Paihuano</div>
+        <span class="badge">PA</span>
+      </div>
+      <div class="card-sub">Provincia de Elqui · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">8</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$876.921</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.32</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">33</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/la-higuera">
+      <div class="card-head">
+        <div class="card-title">La Higuera</div>
+        <span class="badge">LH</span>
+      </div>
+      <div class="card-sub">Provincia de Elqui · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">4</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$289.228</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">24</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Limarí · 5 comunas · 610 pts · $48.065.929 · 24.24 km · 3.150 kg</h2>
+  <div class="grid">
+    <a class="card" href="/coquimbo/ovalle">
+      <div class="card-head">
+        <div class="card-title">Ovalle</div>
+        <span class="badge">OV</span>
+      </div>
+      <div class="card-sub">Provincia de Limarí · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">426</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.802.782</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">16.96</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.670</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/monte-patria">
+      <div class="card-head">
+        <div class="card-title">Monte Patria</div>
+        <span class="badge">MP</span>
+      </div>
+      <div class="card-sub">Provincia de Limarí · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">118</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$12.311.806</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">4.64</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.083</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/combarbala">
+      <div class="card-head">
+        <div class="card-title">Combarbalá</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Limarí · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">45</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$3.253.815</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">270</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/punitaqui">
+      <div class="card-head">
+        <div class="card-title">Punitaqui</div>
+        <span class="badge">PU</span>
+      </div>
+      <div class="card-sub">Provincia de Limarí · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">20</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$1.625.219</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">120</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/rio-hurtado">
+      <div class="card-head">
+        <div class="card-title">Río Hurtado</div>
+        <span class="badge">RH</span>
+      </div>
+      <div class="card-sub">Provincia de Limarí · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">1</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$72.307</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.04</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">6</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Choapa · 4 comunas · 774 pts · $62.233.383 · 27.0 km · 2.904 kg</h2>
+  <div class="grid">
+    <a class="card" href="/coquimbo/los-vilos">
+      <div class="card-head">
+        <div class="card-title">Los Vilos</div>
+        <span class="badge">LV</span>
+      </div>
+      <div class="card-sub">Provincia de Choapa · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">310</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.265.084</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">8.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">843</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/illapel">
+      <div class="card-head">
+        <div class="card-title">Illapel</div>
+        <span class="badge">IL</span>
+      </div>
+      <div class="card-sub">Provincia de Choapa · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">248</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$17.991.829</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">9.88</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">765</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/salamanca">
+      <div class="card-head">
+        <div class="card-title">Salamanca</div>
+        <span class="badge">SA</span>
+      </div>
+      <div class="card-sub">Provincia de Choapa · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">192</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$13.882.944</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">7.68</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.152</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/coquimbo/canela">
+      <div class="card-head">
+        <div class="card-title">Canela</div>
+        <span class="badge">CA</span>
+      </div>
+      <div class="card-sub">Provincia de Choapa · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">24</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$2.093.526</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.96</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">144</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+</main>
+<footer>
+  <div class="brand">Coordenada Pública</div>
+  Visores regionales de Coquimbo · Datos oficiales BCN · Abril 2026<br/>
+  Cada comuna incluye visor geoespacial, KPIs, gráficos descriptivos y datos filtrados por polígono BCN.
+</footer>
+</body>
+</html>
