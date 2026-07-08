@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="Coordenada Pública · Región Metropolitana · 52 visores comunales con polígonos BCN."/>
+<title>Región Metropolitana · Visores Regionales · Coordenada Pública</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0d1620;color:#fff;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(circle at 20% 10%, rgba(196,154,57,.12) 0%, transparent 45%),
+  radial-gradient(circle at 80% 90%, rgba(45,90,150,.18) 0%, transparent 45%),
+  linear-gradient(180deg,#0a1018 0%,#0d1620 100%)}
+header{padding:48px 32px 24px;text-align:center;border-bottom:1px solid #1c2a3a}
+header h1{margin:0;font-size:34px;letter-spacing:.5px;color:#fff}
+header h1 .accent{color:#c49a39}
+header p{margin:10px 0 0;color:#9bb0c5;font-size:15px}
+header .crumb{margin-bottom:14px;color:#9bb0c5;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+header .crumb a{color:#c49a39;text-decoration:none}
+header .crumb a:hover{text-decoration:underline}
+.totals{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:24px}
+.totals .t{padding:14px 22px;background:#16263a;border-left:4px solid #c49a39;border-radius:6px;min-width:160px}
+.totals .t .v{font-size:22px;font-weight:bold;color:#c49a39}
+.totals .t .l{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9bb0c5;margin-top:4px}
+main{max-width:1280px;margin:0 auto;padding:32px}
+h2{margin:32px 0 16px;font-size:14px;color:#c49a39;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #2a3e54;padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:#16263a;border:1px solid #2a3e54;border-left:4px solid #2a4d77;border-radius:10px;padding:18px;text-decoration:none;color:inherit;
+  transition:border-color .15s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:12px}
+.card:hover{border-color:#c49a39;transform:translateY(-2px);box-shadow:0 8px 24px rgba(196,154,57,.12)}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-title{font-size:17px;font-weight:bold;color:#fff;line-height:1.2}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:4px;
+  background:#0d1620;border:1px solid #2a3e54;color:#c49a39;white-space:nowrap;font-weight:bold}
+.card-sub{font-size:11px;color:#9bb0c5}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.kpi{background:#0d1620;border:1px solid #1c2a3a;border-radius:6px;padding:7px 10px}
+.kpi-val{font-size:13px;font-weight:bold;color:#c49a39}
+.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#9bb0c5;margin-top:2px}
+.card-foot{font-size:11px;color:#c49a39;font-weight:bold;margin-top:auto;text-align:right}
+footer{padding:32px;text-align:center;color:#6c829a;font-size:12px;border-top:1px solid #1c2a3a;margin-top:48px}
+footer .brand{color:#c49a39;font-weight:bold}
+@media(max-width:600px){header h1{font-size:24px} .totals{gap:12px} .totals .t{min-width:130px;padding:10px 14px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<header>
+  <div class="crumb"><a href="/">← Coordenada Pública</a> · Región Metropolitana</div>
+  <h1>Región <span class="accent">Metropolitana</span></h1>
+  <p>6 provincias · 52 comunas · Polígonos oficiales BCN</p>
+  <div class="totals">
+    <div class="t"><div class="v">18.069</div><div class="l">Puntos oficiales</div></div>
+    <div class="t"><div class="v">$1.515.441.978</div><div class="l">CLP estimados</div></div>
+    <div class="t"><div class="v">645.36 KM</div><div class="l">Red analizada</div></div>
+    <div class="t"><div class="v">151.130 KG</div><div class="l">Basura estimada</div></div>
+    <div class="t"><div class="v">52</div><div class="l">Comunas</div></div>
+  </div>
+</header>
+<main>
+  <h2>Provincia de Santiago · 32 comunas · 12.910 pts · $1.116.854.608 · 456.24 km · 127.710 kg</h2>
+  <div class="grid">
+    <a class="card" href="/rm/nunoa">
+      <div class="card-head">
+        <div class="card-title">Ñuñoa</div>
+        <span class="badge">ÑU</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">517</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$45.850.335</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.52</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">30.066</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/estacion-central">
+      <div class="card-head">
+        <div class="card-title">Estación Central</div>
+        <span class="badge">EC</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">501</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$45.737.256</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">16.08</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">5.821</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/maipu">
+      <div class="card-head">
+        <div class="card-title">Maipú</div>
+        <span class="badge">MA</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">483</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$39.219.247</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.28</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">5.361</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/la-granja">
+      <div class="card-head">
+        <div class="card-title">La Granja</div>
+        <span class="badge">LG</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">475</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$42.718.836</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">18.28</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.178</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/recoleta">
+      <div class="card-head">
+        <div class="card-title">Recoleta</div>
+        <span class="badge">RE</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">473</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$42.863.897</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">16.96</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">5.222</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/penalolen">
+      <div class="card-head">
+        <div class="card-title">Peñalolén</div>
+        <span class="badge">PE</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">466</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$39.544.976</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">17.04</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.287</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/lo-espejo">
+      <div class="card-head">
+        <div class="card-title">Lo Espejo</div>
+        <span class="badge">LE</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">465</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$62.226.678</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">17.68</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">5.909</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/independencia">
+      <div class="card-head">
+        <div class="card-title">Independencia</div>
+        <span class="badge">IN</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">464</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$40.946.520</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">17.36</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.077</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/quilicura">
+      <div class="card-head">
+        <div class="card-title">Quilicura</div>
+        <span class="badge">QU</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">460</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$35.309.703</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.64</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">5.102</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/san-miguel">
+      <div class="card-head">
+        <div class="card-title">San Miguel</div>
+        <span class="badge">SM</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">440</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$57.050.073</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.72</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.349</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/san-ramon">
+      <div class="card-head">
+        <div class="card-title">San Ramón</div>
+        <span class="badge">SR</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">440</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$37.485.915</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">16.92</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.969</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/la-cisterna">
+      <div class="card-head">
+        <div class="card-title">La Cisterna</div>
+        <span class="badge">LC</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">436</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$33.612.177</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">17.04</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.782</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/conchali">
+      <div class="card-head">
+        <div class="card-title">Conchalí</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">413</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.378.177</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.52</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.878</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/la-florida">
+      <div class="card-head">
+        <div class="card-title">La Florida</div>
+        <span class="badge">LF</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">409</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$35.075.450</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.92</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.367</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/santiago">
+      <div class="card-head">
+        <div class="card-title">Santiago</div>
+        <span class="badge">SA</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">409</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$34.229.617</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.283</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/renca">
+      <div class="card-head">
+        <div class="card-title">Renca</div>
+        <span class="badge">RE</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">406</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$38.356.976</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.92</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.578</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/quinta-normal">
+      <div class="card-head">
+        <div class="card-title">Quinta Normal</div>
+        <span class="badge">QN</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">395</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.267.581</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.84</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">4.411</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/las-condes">
+      <div class="card-head">
+        <div class="card-title">Las Condes</div>
+        <span class="badge">LC</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">393</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$29.729.897</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.24</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.333</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/macul">
+      <div class="card-head">
+        <div class="card-title">Macul</div>
+        <span class="badge">MA</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">393</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.147.748</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.64</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.780</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/pudahuel">
+      <div class="card-head">
+        <div class="card-title">Pudahuel</div>
+        <span class="badge">PU</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">392</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.625.739</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.76</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">3.449</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/vitacura">
+      <div class="card-head">
+        <div class="card-title">Vitacura</div>
+        <span class="badge">VI</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">378</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$49.244.741</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.68</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.730</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/cerrillos">
+      <div class="card-head">
+        <div class="card-title">Cerrillos</div>
+        <span class="badge">CE</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">375</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$27.115.125</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.76</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">8.936</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/la-reina">
+      <div class="card-head">
+        <div class="card-title">La Reina</div>
+        <span class="badge">LR</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">372</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$26.957.897</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.8</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.814</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/cerro-navia">
+      <div class="card-head">
+        <div class="card-title">Cerro Navia</div>
+        <span class="badge">CN</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">362</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$34.345.626</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.32</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">4.671</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/san-joaquin">
+      <div class="card-head">
+        <div class="card-title">San Joaquín</div>
+        <span class="badge">SJ</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">354</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$26.768.687</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.32</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.497</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/lo-prado">
+      <div class="card-head">
+        <div class="card-title">Lo Prado</div>
+        <span class="badge">LP</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">349</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$25.492.836</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.56</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">4.679</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/pedro-aguirre-cerda">
+      <div class="card-head">
+        <div class="card-title">Pedro Aguirre Cerda</div>
+        <span class="badge">PA</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">349</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.013.003</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.12</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">6.562</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/el-bosque">
+      <div class="card-head">
+        <div class="card-title">El Bosque</div>
+        <span class="badge">EB</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">346</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$25.910.687</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.36</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.830</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/huechuraba">
+      <div class="card-head">
+        <div class="card-title">Huechuraba</div>
+        <span class="badge">HU</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">343</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$26.347.459</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.68</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.692</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/lo-barnechea">
+      <div class="card-head">
+        <div class="card-title">Lo Barnechea</div>
+        <span class="badge">LB</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">337</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$26.098.556</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">12.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.009</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/providencia">
+      <div class="card-head">
+        <div class="card-title">Providencia</div>
+        <span class="badge">PR</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">290</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$22.735.039</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">10.24</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">961</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/la-pintana">
+      <div class="card-head">
+        <div class="card-title">La Pintana</div>
+        <span class="badge">LP</span>
+      </div>
+      <div class="card-sub">Provincia de Santiago · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">225</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$16.448.154</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">8.4</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.113</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Cordillera · 3 comunas · 748 pts · $63.179.234 · 26.24 km · 3.516 kg</h2>
+  <div class="grid">
+    <a class="card" href="/rm/puente-alto">
+      <div class="card-head">
+        <div class="card-title">Puente Alto</div>
+        <span class="badge">PA</span>
+      </div>
+      <div class="card-sub">Provincia de Cordillera · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">407</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$35.299.125</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.465</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/pirque">
+      <div class="card-head">
+        <div class="card-title">Pirque</div>
+        <span class="badge">PI</span>
+      </div>
+      <div class="card-sub">Provincia de Cordillera · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">235</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$18.365.084</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">8.88</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">759</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/san-jose-de-maipo">
+      <div class="card-head">
+        <div class="card-title">San José De Maipo</div>
+        <span class="badge">SJ</span>
+      </div>
+      <div class="card-sub">Provincia de Cordillera · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">106</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$9.515.025</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">4.2</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">292</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Chacabuco · 3 comunas · 778 pts · $56.374.232 · 29.48 km · 3.030 kg</h2>
+  <div class="grid">
+    <a class="card" href="/rm/colina">
+      <div class="card-head">
+        <div class="card-title">Colina</div>
+        <span class="badge">CO</span>
+      </div>
+      <div class="card-sub">Provincia de Chacabuco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">407</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$29.428.949</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">15.76</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.500</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/lampa">
+      <div class="card-head">
+        <div class="card-title">Lampa</div>
+        <span class="badge">LA</span>
+      </div>
+      <div class="card-sub">Provincia de Chacabuco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">310</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$22.415.170</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">11.6</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.161</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/tiltil">
+      <div class="card-head">
+        <div class="card-title">Tiltil</div>
+        <span class="badge">TI</span>
+      </div>
+      <div class="card-sub">Provincia de Chacabuco · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">61</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$4.530.113</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">2.12</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">368</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Maipo · 4 comunas · 1.286 pts · $102.370.075 · 46.96 km · 6.992 kg</h2>
+  <div class="grid">
+    <a class="card" href="/rm/san-bernardo">
+      <div class="card-head">
+        <div class="card-title">San Bernardo</div>
+        <span class="badge">SB</span>
+      </div>
+      <div class="card-sub">Provincia de Maipo · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">396</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.693.265</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.52</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.636</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/buin">
+      <div class="card-head">
+        <div class="card-title">Buin</div>
+        <span class="badge">BU</span>
+      </div>
+      <div class="card-sub">Provincia de Maipo · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">383</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$28.171.125</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">14.16</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">3.058</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/paine">
+      <div class="card-head">
+        <div class="card-title">Paine</div>
+        <span class="badge">PA</span>
+      </div>
+      <div class="card-sub">Provincia de Maipo · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">365</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$27.007.906</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.4</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.516</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/calera-de-tango">
+      <div class="card-head">
+        <div class="card-title">Calera De Tango</div>
+        <span class="badge">CD</span>
+      </div>
+      <div class="card-sub">Provincia de Maipo · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">142</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$18.497.779</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">4.88</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">780</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Melipilla · 5 comunas · 733 pts · $54.851.514 · 25.52 km · 3.301 kg</h2>
+  <div class="grid">
+    <a class="card" href="/rm/melipilla">
+      <div class="card-head">
+        <div class="card-title">Melipilla</div>
+        <span class="badge">ME</span>
+      </div>
+      <div class="card-sub">Provincia de Melipilla · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">418</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$30.582.484</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.32</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.394</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/curacavi">
+      <div class="card-head">
+        <div class="card-title">Curacaví</div>
+        <span class="badge">CU</span>
+      </div>
+      <div class="card-sub">Provincia de Melipilla · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">259</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$18.966.285</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">10.04</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">666</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/alhue">
+      <div class="card-head">
+        <div class="card-title">Alhué</div>
+        <span class="badge">AL</span>
+      </div>
+      <div class="card-sub">Provincia de Melipilla · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">37</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$3.570.754</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">1.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">150</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/san-pedro">
+      <div class="card-head">
+        <div class="card-title">San Pedro</div>
+        <span class="badge">SP</span>
+      </div>
+      <div class="card-sub">Provincia de Melipilla · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">14</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$1.370.456</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.48</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">61</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/maria-pinto">
+      <div class="card-head">
+        <div class="card-title">María Pinto</div>
+        <span class="badge">MP</span>
+      </div>
+      <div class="card-sub">Provincia de Melipilla · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">5</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$361.535</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">0.2</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">30</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+  <h2>Provincia de Talagante · 5 comunas · 1.614 pts · $121.812.315 · 60.92 km · 6.578 kg</h2>
+  <div class="grid">
+    <a class="card" href="/rm/penaflor">
+      <div class="card-head">
+        <div class="card-title">Peñaflor</div>
+        <span class="badge">PE</span>
+      </div>
+      <div class="card-sub">Provincia de Talagante · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">474</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$35.681.369</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">18.0</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">2.929</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/talagante">
+      <div class="card-head">
+        <div class="card-title">Talagante</div>
+        <span class="badge">TA</span>
+      </div>
+      <div class="card-sub">Provincia de Talagante · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">349</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$26.011.152</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">13.24</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">1.240</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/isla-de-maipo">
+      <div class="card-head">
+        <div class="card-title">Isla De Maipo</div>
+        <span class="badge">ID</span>
+      </div>
+      <div class="card-sub">Provincia de Talagante · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">273</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$21.411.215</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">10.08</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">876</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/padre-hurtado">
+      <div class="card-head">
+        <div class="card-title">Padre Hurtado</div>
+        <span class="badge">PH</span>
+      </div>
+      <div class="card-sub">Provincia de Talagante · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">273</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$20.933.671</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">9.96</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">918</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+    <a class="card" href="/rm/el-monte">
+      <div class="card-head">
+        <div class="card-title">El Monte</div>
+        <span class="badge">EM</span>
+      </div>
+      <div class="card-sub">Provincia de Talagante · Polígono BCN</div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">245</div><div class="kpi-lbl">Puntos</div></div>
+        <div class="kpi"><div class="kpi-val">$17.774.908</div><div class="kpi-lbl">CLP estim.</div></div>
+        <div class="kpi"><div class="kpi-val">9.64</div><div class="kpi-lbl">KM</div></div>
+        <div class="kpi"><div class="kpi-val">613</div><div class="kpi-lbl">KG basura</div></div>
+      </div>
+      <div class="card-foot">Abrir visor →</div>
+    </a>
+  </div>
+</main>
+<footer>
+  <div class="brand">Coordenada Pública</div>
+  Visores regionales de la Región Metropolitana · Datos oficiales BCN · Abril 2026<br/>
+  Cada comuna incluye visor geoespacial, KPIs, gráficos descriptivos y datos filtrados por polígono BCN.
+</footer>
+</body>
+</html>
