@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1620">
+<title>Fiscalización Municipal · Coordenada Pública</title>
+<link rel="manifest" href="/app/manifest.json">
+<link rel="icon" href="/app/icon-192.png">
+<link rel="apple-touch-icon" href="/app/icon-192.png">
+<script src="/app/config.js"></script>
+<style>
+:root{
+  --bg:#0d1620; --card:#16263a; --accent:#c49a39; --border:#2a3e54;
+  --txt:#ffffff; --txt2:#9bb0c5; --azul:#1E3A5F; --azul2:#8FCDF5;
+  --ok:#4ECDC4; --warn:#E0A458; --err:#D96E6E;
+}
+*{box-sizing:border-box; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif;}
+body{background:var(--bg); color:var(--txt); min-height:100vh; padding-bottom:70px;}
+.hidden{display:none !important;}
+h1{font-size:18px; color:var(--accent);}
+h2{font-size:15px; color:var(--accent); margin:14px 0 8px;}
+.sub{color:var(--txt2); font-size:12px;}
+.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin:10px;}
+label{display:block; font-size:13px; color:var(--txt2); margin:10px 0 4px;}
+input[type=text],input[type=email],input[type=password],select,textarea{
+  width:100%; background:var(--bg); color:var(--txt); border:1px solid var(--border);
+  border-radius:8px; padding:10px; font-size:15px;
+}
+textarea{resize:vertical; min-height:70px;}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--accent);}
+button{cursor:pointer; border:none; border-radius:8px; font-size:15px;}
+.btn{width:100%; padding:13px; margin-top:12px; background:var(--accent); color:#0d1620; font-weight:bold;}
+.btn.sec{background:var(--card); color:var(--accent); border:1px solid var(--accent);}
+.btn:disabled{opacity:.45;}
+.chips{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{padding:8px 12px; border-radius:18px; border:1px solid var(--border); background:var(--bg);
+  color:var(--txt2); font-size:13px;}
+.chip.on{background:var(--accent); color:#0d1620; border-color:var(--accent); font-weight:bold;}
+.chip.risk-g.on{background:var(--err); border-color:var(--err); color:#fff;}
+.chip.risk-m.on{background:var(--warn); border-color:var(--warn); color:#0d1620;}
+.chk{display:flex; align-items:center; gap:8px; padding:7px 4px; font-size:14px; color:var(--txt);}
+.chk input{width:18px; height:18px; accent-color:var(--accent);}
+.topbar{position:sticky; top:0; z-index:50; background:var(--bg); border-bottom:1px solid var(--border);
+  padding:10px 12px; display:flex; justify-content:space-between; align-items:center;}
+.badge{font-size:11px; padding:3px 8px; border-radius:10px; background:var(--card); border:1px solid var(--border); color:var(--txt2);}
+.badge.on{color:var(--ok); border-color:var(--ok);}
+.badge.off{color:var(--err); border-color:var(--err);}
+.badge.demo{color:var(--warn); border-color:var(--warn);}
+.tabs{position:fixed; bottom:0; left:0; right:0; display:flex; background:var(--card);
+  border-top:1px solid var(--border); z-index:50;}
+.tab{flex:1; padding:12px 4px; text-align:center; background:none; color:var(--txt2); font-size:12px;}
+.tab.on{color:var(--accent); font-weight:bold;}
+.kpis{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:10px;}
+.kpi{background:var(--card); border:1px solid var(--accent); border-radius:12px; padding:10px; text-align:center;}
+.kpi b{display:block; font-size:20px; color:var(--accent);}
+.kpi span{font-size:11px; color:var(--txt2);}
+#fotoPrev{width:100%; border-radius:8px; border:1px solid var(--border); margin-top:8px;}
+.gps{display:flex; gap:8px; align-items:center; margin-top:8px; font-size:13px;}
+.gps .dot{width:10px; height:10px; border-radius:50%; background:var(--err);}
+.gps .dot.ok{background:var(--ok);}
+.count{float:right; font-size:11px; color:var(--azul2);}
+.item{border-bottom:1px solid var(--border); padding:10px 4px; font-size:13px;}
+.item b{color:var(--accent);}
+.item .st{float:right; font-size:11px;}
+.st.sync{color:var(--ok);} .st.pend{color:var(--warn);}
+.msg{margin:10px; padding:10px; border-radius:8px; font-size:13px; background:var(--card); border:1px solid var(--border);}
+.msg.ok{border-color:var(--ok); color:var(--ok);}
+.msg.err{border-color:var(--err); color:var(--err);}
+.logo{width:54px; height:54px; border-radius:12px; background:var(--accent); color:#0d1620;
+  font-weight:bold; font-size:24px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;}
+.center{text-align:center;}
+.legal{font-size:10px; color:var(--txt2); margin:14px 10px; text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="scrLogin">
+  <div style="max-width:420px; margin:0 auto; padding-top:8vh;">
+    <div class="card center">
+      <div class="logo">⛊</div>
+      <h1>Fiscalización Municipal</h1>
+      <p class="sub">Elementos de red en desuso · Ley 21.172 / D.S. 176</p>
+      <label style="text-align:left">Usuario institucional</label>
+      <input type="email" id="inEmail" placeholder="nombre@municipio.cl" autocomplete="username">
+      <label style="text-align:left">Contraseña</label>
+      <input type="password" id="inPass" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn" id="btnLogin">Ingresar al Sistema</button>
+      <p class="sub" id="loginMsg" style="margin-top:10px"></p>
+      <p class="sub" id="modeNote" style="margin-top:14px"></p>
+    </div>
+    <p class="legal">Ingreso seguro con trazabilidad del funcionario responsable en cada actuación.<br>Coordenada Pública · Visor de Gestión de Red</p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="scrApp" class="hidden">
+  <div class="topbar">
+    <div>
+      <h1 id="hComuna">Fiscalización</h1>
+      <span class="sub" id="hUser"></span>
+    </div>
+    <div style="display:flex; gap:6px; align-items:center">
+      <span class="badge" id="bNet">···</span>
+      <span class="badge" id="bPend">0 pend.</span>
+    </div>
+  </div>
+
+  <!-- ---- TAB CAPTURA ---- -->
+  <div id="tabCap">
+    <div class="card">
+      <h2>1 · Ubicación del hallazgo</h2>
+      <label>Comuna</label>
+      <select id="fComuna"></select>
+      <div class="gps">
+        <div class="dot" id="gpsDot"></div>
+        <span id="gpsTxt">Buscando señal GPS…</span>
+        <button class="chip" id="btnGps" style="margin-left:auto">↻ GPS</button>
+      </div>
+      <label>Dirección aproximada (opcional)</label>
+      <input type="text" id="fDir" placeholder="Av. Alameda 3320">
+    </div>
+
+    <div class="card">
+      <h2>2 · Categoría de riesgo <span class="count">D.S. 176 / Ordenanza</span></h2>
+      <div class="chips" id="fGrav"></div>
+      <label style="margin-top:12px">Afectación (emergencias)</label>
+      <div id="fAfect"></div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Tipología del hallazgo</h2>
+      <label>Tipo de elemento</label>
+      <div class="chips" id="fTipo"></div>
+      <label>Material</label>
+      <div class="chips" id="fMat"></div>
+      <label>Causales de desuso (D.S. 176) — marque al menos una si aplica</label>
+      <div id="fCausales"></div>
+      <label>Operador presunto</label>
+      <select id="fOper">
+        <option>Por identificar</option><option>Telefónica Chile S.A.</option>
+        <option>ClaroVTR</option><option>ENTEL</option><option>WOM</option>
+        <option>GTD / Manquehue</option><option>Mundo</option><option>UFINET CHILE SPA</option>
+        <option>HOLDCO</option><option>Municipalidad</option><option>Otro</option>
+      </select>
+      <label>Marca de color detectada (Res. Ex. 1.642)</label>
+      <input type="text" id="fMarca" placeholder="Código alfanumérico o vacío si no hay">
+      <div class="chk"><input type="checkbox" id="fSinMarca"><span>Sin marca de color visible (infracción autónoma)</span></div>
+    </div>
+
+    <div class="card">
+      <h2>4 · Evidencia fotográfica <span class="count">marca de agua inalterable</span></h2>
+      <input type="file" id="fFoto" accept="image/*" capture="environment" class="hidden">
+      <button class="btn sec" id="btnFoto">📷 Tomar fotografía</button>
+      <img id="fotoPrev" class="hidden" alt="Evidencia">
+      <p class="sub" id="fotoInfo"></p>
+    </div>
+
+    <div class="card">
+      <h2>5 · Descripción <span class="count"><span id="descN">0</span>/300</span></h2>
+      <textarea id="fDesc" maxlength="300" placeholder="Cables de fibra óptica cortados colgando a baja altura…"></textarea>
+      <div class="msg" id="multaBox">Multa estimada: <b>—</b></div>
+      <button class="btn" id="btnSave">💾 Guardar punto de fiscalización</button>
+    </div>
+  </div>
+
+  <!-- ---- TAB REGISTROS ---- -->
+  <div id="tabReg" class="hidden">
+    <div class="kpis">
+      <div class="kpi"><b id="kN">0</b><span>Puntos capturados</span></div>
+      <div class="kpi"><b id="kUTM">0</b><span>UTM/día estimadas</span></div>
+      <div class="kpi"><b id="kCLP">$0</b><span>CLP/día estimados</span></div>
+      <div class="kpi"><b id="kPend">0</b><span>Pendientes de sincronizar</span></div>
+    </div>
+    <div class="card">
+      <button class="btn" id="btnSync">⇅ Sincronizar ahora</button>
+      <button class="btn sec" id="btnCsv">⬇ Exportar CSV (formato visor)</button>
+      <div id="lista"></div>
+    </div>
+    <div class="card">
+      <button class="btn sec" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="tCap">📷 Captura</button>
+    <button class="tab" id="tReg">🗂 Mis registros</button>
+  </div>
+</div>
+
+<div id="toast" class="msg hidden" style="position:fixed; bottom:76px; left:10px; right:10px; z-index:99"></div>
+
+<script>
+/* ============================================================
+   Fiscalización Municipal · PWA
+   Auth + BBDD + Storage: Supabase (REST). Sin config → MODO DEMO.
+   Offline-first: cola en IndexedDB, sync automático al volver la red.
+   ============================================================ */
+const CFG = window.FISCAL_CONFIG || {};
+const CONFIGURED = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+
+/* ---------- estado ---------- */
+let SESSION = null;          // {email, access_token, refresh_token, demo}
+let GPS = null;              // {lat,lng,acc}
+let FOTO = null;             // {blob, sha256, dataUrl, w, h}
+let GRAV = null, TIPO = null, MAT = null;
+let gpsWatch = null;
+
+/* ---------- catálogos ---------- */
+const GRAVEDADES = ["Sin infracción","Leve","Moderada (Abandono)","Grave (Riesgo Inminente)"];
+const TIPOS = ["Cable aéreo","Poste","Gabinete","Mufa / Caja","Reserva (rollo)","Cruce de calzada","Acometida"];
+const MATERIALES = ["FO","Cobre","Coaxial","Mixto_General","Acometida"];
+const CAUSALES = [
+  ["sin_transmision","Sin transmisión de servicio"],
+  ["falta_continuidad","Falta de continuidad física"],
+  ["sin_conectorizacion","Sin conectorización en extremos"],
+  ["gabinete_vacio","Gabinete / caja vacía o abierta"],
+  ["cable_doblado_critico","Cable cortado / doblado crítico"],
+  ["sin_marca_color","Sin marca de color (Res. 1.642)"]
+];
+const AFECTA = [["personas","Personas (atención inmediata)"],["bienes","Bienes (30 min)"],["vialidad","Vialidad (1 hora)"],["patrimonio","Patrimonio"]];
+const RIESGO_MAP = {"Sin infracción":"Bajo","Leve":"Bajo","Moderada (Abandono)":"Medio","Grave (Riesgo Inminente)":"Alto"};
+const ELEM_MAP = {"Cable aéreo":"Cableado","Poste":"Poste","Gabinete":"Mufa_Caja","Mufa / Caja":"Mufa_Caja","Reserva (rollo)":"Cableado","Cruce de calzada":"Cableado","Acometida":"Cableado"};
+
+/* ---------- IndexedDB ---------- */
+let db;
+function idb(){ return new Promise((res,rej)=>{
+  if(db) return res(db);
+  const rq = indexedDB.open('fiscal',1);
+  rq.onupgradeneeded = e=>{ e.target.result.createObjectStore('puntos',{keyPath:'codigo'}); };
+  rq.onsuccess = e=>{ db=e.target.result; res(db); };
+  rq.onerror = ()=>rej(rq.error);
+});}
+async function idbPut(v){ const d=await idb(); return new Promise((res,rej)=>{ const t=d.transaction('puntos','readwrite'); t.objectStore('puntos').put(v); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }
+async function idbAll(){ const d=await idb(); return new Promise((res,rej)=>{ const rq=d.transaction('puntos').objectStore('puntos').getAll(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); }); }
+
+/* ---------- Supabase REST ---------- */
+const SB = {
+  h(extra){ return Object.assign({apikey:CFG.SUPABASE_ANON_KEY, Authorization:'Bearer '+(SESSION&&SESSION.access_token||CFG.SUPABASE_ANON_KEY)}, extra||{}); },
+  async login(email,pass){
+    const r = await fetch(CFG.SUPABASE_URL+'/auth/v1/token?grant_type=password',{
+      method:'POST', headers:{apikey:CFG.SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pass})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error_description||j.msg||'Credenciales inválidas');
+    return {email:j.user.email, access_token:j.access_token, refresh_token:j.refresh_token, demo:false};
+  },
+  async refresh(){
+    if(!SESSION||SESSION.demo) return false;
+    try{
+      const r = await fetch(CFG.SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+        method:'POST', headers:{apikey:CFG.SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({refresh_token:SESSION.refresh_token})});
+      if(!r.ok) return false;
+      const j = await r.json();
+      SESSION.access_token=j.access_token; SESSION.refresh_token=j.refresh_token;
+      localStorage.setItem('fiscal_session', JSON.stringify(SESSION));
+      return true;
+    }catch(e){ return false; }
+  },
+  async insert(row){
+    let r = await fetch(CFG.SUPABASE_URL+'/rest/v1/puntos',{
+      method:'POST', headers:this.h({'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'}),
+      body:JSON.stringify(row)});
+    if(r.status===401 && await this.refresh()){
+      r = await fetch(CFG.SUPABASE_URL+'/rest/v1/puntos',{method:'POST',
+        headers:this.h({'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'}), body:JSON.stringify(row)});
+    }
+    if(!r.ok) throw new Error('BBDD: '+await r.text());
+  },
+  async upload(path, blob){
+    let r = await fetch(CFG.SUPABASE_URL+'/storage/v1/object/evidencias/'+path,{
+      method:'POST', headers:this.h({'Content-Type':'image/jpeg','x-upsert':'true'}), body:blob});
+    if(r.status===401 && await this.refresh()){
+      r = await fetch(CFG.SUPABASE_URL+'/storage/v1/object/evidencias/'+path,{
+        method:'POST', headers:this.h({'Content-Type':'image/jpeg','x-upsert':'true'}), body:blob});
+    }
+    if(!r.ok) throw new Error('Storage: '+await r.text());
+    return CFG.SUPABASE_URL+'/storage/v1/object/public/evidencias/'+path;
+  }
+};
+
+/* ---------- utilidades ---------- */
+function toast(txt, cls){
+  const t=$('toast'); t.textContent=txt; t.className='msg '+(cls||''); t.classList.remove('hidden');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.add('hidden'), 4000);
+}
+const fmtCLP = n=>'$'+Math.round(n||0).toLocaleString('es-CL');
+function tsChile(){
+  return new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'medium'}).format(new Date());
+}
+async function sha256(blob){
+  const buf = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function chips(el, arr, cb, extraCls){
+  el.innerHTML='';
+  arr.forEach(v=>{
+    const b=document.createElement('button'); b.className='chip '+(extraCls?extraCls(v):''); b.textContent=v;
+    b.onclick=()=>{ [...el.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); cb(v); };
+    el.appendChild(b);
+  });
+}
+function checks(el, arr, name){
+  el.innerHTML='';
+  arr.forEach(([k,txt])=>{
+    const l=document.createElement('label'); l.className='chk';
+    l.innerHTML=`<input type="checkbox" data-k="${k}" data-g="${name}"><span>${txt}</span>`;
+    el.appendChild(l);
+  });
+}
+const getChecks = g => Object.fromEntries([...document.querySelectorAll(`input[data-g=${g}]`)].map(i=>[i.dataset.k, i.checked]));
+
+/* ---------- GPS · WGS84 5 decimales ---------- */
+function startGps(){
+  if(!navigator.geolocation){ $('gpsTxt').textContent='GPS no disponible'; return; }
+  if(gpsWatch) navigator.geolocation.clearWatch(gpsWatch);
+  $('gpsTxt').textContent='Buscando señal GPS…'; $('gpsDot').classList.remove('ok');
+  gpsWatch = navigator.geolocation.watchPosition(p=>{
+    GPS = { lat:+p.coords.latitude.toFixed(5), lng:+p.coords.longitude.toFixed(5), acc:Math.round(p.coords.accuracy) };
+    $('gpsDot').classList.add('ok');
+    $('gpsTxt').textContent = `Lat: ${GPS.lat.toFixed(5)}, Lon: ${GPS.lng.toFixed(5)} · ±${GPS.acc} m`;
+  }, e=>{ $('gpsTxt').textContent='Sin señal: '+e.message; }, {enableHighAccuracy:true, maximumAge:5000, timeout:20000});
+}
+
+/* ---------- foto + marca de agua inalterable ---------- */
+async function procesarFoto(file){
+  const img = await createImageBitmap(file);
+  const MAX=1600, sc=Math.min(1, MAX/Math.max(img.width,img.height));
+  const w=Math.round(img.width*sc), h=Math.round(img.height*sc);
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  const cx=cv.getContext('2d');
+  cx.drawImage(img,0,0,w,h);
+  // marca de agua: banda inferior grabada en píxeles
+  const email=SESSION.email, fecha=tsChile();
+  const coords = GPS ? `${GPS.lat.toFixed(5)}, ${GPS.lng.toFixed(5)}` : 'SIN GPS';
+  const line1=`${fecha} · Insp: ${email}`, line2=`WGS84: ${coords} · Ley 21.172 / D.S. 176`;
+  const fs=Math.max(14, Math.round(w/55)), bh=fs*3.2;
+  cx.fillStyle='rgba(13,22,32,0.78)'; cx.fillRect(0,h-bh,w,bh);
+  cx.fillStyle='#c49a39'; cx.font=`bold ${fs}px Arial`;
+  cx.fillText(line1, 10, h-bh+fs*1.2);
+  cx.fillStyle='#ffffff'; cx.font=`${fs}px Arial`;
+  cx.fillText(line2, 10, h-bh+fs*2.5);
+  const blob = await new Promise(r=>cv.toBlob(r,'image/jpeg',0.85));
+  const hash = await sha256(blob);
+  const dataUrl = cv.toDataURL('image/jpeg',0.6);
+  FOTO={blob, sha256:hash, dataUrl, w, h};
+  $('fotoPrev').src=dataUrl; $('fotoPrev').classList.remove('hidden');
+  $('fotoInfo').innerHTML=`SHA-256: <span style="word-break:break-all">${hash.slice(0,32)}…</span><br>Marca de agua grabada en píxeles (inalterable).`;
+}
+
+/* ---------- multa estimada ---------- */
+function updateMulta(){
+  const utm = GRAV!=null ? (CFG.UTM_POR_GRAVEDAD[GRAV]||0) : null;
+  $('multaBox').innerHTML = utm==null ? 'Multa estimada: <b>seleccione categoría de riesgo</b>'
+    : `Multa estimada: <b>${utm} UTM/día · ${fmtCLP(utm*CFG.UTM_CLP)}/día por elemento</b><br>
+       <span class="sub">Rango ordenanza 0–5 UTM · tope JPL 100–1.000 UTM por hecho (Ley 18.287)</span>`;
+}
+
+/* ---------- guardar punto ---------- */
+async function guardar(){
+  if(!GRAV) return toast('Seleccione la categoría de riesgo','err');
+  if(!TIPO) return toast('Seleccione el tipo de elemento','err');
+  if(!FOTO) return toast('La evidencia fotográfica es obligatoria','err');
+  if(!GPS)  return toast('Sin coordenadas GPS. Presione ↻ GPS','err');
+  const causales=getChecks('cau'); if($('fSinMarca').checked) causales.sin_marca_color=true;
+  if(GRAV!=='Sin infracción' && !Object.values(causales).some(v=>v))
+    return toast('Marque al menos una causal del D.S. 176 (regla de calificación)','err');
+  const utm = CFG.UTM_POR_GRAVEDAD[GRAV]||0;
+  const codigo = ($('fComuna').value.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g,'').slice(0,3).toUpperCase())
+                 +'-'+Date.now().toString(36).toUpperCase();
+  const row = {
+    codigo, comuna:$('fComuna').value, inspector_email:SESSION.email,
+    ts:new Date().toISOString(), lat:GPS.lat, lng:GPS.lng, accuracy_m:GPS.acc,
+    direccion:$('fDir').value||null,
+    tipo_elemento:TIPO, elemento_red:ELEM_MAP[TIPO]||'Cableado',
+    material:MAT||'Mixto_General', causales, operador:$('fOper').value,
+    marca_color:$('fMarca').value||null, gravedad:GRAV,
+    utm_dia:utm, clp_estimado:Math.round(utm*CFG.UTM_CLP),
+    afectacion:getChecks('afe'), descripcion:$('fDesc').value||null,
+    foto_sha256:FOTO.sha256, foto_url:null,
+    estado_expediente:'Detección', _synced:false, _fotoLocal:FOTO.dataUrl
+  };
+  await idbPut(row);
+  toast('✓ Punto '+codigo+' guardado localmente','ok');
+  limpiar(); refreshBadges();
+  if(navigator.onLine && CONFIGURED && !SESSION.demo) sync();
+}
+
+function limpiar(){
+  FOTO=null; $('fotoPrev').classList.add('hidden'); $('fotoInfo').textContent='';
+  $('fDesc').value=''; $('descN').textContent='0'; $('fMarca').value=''; $('fDir').value='';
+  $('fSinMarca').checked=false;
+  document.querySelectorAll('input[data-g]').forEach(i=>i.checked=false);
+  document.querySelectorAll('#fGrav .chip,#fTipo .chip,#fMat .chip').forEach(c=>c.classList.remove('on'));
+  GRAV=TIPO=MAT=null; updateMulta();
+}
+
+/* ---------- sincronización ---------- */
+let syncing=false;
+async function sync(){
+  if(syncing) return;
+  if(!CONFIGURED || (SESSION&&SESSION.demo)) return toast('Modo demo: use Exportar CSV para alimentar el visor','');
+  if(!navigator.onLine) return toast('Sin conexión: se sincronizará automáticamente','');
+  syncing=true;
+  try{
+    const rows=(await idbAll()).filter(r=>!r._synced && r.inspector_email===SESSION.email);
+    let n=0;
+    for(const r of rows){
+      try{
+        if(!r.foto_url && r._fotoLocal){
+          const blob = await (await fetch(r._fotoLocal)).blob();
+          r.foto_url = await SB.upload(`${r.comuna.replace(/\s+/g,'_')}/${r.codigo}.jpg`, blob);
+        }
+        const clean = Object.fromEntries(Object.entries(r).filter(([k])=>!k.startsWith('_')));
+        await SB.insert(clean);
+        r._synced=true; delete r._fotoLocal; await idbPut(r); n++;
+      }catch(e){ console.warn('sync fail',r.codigo,e); }
+    }
+    toast(n?('✓ '+n+' punto(s) sincronizados al visor'):'Todo sincronizado','ok');
+  } finally { syncing=false; refreshBadges(); renderLista(); }
+}
+
+/* ---------- export CSV compatible con visor ---------- */
+async function exportCsv(){
+  const rows=(await idbAll());
+  if(!rows.length) return toast('Sin registros','err');
+  const heads=['id','fuente','region','comuna','plan','prioridad','tipo_lugar','tipo_elemento','elemento_red','material','estado_clasificado','estado_final','riesgo','riesgo_score','multas','clp_multas','km','kg_basura','lat','lng'];
+  const esc=v=>{v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const lines=[heads.join(',')];
+  rows.forEach(r=>{
+    lines.push(heads.map(h=>esc(({
+      id:'APP-'+r.codigo, fuente:r.operador, region:'Región Metropolitana de Santiago (XIII)',
+      comuna:r.comuna, plan:'Fiscalización en terreno', prioridad:1, tipo_lugar:'Calles y Avenidas',
+      tipo_elemento:r.tipo_elemento, elemento_red:r.elemento_red, material:r.material,
+      estado_clasificado: r.gravedad==='Grave (Riesgo Inminente)'?'Mal Estado / Riesgo':(r.gravedad==='Sin infracción'?'Desconocido':'En Desuso'),
+      estado_final:'Válido', riesgo:RIESGO_MAP[r.gravedad]||'Bajo',
+      riesgo_score:{'Bajo':0,'Medio':5,'Alto':9}[RIESGO_MAP[r.gravedad]]||0,
+      multas: r.utm_dia>0?1:0, clp_multas:r.clp_estimado, km:0.04, kg_basura:6.0,
+      lat:r.lat, lng:r.lng
+    })[h])).join(','));
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='fiscalizacion_'+Date.now()+'.csv'; a.click();
+  toast('CSV exportado (cargable en el visor)','ok');
+}
+
+/* ---------- UI registros ---------- */
+async function renderLista(){
+  const rows=(await idbAll()).sort((a,b)=>b.ts.localeCompare(a.ts));
+  const utm=rows.reduce((s,r)=>s+(r.utm_dia||0),0);
+  $('kN').textContent=rows.length;
+  $('kUTM').textContent=utm;
+  $('kCLP').textContent=fmtCLP(utm*CFG.UTM_CLP);
+  $('kPend').textContent=rows.filter(r=>!r._synced).length;
+  $('lista').innerHTML = rows.slice(0,80).map(r=>
+    `<div class="item"><b>${r.codigo}</b> · ${r.tipo_elemento} · ${r.gravedad}
+     <span class="st ${r._synced?'sync':'pend'}">${r._synced?'✓ sync':'⏳ pendiente'}</span><br>
+     <span class="sub">${r.comuna} · ${r.lat}, ${r.lng} · ${new Date(r.ts).toLocaleString('es-CL')} · ${r.utm_dia} UTM/día</span></div>`
+  ).join('') || '<p class="sub" style="margin-top:10px">Aún no hay puntos capturados.</p>';
+}
+async function refreshBadges(){
+  const rows=await idbAll();
+  $('bPend').textContent = rows.filter(r=>!r._synced).length+' pend.';
+  $('bNet').textContent = navigator.onLine?'● online':'○ offline';
+  $('bNet').className = 'badge '+(navigator.onLine?'on':'off');
+  if(SESSION&&SESSION.demo){ $('bNet').textContent='DEMO'; $('bNet').className='badge demo'; }
+}
+
+/* ---------- login/logout ---------- */
+async function doLogin(){
+  const email=$('inEmail').value.trim().toLowerCase(), pass=$('inPass').value;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return $('loginMsg').textContent='Ingrese un correo institucional válido';
+  $('btnLogin').disabled=true; $('loginMsg').textContent='Verificando…';
+  try{
+    SESSION = CONFIGURED ? await SB.login(email,pass)
+                         : (pass.length>=4 ? {email, demo:true} : (()=>{throw new Error('Contraseña mínima 4 caracteres (modo demo)')})());
+    localStorage.setItem('fiscal_session', JSON.stringify(SESSION));
+    entrar();
+  }catch(e){ $('loginMsg').textContent='✗ '+e.message; }
+  $('btnLogin').disabled=false;
+}
+function entrar(){
+  $('scrLogin').classList.add('hidden'); $('scrApp').classList.remove('hidden');
+  $('hUser').textContent=SESSION.email+(SESSION.demo?' · MODO DEMO':'');
+  startGps(); refreshBadges(); renderLista();
+}
+function logout(){
+  localStorage.removeItem('fiscal_session'); SESSION=null;
+  $('scrApp').classList.add('hidden'); $('scrLogin').classList.remove('hidden');
+}
+
+/* ---------- init ---------- */
+function init(){
+  $('modeNote').innerHTML = CONFIGURED
+    ? 'Conectado a la base de datos municipal.'
+    : '⚠ <b>MODO DEMO</b>: sin backend configurado.<br>Los puntos se guardan en este dispositivo (ver supabase/SUPABASE_SETUP.md).';
+  chips($('fGrav'), GRAVEDADES, v=>{GRAV=v; updateMulta();},
+        v=>v.startsWith('Grave')?'risk-g':(v.startsWith('Moderada')?'risk-m':''));
+  chips($('fTipo'), TIPOS, v=>TIPO=v);
+  chips($('fMat'), MATERIALES, v=>MAT=v);
+  checks($('fCausales'), CAUSALES, 'cau');
+  checks($('fAfect'), AFECTA, 'afe');
+  const sel=$('fComuna');
+  (CFG.COMUNAS||['Estación Central']).forEach(c=>{const o=document.createElement('option');o.textContent=c;sel.appendChild(o);});
+  sel.value=CFG.COMUNA_DEFAULT||'Estación Central';
+  $('hComuna').textContent='Fiscalización · '+sel.value;
+  sel.onchange=()=>$('hComuna').textContent='Fiscalización · '+sel.value;
+  updateMulta();
+
+  $('btnLogin').onclick=doLogin;
+  $('inPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  $('btnGps').onclick=startGps;
+  $('btnFoto').onclick=()=>$('fFoto').click();
+  $('fFoto').onchange=e=>{ if(e.target.files[0]) procesarFoto(e.target.files[0]); };
+  $('fDesc').oninput=e=>$('descN').textContent=e.target.value.length;
+  $('btnSave').onclick=guardar;
+  $('btnSync').onclick=sync;
+  $('btnCsv').onclick=exportCsv;
+  $('btnLogout').onclick=logout;
+  $('tCap').onclick=()=>{$('tabCap').classList.remove('hidden');$('tabReg').classList.add('hidden');$('tCap').classList.add('on');$('tReg').classList.remove('on');};
+  $('tReg').onclick=()=>{$('tabReg').classList.remove('hidden');$('tabCap').classList.add('hidden');$('tReg').classList.add('on');$('tCap').classList.remove('on');renderLista();};
+
+  window.addEventListener('online', ()=>{refreshBadges(); sync();});
+  window.addEventListener('offline', refreshBadges);
+
+  const saved=localStorage.getItem('fiscal_session');
+  if(saved){ try{ SESSION=JSON.parse(saved); if(SESSION.demo===false && !CONFIGURED) SESSION=null; }catch(e){} }
+  if(SESSION) entrar();
+
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('/app/sw.js').catch(()=>{});
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "Fiscalización Municipal · Coordenada Pública",
+  "short_name": "Fiscalización",
+  "description": "Levantamiento en terreno de elementos de red en desuso · Ley 21.172 / D.S. 176",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1620",
+  "theme_color": "#0d1620",
+  "icons": [
+    { "src": "/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

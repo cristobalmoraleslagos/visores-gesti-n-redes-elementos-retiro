@@ -618,7 +618,53 @@ function genReporte(){
     '<div class="kpi"><b>% Riesgo Alto</b><span>'+(d.length?(alto/d.length*100).toFixed(1):0)+'%</span></div>'+
     '<h2>Top 5 fuentes por impacto CLP</h2>'+
     '<table><tr><th>Fuente</th><th>CLP</th></tr>'+top.map(function(t){return '<tr><td>'+t[0]+'</td><td>'+fmtCLP(t[1])+'</td></tr>';}).join('')+'</table>'+
-    '</body></html>';
+    '
+<!-- ===== LIVE_FISCALIZACION · puntos capturados por la app /app en tiempo real ===== -->
+<script src="/app/config.js"></script>
+<script>
+(function(){
+  const C = window.FISCAL_CONFIG||{};
+  if(!C.SUPABASE_URL || !C.SUPABASE_ANON_KEY) return; // sin backend: visor estático normal
+  const LIVE_IDS = new Set();
+  async function pullLive(){
+    try{
+      if(typeof DATA_ALL==='undefined' || !DATA_ALL.length) return; // aún no bootea
+      const url = C.SUPABASE_URL + '/rest/v1/puntos_visor?comuna=eq.' +
+                  encodeURIComponent('Estación Central') + '&order=ts.desc&limit=2000';
+      const r = await fetch(url, {headers:{apikey:C.SUPABASE_ANON_KEY, Authorization:'Bearer '+C.SUPABASE_ANON_KEY}});
+      if(!r.ok) return;
+      const rows = await r.json();
+      let added = 0;
+      rows.forEach(row=>{
+        if(LIVE_IDS.has(row.id)) return;
+        LIVE_IDS.add(row.id);
+        const rec = {
+          id:row.id, fuente:row.fuente||'Por identificar', region:row.region, comuna:row.comuna,
+          plan:row.plan, prioridad:row.prioridad, tipo_lugar:row.tipo_lugar,
+          tipo_elemento:row.tipo_elemento, elemento_red:row.elemento_red, material:row.material,
+          estado_clasificado:row.estado_clasificado, estado_final:row.estado_final,
+          riesgo:row.riesgo, riesgo_score:row.riesgo_score, multas:row.multas,
+          clp_multas:row.clp_multas, km:row.km, kg_basura:row.kg_basura,
+          lat:row.lat, lng:row.lng, _live:true
+        };
+        rec._inside = (rec.lat&&rec.lng)? pointInside(rec) : false;
+        DATA_ALL.push(rec); added++;
+      });
+      if(added){
+        applyFilters();
+        setStatus('⚡ '+added+' punto(s) nuevos desde fiscalización en terreno ('+LIVE_IDS.size+' en vivo)','ok');
+      }
+    }catch(e){ console.warn('live fetch', e); }
+  }
+  function startLive(){
+    pullLive();
+    setInterval(pullLive, Math.max(10,(C.VISOR_POLL_S||30))*1000);
+  }
+  if(document.readyState==='complete') setTimeout(startLive, 2500);
+  else window.addEventListener('load', ()=>setTimeout(startLive, 2500));
+})();
+</script>
+</body></html>';
   const w = window.open('','_blank');
   w.document.write(html); w.document.close();
 }
@@ -668,5 +714,51 @@ async function bootWhenReady(){
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootWhenReady);
 else bootWhenReady();
+</script>
+
+<!-- ===== LIVE_FISCALIZACION · puntos capturados por la app /app en tiempo real ===== -->
+<script src="/app/config.js"></script>
+<script>
+(function(){
+  const C = window.FISCAL_CONFIG||{};
+  if(!C.SUPABASE_URL || !C.SUPABASE_ANON_KEY) return; // sin backend: visor estático normal
+  const LIVE_IDS = new Set();
+  async function pullLive(){
+    try{
+      if(typeof DATA_ALL==='undefined' || !DATA_ALL.length) return; // aún no bootea
+      const url = C.SUPABASE_URL + '/rest/v1/puntos_visor?comuna=eq.' +
+                  encodeURIComponent('Estación Central') + '&order=ts.desc&limit=2000';
+      const r = await fetch(url, {headers:{apikey:C.SUPABASE_ANON_KEY, Authorization:'Bearer '+C.SUPABASE_ANON_KEY}});
+      if(!r.ok) return;
+      const rows = await r.json();
+      let added = 0;
+      rows.forEach(row=>{
+        if(LIVE_IDS.has(row.id)) return;
+        LIVE_IDS.add(row.id);
+        const rec = {
+          id:row.id, fuente:row.fuente||'Por identificar', region:row.region, comuna:row.comuna,
+          plan:row.plan, prioridad:row.prioridad, tipo_lugar:row.tipo_lugar,
+          tipo_elemento:row.tipo_elemento, elemento_red:row.elemento_red, material:row.material,
+          estado_clasificado:row.estado_clasificado, estado_final:row.estado_final,
+          riesgo:row.riesgo, riesgo_score:row.riesgo_score, multas:row.multas,
+          clp_multas:row.clp_multas, km:row.km, kg_basura:row.kg_basura,
+          lat:row.lat, lng:row.lng, _live:true
+        };
+        rec._inside = (rec.lat&&rec.lng)? pointInside(rec) : false;
+        DATA_ALL.push(rec); added++;
+      });
+      if(added){
+        applyFilters();
+        setStatus('⚡ '+added+' punto(s) nuevos desde fiscalización en terreno ('+LIVE_IDS.size+' en vivo)','ok');
+      }
+    }catch(e){ console.warn('live fetch', e); }
+  }
+  function startLive(){
+    pullLive();
+    setInterval(pullLive, Math.max(10,(C.VISOR_POLL_S||30))*1000);
+  }
+  if(document.readyState==='complete') setTimeout(startLive, 2500);
+  else window.addEventListener('load', ()=>setTimeout(startLive, 2500));
+})();
 </script>
 </body></html>
